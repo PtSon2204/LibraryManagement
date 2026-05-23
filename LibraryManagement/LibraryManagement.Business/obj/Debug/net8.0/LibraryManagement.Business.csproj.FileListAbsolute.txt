@@ -1,0 +1,14 @@
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\bin\Debug\net8.0\LibraryManagement.Business.deps.json
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\bin\Debug\net8.0\LibraryManagement.Business.runtimeconfig.json
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\bin\Debug\net8.0\LibraryManagement.Business.dll
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\bin\Debug\net8.0\LibraryManagement.Business.pdb
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\LibraryManagement.Business.csproj.AssemblyReference.cache
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\LibraryManagement.Business.GeneratedMSBuildEditorConfig.editorconfig
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\LibraryManagement.Business.AssemblyInfoInputs.cache
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\LibraryManagement.Business.AssemblyInfo.cs
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\LibraryManagement.Business.csproj.CoreCompileInputs.cache
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\LibraryManagement.Business.dll
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\refint\LibraryManagement.Business.dll
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\LibraryManagement.Business.pdb
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\LibraryManagement.Business.genruntimeconfig.cache
+D:\Semester 8\PRN232\LibraryManagement\LibraryManagement.Business\obj\Debug\net8.0\ref\LibraryManagement.Business.dll
