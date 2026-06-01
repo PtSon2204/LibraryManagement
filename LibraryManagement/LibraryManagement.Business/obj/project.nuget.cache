@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "aGNCHdj/5pk=",
+  "dgSpecHash": "BSL6u/yKlRw=",
   "success": true,
-  "projectFilePath": "D:\\Semester 8\\PRN232\\LibraryManagement\\LibraryManagement.Business\\LibraryManagement.Business.csproj",
+  "projectFilePath": "D:\\Semester 8\\PRN232\\LibraryManagementProject\\LibraryManagement\\LibraryManagement.Business\\LibraryManagement.Business.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ptson\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\ptson\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
