@@ -430,7 +430,11 @@ FodyWeavers.xsd
 
 
 .vs/
+**/.vs/
 bin/
+**/bin/
 obj/
+**/obj/
 .env
 
+/LibraryTesting
