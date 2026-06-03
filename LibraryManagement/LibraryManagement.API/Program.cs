@@ -1,7 +1,12 @@
 ﻿using LibraryManagement.API.Extensions;
+using LibraryManagement.API.Middleware;
+using LibraryManagement.Business.DTOs.BookDTOs;
 using LibraryManagement.Data;
  using LibraryManagement.Models.Context;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 
 namespace LibraryManagement.API
 {
@@ -29,6 +34,16 @@ namespace LibraryManagement.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddControllers()
+                .AddOData(options =>
+                    options.Select()
+                            .Filter()
+                            .OrderBy()
+                            .Expand()
+                            .Count()
+                            .SetMaxTop(100)
+                            .AddRouteComponents("odata", GetEdmModel()));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -47,6 +62,17 @@ namespace LibraryManagement.API
             app.MapControllers();
 
             app.Run();
+        }
+
+        private static IEdmModel GetEdmModel()
+        {
+            var builder = new ODataConventionModelBuilder();
+
+            builder.EntitySet<BookOdataDto>("Books")
+               .EntityType
+               .HasKey(b => b.BookId);
+
+            return builder.GetEdmModel();
         }
     }
 }
