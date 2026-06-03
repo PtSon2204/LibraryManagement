@@ -1,3 +1,5 @@
+@model LibraryManagement.MVC.ViewModels.Home.HomePageViewModel
+
 @{
     ViewData["Title"] = "Trang chủ";
 }
@@ -13,11 +15,11 @@
             Chúng tôi có rất nhiều sách thuộc nhiều thể loại, bạn đọc có thể xem, đặt sách trước dễ dàng.
         </p>
         
-        <div class="search-box">
+        <form class="search-box" asp-controller="Books" asp-action="Index" method="get">
             <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-            <input type="text" placeholder="Tìm kiếm..." class="ps-5" />
-            <button class="btn-search">Tìm kiếm</button>
-        </div>
+            <input type="text" name="Title" placeholder="Tìm kiếm..." class="ps-5" />
+            <button type="submit" class="btn-search">Tìm kiếm</button>
+        </form>
     </div>
 </section>
 
@@ -26,71 +28,31 @@
     <!-- Ebooks Section -->
     <h2 class="section-heading">Sách mới cập nhật</h2>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4 mb-5">
-        <!-- Sample Book 1 -->
-        <div class="col">
-            <div class="book-card">
-                <div class="book-cover">
-                    <span class="book-badge">Ebook</span>
-                    <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=Toan+2" alt="Toán 2">
+        @if (Model.LatestBooks.Any())
+        {
+            @foreach (var book in Model.LatestBooks)
+            {
+                <div class="col">
+                    <div class="book-card">
+                        <div class="book-cover">
+                            <span class="book-badge">Book</span>
+                            <img src="@(book.CoverImageUrl ?? "https://via.placeholder.com/300x420/e2e8f0/64748b?text=Book")" alt="@book.Title">
+                        </div>
+                        <div class="book-info">
+                            <h3 class="book-title">@book.Title</h3>
+                            <div class="book-author">@(book.PublisherName ?? "Chưa có nhà xuất bản")</div>
+                            <a class="btn btn-sm btn-outline-brand mt-2" asp-controller="Books" asp-action="Details" asp-route-id="@book.BookId">Xem chi tiết</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="book-info">
-                    <h3 class="book-title">Sách Toán 2 Tập 2 - Cánh Diều</h3>
-                    <div class="book-author">Nhiều tác giả</div>
-                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info">Chưa có sách để hiển thị.</div>
             </div>
-        </div>
-        <!-- Sample Book 2 -->
-        <div class="col">
-            <div class="book-card">
-                <div class="book-cover">
-                    <span class="book-badge">Ebook</span>
-                    <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=Tieng+Viet+2" alt="Tiếng Việt 2">
-                </div>
-                <div class="book-info">
-                    <h3 class="book-title">Sách Tiếng Việt 2 Tập 2 - Cánh Diều</h3>
-                    <div class="book-author">Nhiều tác giả</div>
-                </div>
-            </div>
-        </div>
-        <!-- Sample Book 3 -->
-        <div class="col">
-            <div class="book-card">
-                <div class="book-cover">
-                    <span class="book-badge">Ebook</span>
-                    <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=Vat+Li+12" alt="Vật Lí 12">
-                </div>
-                <div class="book-info">
-                    <h3 class="book-title">Vật Lí 12 - Kết Nối Tri Thức Với Cuộc Sống</h3>
-                    <div class="book-author">Nhiều tác giả</div>
-                </div>
-            </div>
-        </div>
-        <!-- Sample Book 4 -->
-        <div class="col">
-            <div class="book-card">
-                <div class="book-cover">
-                    <span class="book-badge">Ebook</span>
-                    <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=Toan+12" alt="Toán 12">
-                </div>
-                <div class="book-info">
-                    <h3 class="book-title">Toán 12 Tập 2 - Kết Nối Tri Thức</h3>
-                    <div class="book-author">Nhiều tác giả</div>
-                </div>
-            </div>
-        </div>
-        <!-- Sample Book 5 -->
-        <div class="col">
-            <div class="book-card">
-                <div class="book-cover">
-                    <span class="book-badge">Ebook</span>
-                    <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=Toan+12+T1" alt="Toán 12 Tập 1">
-                </div>
-                <div class="book-info">
-                    <h3 class="book-title">Toán 12 Tập 1 - Kết Nối Tri Thức</h3>
-                    <div class="book-author">Nhiều tác giả</div>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 
     <!-- Audiobooks Section -->

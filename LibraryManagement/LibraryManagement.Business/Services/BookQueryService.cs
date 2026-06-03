@@ -1,6 +1,7 @@
 ﻿using LibraryManagement.Business.DTOs.BookDTOs;
 using LibraryManagement.Business.Interfaces;
 using LibraryManagement.Data.UnitOfWorks;
+using LibraryManagement.Models.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagement.Business.Services
@@ -58,6 +59,39 @@ namespace LibraryManagement.Business.Services
                         .ToList()
                 })
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<BookDetailDto> CreateBookAsync(CreateBookDto dto)
+        {
+            if (!string.IsNullOrWhiteSpace(dto.ISBN))
+            {
+                var isbn = dto.ISBN.Trim();
+                var isbnExists = await _unitOfWork.Books.Query()
+                    .AnyAsync(b => b.ISBN == isbn);
+
+                if (isbnExists)
+                {
+                    throw new InvalidOperationException("ISBN already exists.");
+                }
+            }
+
+            var book = new Book
+            {
+                Title = dto.Title.Trim(),
+                ISBN = string.IsNullOrWhiteSpace(dto.ISBN) ? null : dto.ISBN.Trim(),
+                PublicationYear = dto.PublicationYear,
+                Language = string.IsNullOrWhiteSpace(dto.Language) ? null : dto.Language.Trim(),
+                Edition = string.IsNullOrWhiteSpace(dto.Edition) ? null : dto.Edition.Trim(),
+                Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim(),
+                CoverImageUrl = string.IsNullOrWhiteSpace(dto.CoverImageUrl) ? null : dto.CoverImageUrl.Trim(),
+                CreatedAt = DateTime.Now
+            };
+
+            await _unitOfWork.Books.AddAsync(book);
+            await _unitOfWork.SaveChangesAsync();
+
+            return await GetBookDetailAsync(book.BookId)
+                ?? throw new InvalidOperationException("Created book could not be loaded.");
         }
 
         public IQueryable<BookOdataDto> GetBooksOdataQuery()

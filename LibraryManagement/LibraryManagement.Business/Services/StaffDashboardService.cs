@@ -2,11 +2,6 @@
 using LibraryManagement.Business.Interfaces;
 using LibraryManagement.Data.UnitOfWorks;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibraryManagement.Business.Services
 {
@@ -43,7 +38,7 @@ namespace LibraryManagement.Business.Services
                     .CountAsync(r => r.Status == _libraryPolicyService.PendingReservationStatus),
 
                 OverdueLoans = await _unitOfWork.Loans.Query()
-                    .CountAsync(l => l.DueAt == today && l.Status == _libraryPolicyService.BorrowedLoanStatus),
+                    .CountAsync(l => l.DueAt.Date < today && l.Status == _libraryPolicyService.BorrowedLoanStatus),
 
                 UnpaidFines = await _unitOfWork.Fines.Query()
                     .CountAsync(f => f.Status == _libraryPolicyService.UnpaidFineStatus),

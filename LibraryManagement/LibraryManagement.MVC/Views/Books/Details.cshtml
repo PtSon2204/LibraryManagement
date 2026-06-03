@@ -1,0 +1,67 @@
+@model LibraryManagement.MVC.ViewModels.Books.BookDetailViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-5 mb-5">
+    <a asp-controller="Books" asp-action="Index" class="btn btn-outline-secondary mb-4">Quay lại danh sách</a>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <img src="@(Model.CoverImageUrl ?? "https://via.placeholder.com/300x420/e2e8f0/64748b?text=Book")"
+                 class="img-fluid rounded shadow-sm"
+                 alt="@Model.Title" />
+        </div>
+        <div class="col-md-8">
+            <h1 class="mb-3">@Model.Title</h1>
+            <p class="text-muted">@(Model.Description ?? "Chưa có mô tả.")</p>
+
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6"><strong>ISBN:</strong> @(Model.ISBN ?? "N/A")</div>
+                <div class="col-sm-6"><strong>Nhà xuất bản:</strong> @(Model.PublisherName ?? "N/A")</div>
+                <div class="col-sm-6"><strong>Năm xuất bản:</strong> @(Model.PublicationYear?.ToString() ?? "N/A")</div>
+                <div class="col-sm-6"><strong>Ngôn ngữ:</strong> @(Model.Language ?? "N/A")</div>
+                <div class="col-sm-6"><strong>Phiên bản:</strong> @(Model.Edition ?? "N/A")</div>
+                <div class="col-sm-6"><strong>Số lượng còn:</strong> @Model.AvailableCopies / @Model.TotalCopies</div>
+            </div>
+
+            <p><strong>Tác giả:</strong> @(Model.Authors.Any() ? string.Join(", ", Model.Authors) : "Chưa có")</p>
+            <p><strong>Thể loại:</strong> @(Model.Categories.Any() ? string.Join(", ", Model.Categories) : "Chưa có")</p>
+        </div>
+    </div>
+
+    <hr class="my-4" />
+
+    <h3>Bản sao sách</h3>
+    @if (!Model.Copies.Any())
+    {
+        <div class="alert alert-info">Chưa có bản sao nào.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Barcode</th>
+                        <th>Trạng thái</th>
+                        <th>Vị trí</th>
+                        <th>Ngày nhập</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var copy in Model.Copies)
+                    {
+                        <tr>
+                            <td>@copy.Barcode</td>
+                            <td>@copy.Status</td>
+                            <td>@(copy.Location ?? "N/A")</td>
+                            <td>@copy.AddedDate.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

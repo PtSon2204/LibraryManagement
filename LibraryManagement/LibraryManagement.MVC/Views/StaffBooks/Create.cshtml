@@ -1,0 +1,69 @@
+@model LibraryManagement.MVC.ViewModels.Books.BookCreateViewModel
+
+@{
+    ViewData["Title"] = "Thêm sách";
+}
+
+<div class="container mt-5 mb-5">
+    <div class="mb-4">
+        <h1 class="section-heading mb-1">Thêm sách</h1>
+        <p class="text-muted mb-0">Staff chỉ thêm thông tin đầu sách cơ bản. Chưa có chức năng sửa/xóa tại màn hình này.</p>
+    </div>
+
+    <form asp-controller="StaffBooks" asp-action="Create" method="post" class="card shadow-sm border-0">
+        @Html.AntiForgeryToken()
+        <div class="card-body">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label" asp-for="Title">Tên sách</label>
+                    <input class="form-control" asp-for="Title" />
+                    <span class="text-danger" asp-validation-for="Title"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" asp-for="ISBN">ISBN</label>
+                    <input class="form-control" asp-for="ISBN" />
+                    <span class="text-danger" asp-validation-for="ISBN"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" asp-for="PublicationYear">Năm xuất bản</label>
+                    <input class="form-control" asp-for="PublicationYear" />
+                    <span class="text-danger" asp-validation-for="PublicationYear"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" asp-for="Language">Ngôn ngữ</label>
+                    <select class="form-select" asp-for="Language">
+                        <option value="">Chọn ngôn ngữ</option>
+                        <option value="Vietnamese">Tiếng Việt</option>
+                        <option value="English">Tiếng Anh</option>
+                    </select>
+                    <span class="text-danger" asp-validation-for="Language"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" asp-for="Edition">Phiên bản</label>
+                    <input class="form-control" asp-for="Edition" />
+                    <span class="text-danger" asp-validation-for="Edition"></span>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" asp-for="CoverImageUrl">URL ảnh bìa</label>
+                    <input class="form-control" asp-for="CoverImageUrl" />
+                    <span class="text-danger" asp-validation-for="CoverImageUrl"></span>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" asp-for="Description">Mô tả</label>
+                    <textarea class="form-control" asp-for="Description" rows="5"></textarea>
+                    <span class="text-danger" asp-validation-for="Description"></span>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-white d-flex gap-2">
+            <button class="btn btn-brand" type="submit">Thêm sách</button>
+            <a class="btn btn-outline-secondary" asp-controller="StaffBooks" asp-action="Index">Quay lại</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
