@@ -428,4 +428,13 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+
+.vs/
+**/.vs/
+bin/
+**/bin/
+obj/
+**/obj/
+.env
+
 /LibraryTesting

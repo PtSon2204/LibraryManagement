@@ -1,7 +1,11 @@
+using LibraryManagement.MVC.Interface;
+using LibraryManagement.MVC.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using LibraryManagement.MVC.Interface.API.Books;
 using LibraryManagement.MVC.Interface.API.Dashboard;
 using LibraryManagement.MVC.Services.API.Books;
 using LibraryManagement.MVC.Services.API.Dashboard;
+
 
 namespace LibraryManagement.MVC
 {
@@ -14,6 +18,22 @@ namespace LibraryManagement.MVC
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddAuthentication(
+                 CookieAuthenticationDefaults.AuthenticationScheme)
+                     .AddCookie(options =>
+                     {
+                         options.LoginPath = "/Account/Login";
+                         options.AccessDeniedPath = "/Account/AccessDenied";
+                         options.ExpireTimeSpan = TimeSpan.FromHours(2);
+                     });
+
+            builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
+            {
+                client.BaseAddress =
+                       new Uri("https://localhost:7229/");
+            });
+
+            builder.Services.AddAuthorization();
             var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"]
                 ?? throw new InvalidOperationException("ApiSettings:BaseUrl is not configured.");
 
@@ -42,6 +62,7 @@ namespace LibraryManagement.MVC
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(

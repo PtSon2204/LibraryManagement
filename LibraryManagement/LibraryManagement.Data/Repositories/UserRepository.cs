@@ -22,10 +22,11 @@ namespace LibraryManagement.Data.Repositories
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _context.Users
-                .FirstOrDefaultAsync(x => x.Email == email);
+       .Include(x => x.Role)
+       .FirstOrDefaultAsync(x => x.Email == email);
         }
 
-        public async Task<User?> GetUserByIdAsync(int userId)
+        public async Task<User?> GetUserByIdAsync(Guid userId)
         {
             return await _context.Users
                 .FindAsync(userId);
@@ -34,6 +35,11 @@ namespace LibraryManagement.Data.Repositories
         public async Task AddUserAsync(User user)
         {
             await _context.Users.AddAsync(user);
+        }
+
+        public void UpdateUserAsync(User user)
+        {
+            throw new NotImplementedException();
         }
     }
 }

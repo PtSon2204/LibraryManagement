@@ -10,7 +10,9 @@ namespace LibraryManagement.Data.Interfaces
     public interface IUserRepository
     {
         Task<User?> GetUserByEmailAsync(string email);
-        Task<User?> GetUserByIdAsync(int userId);
+        Task<User?> GetUserByIdAsync(Guid userId);
         Task AddUserAsync(User user);
+        void UpdateUserAsync(User user);    
+
     }
 }
