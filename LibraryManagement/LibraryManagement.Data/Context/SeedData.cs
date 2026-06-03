@@ -29,7 +29,7 @@ namespace LibraryManagement.Data
                 Description = "System administrator"
             };
 
-            var staffRole = new Role
+            var staffRole = new Role 
             {
                 RoleName = "Staff",
                 Description = "Library staff"
