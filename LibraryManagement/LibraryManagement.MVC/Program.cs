@@ -1,3 +1,8 @@
+using LibraryManagement.MVC.Interface.API.Books;
+using LibraryManagement.MVC.Interface.API.Dashboard;
+using LibraryManagement.MVC.Services.API.Books;
+using LibraryManagement.MVC.Services.API.Dashboard;
+
 namespace LibraryManagement.MVC
 {
     public class Program
@@ -8,6 +13,19 @@ namespace LibraryManagement.MVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"]
+                ?? throw new InvalidOperationException("ApiSettings:BaseUrl is not configured.");
+
+            builder.Services.AddHttpClient<IBookApiClient, BookApiClient>(client =>
+            {
+                client.BaseAddress = new Uri(apiBaseUrl);
+            });
+
+            builder.Services.AddHttpClient<IStaffDashboardApiClient, StaffDashboardApiClient>(client =>
+            {
+                client.BaseAddress = new Uri(apiBaseUrl);
+            });
 
             var app = builder.Build();
 

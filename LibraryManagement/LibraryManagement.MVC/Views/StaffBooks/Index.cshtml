@@ -1,0 +1,129 @@
+@model LibraryManagement.MVC.ViewModels.Books.BookListPageViewModel
+
+@{
+    ViewData["Title"] = "Quản lý sách";
+}
+
+<div class="container mt-5 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="section-heading mb-1">Quản lý sách</h1>
+            <p class="text-muted mb-0">Staff có thể tìm kiếm, xem chi tiết và thêm sách mới.</p>
+        </div>
+        <a class="btn btn-brand" asp-controller="StaffBooks" asp-action="Create">Thêm sách</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string successMessage)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+
+    <form method="get" asp-controller="StaffBooks" asp-action="Index" class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label" for="Title">Tên sách</label>
+                    <input class="form-control" id="Title" name="Title" value="@Model.Search.Title" placeholder="Nhập tên sách" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="Language">Ngôn ngữ</label>
+                    <select class="form-select" id="Language" name="Language">
+                        <option value="" selected="@(string.IsNullOrWhiteSpace(Model.Search.Language))">Tất cả</option>
+                        <option value="Vietnamese" selected="@(Model.Search.Language == "Vietnamese")">Tiếng Việt</option>
+                        <option value="English" selected="@(Model.Search.Language == "English")">Tiếng Anh</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="Publisher">Nhà xuất bản</label>
+                    <input class="form-control" id="Publisher" name="Publisher" value="@Model.Search.Publisher" placeholder="Nhập NXB" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="SortBy">Sắp xếp</label>
+                    <select class="form-select" id="SortBy" name="SortBy">
+                        <option value="" selected="@(string.IsNullOrWhiteSpace(Model.Search.SortBy))">Tên A-Z</option>
+                        <option value="title_desc" selected="@(Model.Search.SortBy == "title_desc")">Tên Z-A</option>
+                        <option value="year_desc" selected="@(Model.Search.SortBy == "year_desc")">Năm mới nhất</option>
+                        <option value="year_asc" selected="@(Model.Search.SortBy == "year_asc")">Năm cũ nhất</option>
+                        <option value="available_desc" selected="@(Model.Search.SortBy == "available_desc")">Còn nhiều nhất</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="AvailableOnly" name="AvailableOnly" value="true" checked="@Model.Search.AvailableOnly" />
+                        <label class="form-check-label" for="AvailableOnly">Chỉ sách còn</label>
+                    </div>
+                </div>
+                <input type="hidden" name="Page" value="1" />
+                <input type="hidden" name="PageSize" value="@Model.Search.PageSize" />
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-brand" type="submit">Tìm kiếm</button>
+                <a class="btn btn-outline-secondary" asp-controller="StaffBooks" asp-action="Index">Xóa lọc</a>
+            </div>
+        </div>
+    </form>
+
+    <p class="text-muted">Tìm thấy <strong>@Model.TotalCount</strong> sách.</p>
+
+    @if (!Model.Books.Any())
+    {
+        <div class="alert alert-info">Không tìm thấy sách phù hợp.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Tên sách</th>
+                        <th>ISBN</th>
+                        <th>Nhà xuất bản</th>
+                        <th>Năm</th>
+                        <th>Ngôn ngữ</th>
+                        <th>Bản sao</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var book in Model.Books)
+                    {
+                        <tr>
+                            <td>@book.Title</td>
+                            <td>@(book.ISBN ?? "N/A")</td>
+                            <td>@(book.PublisherName ?? "N/A")</td>
+                            <td>@(book.PublicationYear?.ToString() ?? "N/A")</td>
+                            <td>@(book.Language ?? "N/A")</td>
+                            <td>@book.AvailableCopies khả dụng / @book.TotalCopies tổng</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-brand" asp-controller="Books" asp-action="Details" asp-route-id="@book.BookId">Xem</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="mt-4" aria-label="Staff book pagination">
+                <ul class="pagination justify-content-center">
+                    @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+                    {
+                        <li class="page-item @(pageNumber == Model.Search.Page ? "active" : string.Empty)">
+                            <a class="page-link"
+                               asp-controller="StaffBooks"
+                               asp-action="Index"
+                               asp-route-Title="@Model.Search.Title"
+                               asp-route-Language="@Model.Search.Language"
+                               asp-route-Publisher="@Model.Search.Publisher"
+                               asp-route-AvailableOnly="@Model.Search.AvailableOnly"
+                               asp-route-SortBy="@Model.Search.SortBy"
+                               asp-route-Page="@pageNumber"
+                               asp-route-PageSize="@Model.Search.PageSize">@pageNumber</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</div>

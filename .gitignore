@@ -427,4 +427,5 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
-/LibraryManagement/LibraryManagement.API/appsettings.json
+
+/LibraryTesting
