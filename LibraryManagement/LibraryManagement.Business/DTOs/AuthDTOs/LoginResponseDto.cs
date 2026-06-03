@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 
 namespace LibraryManagement.Business.DTOs.AuthDTOs
 {
-    public class RegisterDto
+    public class LoginResponseDto
     {
+        public Guid UserId { get; set; }
+
         public string Email { get; set; }
-        public string Password { get; set; }
-        public string ConfirmPassword { get; set; }
+
         public string FullName { get; set; }
+
+        public string Role { get; set; }
     }
 }

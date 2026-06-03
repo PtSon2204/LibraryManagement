@@ -12,6 +12,7 @@ namespace LibraryManagement.API.Extensions
         {
             //Đăng kí serivce
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUserService, UserService>();
 
             //Đăng kí fluentValidation
             services.AddFluentValidationAutoValidation();
