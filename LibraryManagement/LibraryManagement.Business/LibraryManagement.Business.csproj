@@ -7,15 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
     <Folder Include="AI\" />
     <Folder Include="Helpers\" />
-    <Folder Include="DTOs\" />
-    <Folder Include="Validators\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 	
 	<ItemGroup>
+		<PackageReference Include="FluentValidation" Version="12.1.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.27" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.27">
 			<PrivateAssets>all</PrivateAssets>

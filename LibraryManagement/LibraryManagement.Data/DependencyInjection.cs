@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LibraryManagement.Data.Interfaces;
+using LibraryManagement.Data.Repositories;
 using LibraryManagement.Data.UnitOfWorks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +15,7 @@ namespace LibraryManagement.Data
         public static IServiceCollection AddData(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             return services;
         }
