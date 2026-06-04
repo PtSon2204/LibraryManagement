@@ -1,4 +1,4 @@
-﻿using LibraryManagement.API.Extensions;
+using LibraryManagement.API.Extensions;
 using LibraryManagement.API.Middleware;
 using LibraryManagement.Business.DTOs.BookDTOs;
 using LibraryManagement.Data;
@@ -28,9 +28,6 @@ namespace LibraryManagement.API
             builder.Services.AddCustomServices(builder.Configuration);
 
             // Add services to the container.
-
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
