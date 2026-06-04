@@ -1,0 +1,162 @@
+@model IEnumerable<LibraryManagement.Business.DTOs.AuthDTOs.UserDto>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý thành viên";
+    var search = ViewData["Search"] as string;
+}
+
+<div class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <!-- Search Form -->
+        <form method="get" class="d-flex gap-2" style="max-width: 400px; flex-grow: 1;">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="search" value="@search" class="form-control border-start-0" placeholder="Tìm kiếm tên, email, sđt..." />
+            </div>
+            <button type="submit" class="btn btn-outline-brand">Tìm</button>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <a href="/Admin/Users" class="btn btn-outline-secondary">Xóa</a>
+            }
+        </form>
+
+        <!-- Add Button -->
+        <button type="button" class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <i class="bi bi-plus-lg me-1"></i> Thêm thành viên
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Họ và tên</th>
+                    <th>Email</th>
+                    <th>Số điện thoại</th>
+                    <th>Địa chỉ</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">Không tìm thấy thành viên nào.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-dark">@user.FullName</div>
+                            </td>
+                            <td>@user.Email</td>
+                            <td>@(user.Phone ?? "N/A")</td>
+                            <td>@(user.Address ?? "N/A")</td>
+                            <td>
+                                @if (user.RoleName == "Admin")
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Admin</span>
+                                }
+                                else if (user.RoleName == "Staff")
+                                {
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle">Staff</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">User</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.Status == "Active")
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Blocked</span>
+                                }
+                            </td>
+                            <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end">
+                                <!-- Block/Unblock Form -->
+                                <form asp-action="ToggleUserStatus" asp-route-id="@user.UserId" method="post" class="d-inline">
+                                    @if (user.Status == "Active")
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc chắn muốn khóa tài khoản này?')">
+                                            <i class="bi bi-lock-fill me-1"></i> Khóa
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('Bạn có chắc chắn muốn mở khóa tài khoản này?')">
+                                            <i class="bi bi-unlock-fill me-1"></i> Kích hoạt
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark" id="addUserModalLabel">Thêm thành viên mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="CreateUser" method="post">
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Họ và tên</label>
+                        <input type="text" name="FullName" class="form-control rounded-3" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" name="Email" class="form-control rounded-3" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mật khẩu</label>
+                        <input type="password" name="Password" class="form-control rounded-3" required minlength="6" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Số điện thoại</label>
+                        <input type="text" name="Phone" class="form-control rounded-3" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Địa chỉ</label>
+                        <input type="text" name="Address" class="form-control rounded-3" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ngày sinh</label>
+                        <input type="date" name="DateOfBirth" class="form-control rounded-3" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Vai trò</label>
+                        <select name="RoleId" class="form-select rounded-3" required>
+                            <option value="3">User (Độc giả)</option>
+                            <option value="2">Staff (Nhân viên thư viện)</option>
+                            <option value="1">Admin (Quản trị viên)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-brand px-4 py-2">Tạo tài khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

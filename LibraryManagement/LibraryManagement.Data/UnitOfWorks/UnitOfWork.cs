@@ -1,4 +1,4 @@
-﻿using LibraryManagement.Data.Interfaces;
+using LibraryManagement.Data.Interfaces;
 using LibraryManagement.Data.Repositories;
 using LibraryManagement.Models.Context;
 using LibraryManagement.Models.Models;
@@ -10,6 +10,8 @@ namespace LibraryManagement.Data.UnitOfWorks
         private readonly ApplicationDbContext _context;
 
         public IUserRepository UserRepository { get; }
+
+        public IAuthorRepository AuthorRepository { get; }
 
         public IRepository<Book> Books { get; }
 
@@ -30,6 +32,7 @@ namespace LibraryManagement.Data.UnitOfWorks
             _context = context;
 
             UserRepository = new UserRepository(context);
+            AuthorRepository = new AuthorRepository(context);
             Books = new Repository<Book>(context);
             BookCopies = new Repository<BookCopy>(context);
             Users = new Repository<User>(context);

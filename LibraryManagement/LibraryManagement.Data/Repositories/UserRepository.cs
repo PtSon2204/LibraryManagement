@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,7 +39,7 @@ namespace LibraryManagement.Data.Repositories
 
         public void UpdateUserAsync(User user)
         {
-            throw new NotImplementedException();
+            _context.Users.Update(user);
         }
     }
 }

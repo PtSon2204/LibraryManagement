@@ -1,4 +1,4 @@
-﻿using LibraryManagement.Data.Interfaces;
+using LibraryManagement.Data.Interfaces;
 using LibraryManagement.Models.Models;
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ namespace LibraryManagement.Data.UnitOfWorks
     public interface IUnitOfWork
     {
         IUserRepository UserRepository { get; }
+        IAuthorRepository AuthorRepository { get; }
         IRepository<Book> Books { get; }
         IRepository<BookCopy> BookCopies { get; }
         IRepository<User> Users { get; }
