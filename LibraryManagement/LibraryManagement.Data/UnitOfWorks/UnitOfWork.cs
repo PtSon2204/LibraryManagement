@@ -9,43 +9,44 @@ namespace LibraryManagement.Data.UnitOfWorks
     {
         private readonly ApplicationDbContext _context;
 
-        public IUserRepository UserRepository { get; }
-
+        public IReaderRepository ReaderRepository { get; }
+        public IAccountRepository AccountRepository { get; }
         public IAuthorRepository AuthorRepository { get; }
 
         public IRepository<Book> Books { get; }
-
         public IRepository<BookCopy> BookCopies { get; }
-
-        public IRepository<User> Users { get; }
-
+        public IRepository<Reader> Readers { get; }
+        public IRepository<Account> Accounts { get; }
+        public IRepository<UserProfile> UserProfiles { get; }
         public IRepository<Loan> Loans { get; }
-
         public IRepository<LoanDetail> LoanDetails { get; }
-
         public IRepository<Reservation> Reservations { get; }
-
+        public IRepository<Room> Rooms { get; }
         public IRepository<Fine> Fines { get; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
 
-            UserRepository = new UserRepository(context);
+            ReaderRepository = new ReaderRepository(context);
+            AccountRepository = new AccountRepository(context);
             AuthorRepository = new AuthorRepository(context);
+
             Books = new Repository<Book>(context);
             BookCopies = new Repository<BookCopy>(context);
-            Users = new Repository<User>(context);
+            Readers = new Repository<Reader>(context);
+            Accounts = new Repository<Account>(context);
+            UserProfiles = new Repository<UserProfile>(context);
             Loans = new Repository<Loan>(context);
             LoanDetails = new Repository<LoanDetail>(context);
             Reservations = new Repository<Reservation>(context);
+            Rooms = new Repository<Room>(context);
             Fines = new Repository<Fine>(context);
         }
 
         public void Dispose() => _context.Dispose();
-        
 
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>  _context.SaveChangesAsync(cancellationToken);
-        
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+            => _context.SaveChangesAsync(cancellationToken);
     }
 }

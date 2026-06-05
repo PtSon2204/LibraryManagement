@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System;
 using System.Threading.Tasks;
 using LibraryManagement.Business.DTOs.AuthDTOs;
 using LibraryManagement.Business.Interfaces;
@@ -18,58 +15,73 @@ namespace LibraryManagement.Business.Services
         {
             _unitOfWork = unitOfWork;
         }
+
         public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
         {
-            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(dto.Email);
-
-            if (user == null)
+            // Thử tìm trong Accounts (Admin / Librarian) trước
+            var account = await _unitOfWork.AccountRepository.GetAccountByEmailAsync(dto.Email);
+            if (account != null)
             {
-                throw new Exception("Email không tồn tại");
+                bool valid = BCrypt.Net.BCrypt.Verify(dto.Password, account.PasswordHash);
+                if (!valid) throw new Exception("Mật khẩu không chính xác");
+
+                return new LoginResponseDto
+                {
+                    UserId   = account.AccountId,
+                    Email    = account.Email,
+                    FullName = account.Profile?.FullName ?? account.Email,
+                    Role     = account.Role,  // "Admin" hoặc "Librarian"
+                };
             }
 
-            bool valid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+            // Thử tìm trong Readers
+            var reader = await _unitOfWork.ReaderRepository.GetReaderByEmailAsync(dto.Email);
+            if (reader == null) throw new Exception("Email không tồn tại");
 
-            if (!valid)
-            {
-                throw new Exception("Mật khẩu không chính xác");
-            }
+            bool readerValid = BCrypt.Net.BCrypt.Verify(dto.Password, reader.PasswordHash);
+            if (!readerValid) throw new Exception("Mật khẩu không chính xác");
 
             return new LoginResponseDto
             {
-                UserId = user.UserId,
-                Email = user.Email,
-                FullName = user.FullName,
-                Role = user.Role.RoleName,
+                UserId   = reader.ReaderId,
+                Email    = reader.Email,
+                FullName = reader.Profile?.FullName ?? reader.Email,
+                Role     = "Reader",
             };
         }
 
         public async Task RegisterAsync(RegisterDto dto)
         {
-            var existingUser = await _unitOfWork.UserRepository.GetUserByEmailAsync(dto.Email);
+            // Kiểm tra email tồn tại ở cả 2 bảng
+            var existingReader  = await _unitOfWork.ReaderRepository.GetReaderByEmailAsync(dto.Email);
+            var existingAccount = await _unitOfWork.AccountRepository.GetAccountByEmailAsync(dto.Email);
 
-            if (existingUser != null)
-            {
+            if (existingReader != null || existingAccount != null)
                 throw new Exception("Email đã tồn tại");
-            }
 
             if (dto.Password != dto.ConfirmPassword)
-            {
                 throw new Exception("Mật khẩu không khớp");
-            }
 
-            var user = new User
+            // Đăng ký mặc định là Reader
+            var reader = new Reader
             {
-                UserId = Guid.NewGuid(),
-                Email = dto.Email,
+                ReaderId     = Guid.NewGuid(),
+                Email        = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                FullName = dto.FullName,
-                RoleId = 3,
-                Status = "Active",
-                CreatedAt = DateTime.UtcNow,
+                Status       = "Active",
+                CreatedAt    = DateTime.UtcNow,
             };
 
-            await _unitOfWork.UserRepository.AddUserAsync(user);
+            await _unitOfWork.ReaderRepository.AddReaderAsync(reader);
 
+            // Tạo profile đính kèm
+            var profile = new UserProfile
+            {
+                ReaderId = reader.ReaderId,
+                FullName = dto.FullName,
+            };
+
+            await _unitOfWork.UserProfiles.AddAsync(profile);
             await _unitOfWork.SaveChangesAsync();
         }
     }

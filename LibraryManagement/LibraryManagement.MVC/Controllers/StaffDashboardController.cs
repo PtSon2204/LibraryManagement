@@ -1,8 +1,10 @@
 ﻿using LibraryManagement.MVC.Interface.API.Dashboard;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagement.MVC.Controllers
 {
+    [Authorize(Roles = "Staff")]
     public class StaffDashboardController : Controller
     {
         private readonly IStaffDashboardApiClient _staffDashboardApiClient;

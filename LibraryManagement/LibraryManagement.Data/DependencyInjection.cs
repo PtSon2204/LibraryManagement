@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using LibraryManagement.Data.Interfaces;
 using LibraryManagement.Data.Repositories;
 using LibraryManagement.Data.UnitOfWorks;
@@ -15,7 +10,8 @@ namespace LibraryManagement.Data
         public static IServiceCollection AddData(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IReaderRepository, ReaderRepository>();
+            services.AddScoped<IAccountRepository, AccountRepository>();
 
             return services;
         }

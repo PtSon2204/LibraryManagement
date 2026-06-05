@@ -1,9 +1,11 @@
 using LibraryManagement.MVC.Interface.API.Books;
 using LibraryManagement.MVC.ViewModels.Books;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagement.MVC.Controllers;
 
+[Authorize(Roles = "Staff")]
 public class StaffBooksController : Controller
 {
     private readonly IBookApiClient _bookApiClient;

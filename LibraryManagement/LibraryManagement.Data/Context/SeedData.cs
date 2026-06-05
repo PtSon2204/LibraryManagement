@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using BCrypt.Net;
-using LibraryManagement.Models;
 using LibraryManagement.Models.Context;
 using LibraryManagement.Models.Models;
 using Microsoft.EntityFrameworkCore;
@@ -16,82 +15,77 @@ namespace LibraryManagement.Data
 
             await context.Database.MigrateAsync();
 
-            if (context.Roles.Any())
+            // Chỉ seed nếu chưa có dữ liệu
+            if (context.Accounts.Any())
                 return;
 
             // =========================
-            // ROLES
+            // ACCOUNTS (Admin + Librarian)
             // =========================
 
-            var adminRole = new Role
+            var admin = new Account
             {
-                RoleName = "Admin",
-                Description = "System administrator"
+                Email = "admin@library.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                Role = "Admin",
+                Status = "Active"
             };
 
-            var staffRole = new Role 
+            var librarian = new Account
             {
-                RoleName = "Staff",
-                Description = "Library staff"
+                Email = "librarian@library.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                Role = "Librarian",
+                Status = "Active"
             };
 
-            var userRole = new Role
-            {
-                RoleName = "User",
-                Description = "Library member"
-            };
-
-            context.Roles.AddRange(
-                adminRole,
-                staffRole,
-                userRole
-            );
-
+            context.Accounts.AddRange(admin, librarian);
             await context.SaveChangesAsync();
 
             // =========================
-            // USERS
-            // password: 123456
+            // READERS (Độc giả)
             // =========================
 
-            var admin = new User
+            var reader1 = new Reader
             {
-                RoleId = adminRole.RoleId,
-                Email = "admin@library.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
-                FullName = "System Admin",
-                Phone = "0901111111",
-                Address = "Hai Phong",
-                Status = "Active"
-            };
-
-            var staff = new User
-            {
-                RoleId = staffRole.RoleId,
-                Email = "staff@library.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
-                FullName = "Library Staff",
-                Phone = "0902222222",
-                Address = "Ha Noi",
-                Status = "Active"
-            };
-
-            var member = new User
-            {
-                RoleId = userRole.RoleId,
                 Email = "user@gmail.com",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
-                FullName = "Pham The Son",
-                Phone = "0903333333",
-                Address = "Hai Phong",
                 Status = "Active"
             };
 
-            context.Users.AddRange(
-                admin,
-                staff,
-                member
+            context.Readers.Add(reader1);
+            await context.SaveChangesAsync();
+
+            // =========================
+            // USER PROFILES
+            // =========================
+
+            context.UserProfiles.AddRange(
+                new UserProfile
+                {
+                    AccountId = admin.AccountId,
+                    FullName = "System Admin",
+                    Phone = "0901111111",
+                    Address = "Hai Phong"
+                },
+                new UserProfile
+                {
+                    AccountId = librarian.AccountId,
+                    FullName = "Library Staff",
+                    Phone = "0902222222",
+                    Address = "Ha Noi"
+                },
+                new UserProfile
+                {
+                    ReaderId = reader1.ReaderId,
+                    FullName = "Pham The Son",
+                    Phone = "0903333333",
+                    Address = "Hai Phong",
+                    DateOfBirth = new DateOnly(2002, 4, 22)
+                }
             );
+
+            await context.SaveChangesAsync();
 
             // =========================
             // PUBLISHERS
@@ -110,50 +104,25 @@ namespace LibraryManagement.Data
                 Address = "HCM"
             };
 
-            context.Publishers.AddRange(
-                kimDong,
-                tre
-            );
-
-            await context.SaveChangesAsync();
+            context.Publishers.AddRange(kimDong, tre);
 
             // =========================
             // AUTHORS
             // =========================
 
-            var nna = new Author
-            {
-                FullName = "Nguyen Nhat Anh"
-            };
+            var nna = new Author { FullName = "Nguyen Nhat Anh" };
+            var jk = new Author { FullName = "J.K Rowling" };
 
-            var jk = new Author
-            {
-                FullName = "J.K Rowling"
-            };
-
-            context.Authors.AddRange(
-                nna,
-                jk
-            );
+            context.Authors.AddRange(nna, jk);
 
             // =========================
             // CATEGORIES
             // =========================
 
-            var novel = new Category
-            {
-                CategoryName = "Novel"
-            };
+            var novel = new Category { CategoryName = "Novel" };
+            var fantasy = new Category { CategoryName = "Fantasy" };
 
-            var fantasy = new Category
-            {
-                CategoryName = "Fantasy"
-            };
-
-            context.Categories.AddRange(
-                novel,
-                fantasy
-            );
+            context.Categories.AddRange(novel, fantasy);
 
             await context.SaveChangesAsync();
 
@@ -179,11 +148,7 @@ namespace LibraryManagement.Data
                 Language = "English"
             };
 
-            context.Books.AddRange(
-                matBiec,
-                hp
-            );
-
+            context.Books.AddRange(matBiec, hp);
             await context.SaveChangesAsync();
 
             // =========================
@@ -191,17 +156,8 @@ namespace LibraryManagement.Data
             // =========================
 
             context.BookAuthors.AddRange(
-                new BookAuthor
-                {
-                    BookId = matBiec.BookId,
-                    AuthorId = nna.AuthorId
-                },
-
-                new BookAuthor
-                {
-                    BookId = hp.BookId,
-                    AuthorId = jk.AuthorId
-                }
+                new BookAuthor { BookId = matBiec.BookId, AuthorId = nna.AuthorId },
+                new BookAuthor { BookId = hp.BookId, AuthorId = jk.AuthorId }
             );
 
             // =========================
@@ -209,17 +165,8 @@ namespace LibraryManagement.Data
             // =========================
 
             context.BookCategories.AddRange(
-                new BookCategory
-                {
-                    BookId = matBiec.BookId,
-                    CategoryId = novel.CategoryId
-                },
-
-                new BookCategory
-                {
-                    BookId = hp.BookId,
-                    CategoryId = fantasy.CategoryId
-                }
+                new BookCategory { BookId = matBiec.BookId, CategoryId = novel.CategoryId },
+                new BookCategory { BookId = hp.BookId, CategoryId = fantasy.CategoryId }
             );
 
             await context.SaveChangesAsync();

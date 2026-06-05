@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace LibraryManagement.Models.Models;
@@ -30,8 +30,6 @@ public partial class Book
     public virtual ICollection<BookCopy> BookCopies { get; set; } = new List<BookCopy>();
 
     public virtual Publisher? Publisher { get; set; }
-
-    public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 
     public virtual ICollection<BookAuthor> BookAuthors { get; set; }
         = new List<BookAuthor>();

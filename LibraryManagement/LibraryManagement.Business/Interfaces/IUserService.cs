@@ -9,7 +9,6 @@ namespace LibraryManagement.Business.Interfaces
     public interface IUserService
     {
         Task<UserProfileDto> GetProfileAsync(Guid id);
-        Task<UserProfileDto> UpdateProfileAsync(Guid id, UpdateProfileDto model);
 
         // Admin user management
         Task<IEnumerable<UserDto>> GetUsersAsync(string? search);
