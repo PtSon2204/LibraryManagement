@@ -22,6 +22,7 @@ namespace LibraryManagement.Data.UnitOfWorks
         IRepository<Reservation> Reservations { get; }
         IRepository<Room> Rooms { get; }
         IRepository<Fine> Fines { get; }
+        IRepository<Payment> Payments { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

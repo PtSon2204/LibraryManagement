@@ -26,4 +26,7 @@ public partial class Account
 
     /// <summary>Các phiếu mượn mà account này đã xử lý (duyệt)</summary>
     public virtual ICollection<Loan> ProcessedLoans { get; set; } = new List<Loan>();
+
+    /// <summary>Các phiên thanh toán mà account này đã xác nhận nhận tiền</summary>
+    public virtual ICollection<Payment> ProcessedPayments { get; set; } = new List<Payment>();
 }

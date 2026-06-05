@@ -23,7 +23,8 @@ public partial class Reader
 
     public virtual ICollection<Loan> Loans { get; set; } = new List<Loan>();
 
-    public virtual ICollection<Fine> Fines { get; set; } = new List<Fine>();
-
     public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+
+    /// <summary>Lịch sử các phiên thanh toán phạt của độc giả này.</summary>
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

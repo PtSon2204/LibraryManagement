@@ -23,6 +23,7 @@ namespace LibraryManagement.Data.UnitOfWorks
         public IRepository<Reservation> Reservations { get; }
         public IRepository<Room> Rooms { get; }
         public IRepository<Fine> Fines { get; }
+        public IRepository<Payment> Payments { get; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -42,6 +43,7 @@ namespace LibraryManagement.Data.UnitOfWorks
             Reservations = new Repository<Reservation>(context);
             Rooms = new Repository<Room>(context);
             Fines = new Repository<Fine>(context);
+            Payments = new Repository<Payment>(context);
         }
 
         public void Dispose() => _context.Dispose();

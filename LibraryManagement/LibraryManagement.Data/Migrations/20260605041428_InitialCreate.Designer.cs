@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibraryManagement.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260605025535_InitialCreate")]
+    [Migration("20260605041428_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -274,13 +274,13 @@ namespace LibraryManagement.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("(sysdatetime())");
 
-                    b.Property<Guid?>("LoanDetailId")
+                    b.Property<Guid>("LoanDetailId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("ReaderId")
+                    b.Property<Guid?>("PaymentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Reason")
@@ -298,9 +298,11 @@ namespace LibraryManagement.Data.Migrations
                     b.HasKey("FineId")
                         .HasName("PK__Fines__9D4A9B2CA6D51367");
 
-                    b.HasIndex("LoanDetailId");
+                    b.HasIndex("PaymentId");
 
-                    b.HasIndex(new[] { "ReaderId" }, "IX_Fines_ReaderId");
+                    b.HasIndex(new[] { "LoanDetailId" }, "IX_Fines_LoanDetailId");
+
+                    b.HasIndex(new[] { "Status" }, "IX_Fines_Status");
 
                     b.ToTable("Fines");
                 });
@@ -388,6 +390,47 @@ namespace LibraryManagement.Data.Migrations
                         .HasFilter("([Status]='Borrowed')");
 
                     b.ToTable("LoanDetails");
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.Payment", b =>
+                {
+                    b.Property<Guid>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("(newsequentialid())");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("PaidAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<Guid?>("ProcessedByAccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ReaderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex(new[] { "PaidAt" }, "IX_Payments_PaidAt");
+
+                    b.HasIndex(new[] { "ProcessedByAccountId" }, "IX_Payments_ProcessedByAccountId");
+
+                    b.HasIndex(new[] { "ReaderId" }, "IX_Payments_ReaderId");
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Publisher", b =>
@@ -667,17 +710,18 @@ namespace LibraryManagement.Data.Migrations
                     b.HasOne("LibraryManagement.Models.Models.LoanDetail", "LoanDetail")
                         .WithMany("Fines")
                         .HasForeignKey("LoanDetailId")
+                        .IsRequired()
                         .HasConstraintName("FK_Fines_LoanDetails");
 
-                    b.HasOne("LibraryManagement.Models.Models.Reader", "Reader")
+                    b.HasOne("LibraryManagement.Models.Models.Payment", "Payment")
                         .WithMany("Fines")
-                        .HasForeignKey("ReaderId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Fines_Readers");
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Fines_Payments");
 
                     b.Navigation("LoanDetail");
 
-                    b.Navigation("Reader");
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Loan", b =>
@@ -715,6 +759,25 @@ namespace LibraryManagement.Data.Migrations
                     b.Navigation("Copy");
 
                     b.Navigation("Loan");
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.Payment", b =>
+                {
+                    b.HasOne("LibraryManagement.Models.Models.Account", "ProcessedByAccount")
+                        .WithMany("ProcessedPayments")
+                        .HasForeignKey("ProcessedByAccountId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Payments_ProcessedByAccount");
+
+                    b.HasOne("LibraryManagement.Models.Models.Reader", "Reader")
+                        .WithMany("Payments")
+                        .HasForeignKey("ReaderId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Payments_Readers");
+
+                    b.Navigation("ProcessedByAccount");
+
+                    b.Navigation("Reader");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Reservation", b =>
@@ -759,6 +822,8 @@ namespace LibraryManagement.Data.Migrations
                 {
                     b.Navigation("ProcessedLoans");
 
+                    b.Navigation("ProcessedPayments");
+
                     b.Navigation("Profile");
                 });
 
@@ -796,6 +861,11 @@ namespace LibraryManagement.Data.Migrations
                     b.Navigation("Fines");
                 });
 
+            modelBuilder.Entity("LibraryManagement.Models.Models.Payment", b =>
+                {
+                    b.Navigation("Fines");
+                });
+
             modelBuilder.Entity("LibraryManagement.Models.Models.Publisher", b =>
                 {
                     b.Navigation("Books");
@@ -803,9 +873,9 @@ namespace LibraryManagement.Data.Migrations
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Reader", b =>
                 {
-                    b.Navigation("Fines");
-
                     b.Navigation("Loans");
+
+                    b.Navigation("Payments");
 
                     b.Navigation("Profile");
 
