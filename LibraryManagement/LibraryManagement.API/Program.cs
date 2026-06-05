@@ -1,8 +1,8 @@
-using LibraryManagement.API.Extensions;
+//using LibraryManagement.API.Extensions;
 using LibraryManagement.API.Middleware;
 using LibraryManagement.Business.DTOs.BookDTOs;
 using LibraryManagement.Data;
- using LibraryManagement.Models.Context;
+using LibraryManagement.Models.Context;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OData.Edm;
@@ -25,7 +25,7 @@ namespace LibraryManagement.API
             builder.Services.AddData();
 
             //Đăng kí service
-            builder.Services.AddCustomServices(builder.Configuration);
+           // builder.Services.AddCustomServices(builder.Configuration);
 
             // Add services to the container.
             builder.Services.AddEndpointsApiExplorer();

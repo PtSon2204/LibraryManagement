@@ -12,6 +12,23 @@ namespace LibraryManagement.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Accounts",
+                columns: table => new
+                {
+                    AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
+                    Email = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: false),
+                    PasswordHash = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "Active"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Accounts", x => x.AccountId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Authors",
                 columns: table => new
                 {
@@ -56,17 +73,35 @@ namespace LibraryManagement.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Roles",
+                name: "Readers",
                 columns: table => new
                 {
-                    RoleId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                    ReaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
+                    Email = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: false),
+                    PasswordHash = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "Active"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK__Roles__8AFACE1AC2BA1463", x => x.RoleId);
+                    table.PrimaryKey("PK_Readers", x => x.ReaderId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Rooms",
+                columns: table => new
+                {
+                    RoomId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
+                    RoomName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Capacity = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "Available"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Rooms", x => x.RoomId);
                 });
 
             migrationBuilder.CreateTable(
@@ -83,23 +118,11 @@ namespace LibraryManagement.Data.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CoverImageUrl = table.Column<string>(type: "varchar(1000)", unicode: false, maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    AuthorId = table.Column<int>(type: "int", nullable: true),
-                    CategoryId = table.Column<int>(type: "int", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__Books__3DE0C2070B8D05FB", x => x.BookId);
-                    table.ForeignKey(
-                        name: "FK_Books_Authors_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "Authors",
-                        principalColumn: "AuthorId");
-                    table.ForeignKey(
-                        name: "FK_Books_Categories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "Categories",
-                        principalColumn: "CategoryId");
                     table.ForeignKey(
                         name: "FK_Books_Publishers",
                         column: x => x.PublisherId,
@@ -108,29 +131,88 @@ namespace LibraryManagement.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "Loans",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
-                    RoleId = table.Column<int>(type: "int", nullable: false),
-                    Email = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: false),
-                    PasswordHash = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: false),
-                    FullName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Phone = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "Active"),
+                    LoanId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
+                    BorrowerReaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProcessedByAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    BorrowedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())"),
+                    DueAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "Borrowed"),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK__Users__1788CC4CF1485FA5", x => x.UserId);
+                    table.PrimaryKey("PK__Loans__4F5AD457CBAEC671", x => x.LoanId);
                     table.ForeignKey(
-                        name: "FK_Users_Roles",
-                        column: x => x.RoleId,
-                        principalTable: "Roles",
-                        principalColumn: "RoleId");
+                        name: "FK_Loans_BorrowerReader",
+                        column: x => x.BorrowerReaderId,
+                        principalTable: "Readers",
+                        principalColumn: "ReaderId");
+                    table.ForeignKey(
+                        name: "FK_Loans_ProcessedByAccount",
+                        column: x => x.ProcessedByAccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserProfiles",
+                columns: table => new
+                {
+                    UserProfileId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
+                    ReaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    FullName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Phone = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserProfiles", x => x.UserProfileId);
+                    table.CheckConstraint("CK_UserProfiles_OneOwner", "([ReaderId] IS NOT NULL AND [AccountId] IS NULL) OR ([ReaderId] IS NULL AND [AccountId] IS NOT NULL)");
+                    table.ForeignKey(
+                        name: "FK_UserProfiles_Accounts",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserProfiles_Readers",
+                        column: x => x.ReaderId,
+                        principalTable: "Readers",
+                        principalColumn: "ReaderId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reservations",
+                columns: table => new
+                {
+                    ReservationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
+                    ReaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RoomId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReservationDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())"),
+                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "Pending")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reservations", x => x.ReservationId);
+                    table.ForeignKey(
+                        name: "FK_Reservations_Readers",
+                        column: x => x.ReaderId,
+                        principalTable: "Readers",
+                        principalColumn: "ReaderId");
+                    table.ForeignKey(
+                        name: "FK_Reservations_Rooms",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
+                        principalColumn: "RoomId");
                 });
 
             migrationBuilder.CreateTable(
@@ -203,66 +285,6 @@ namespace LibraryManagement.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Loans",
-                columns: table => new
-                {
-                    LoanId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
-                    BorrowerUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProcessedByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    BorrowedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())"),
-                    DueAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "Borrowed"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Loans__4F5AD457CBAEC671", x => x.LoanId);
-                    table.ForeignKey(
-                        name: "FK_Loans_BorrowerUser",
-                        column: x => x.BorrowerUserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId");
-                    table.ForeignKey(
-                        name: "FK_Loans_ProcessedByUser",
-                        column: x => x.ProcessedByUserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Reservations",
-                columns: table => new
-                {
-                    ReservationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
-                    BookId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CopyId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ReservationDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())"),
-                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "Pending")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Reservat__B7EE5F24EE6920B8", x => x.ReservationId);
-                    table.ForeignKey(
-                        name: "FK_Reservations_BookCopies",
-                        column: x => x.CopyId,
-                        principalTable: "BookCopies",
-                        principalColumn: "CopyId");
-                    table.ForeignKey(
-                        name: "FK_Reservations_Books",
-                        column: x => x.BookId,
-                        principalTable: "Books",
-                        principalColumn: "BookId");
-                    table.ForeignKey(
-                        name: "FK_Reservations_Users",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "LoanDetails",
                 columns: table => new
                 {
@@ -292,7 +314,7 @@ namespace LibraryManagement.Data.Migrations
                 columns: table => new
                 {
                     FineId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ReaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     LoanDetailId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
@@ -309,11 +331,22 @@ namespace LibraryManagement.Data.Migrations
                         principalTable: "LoanDetails",
                         principalColumn: "LoanDetailId");
                     table.ForeignKey(
-                        name: "FK_Fines_Users",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId");
+                        name: "FK_Fines_Readers",
+                        column: x => x.ReaderId,
+                        principalTable: "Readers",
+                        principalColumn: "ReaderId");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Accounts_Role",
+                table: "Accounts",
+                column: "Role");
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_Accounts_Email",
+                table: "Accounts",
+                column: "Email",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookAuthors_AuthorId",
@@ -340,16 +373,6 @@ namespace LibraryManagement.Data.Migrations
                 table: "BookCopies",
                 column: "Barcode",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Books_AuthorId",
-                table: "Books",
-                column: "AuthorId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Books_CategoryId",
-                table: "Books",
-                column: "CategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Books_PublisherId",
@@ -380,9 +403,9 @@ namespace LibraryManagement.Data.Migrations
                 column: "LoanDetailId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Fines_UserId",
+                name: "IX_Fines_ReaderId",
                 table: "Fines",
-                column: "UserId");
+                column: "ReaderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LoanDetails_CopyId",
@@ -402,14 +425,14 @@ namespace LibraryManagement.Data.Migrations
                 filter: "([Status]='Borrowed')");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Loans_BorrowerUserId",
+                name: "IX_Loans_BorrowerReaderId",
                 table: "Loans",
-                column: "BorrowerUserId");
+                column: "BorrowerReaderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Loans_ProcessedByUserId",
+                name: "IX_Loans_ProcessedByAccountId",
                 table: "Loans",
-                column: "ProcessedByUserId");
+                column: "ProcessedByAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Loans_Status",
@@ -423,55 +446,62 @@ namespace LibraryManagement.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reservations_BookId",
-                table: "Reservations",
-                column: "BookId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Reservations_UserId",
-                table: "Reservations",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "UX_Reservations_OneActiveReservationPerCopy",
-                table: "Reservations",
-                column: "CopyId",
-                unique: true,
-                filter: "([CopyId] IS NOT NULL AND ([Status] IN ('Pending', 'ReadyForPickup')))");
-
-            migrationBuilder.CreateIndex(
-                name: "UX_Reservations_OneActiveReservationPerMemberBook",
-                table: "Reservations",
-                columns: new[] { "UserId", "BookId" },
-                unique: true,
-                filter: "([Status] IN ('Pending', 'ReadyForPickup'))");
-
-            migrationBuilder.CreateIndex(
-                name: "UQ__Roles__8A2B61606178B3F3",
-                table: "Roles",
-                column: "RoleName",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_Email",
-                table: "Users",
-                column: "Email");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_RoleId",
-                table: "Users",
-                column: "RoleId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_Status",
-                table: "Users",
+                name: "IX_Readers_Status",
+                table: "Readers",
                 column: "Status");
 
             migrationBuilder.CreateIndex(
-                name: "UQ__Users__A9D10534911F2EB8",
-                table: "Users",
+                name: "UQ_Readers_Email",
+                table: "Readers",
                 column: "Email",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservations_ReaderId",
+                table: "Reservations",
+                column: "ReaderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservations_RoomId",
+                table: "Reservations",
+                column: "RoomId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservations_Status",
+                table: "Reservations",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_Reservations_OneActivePerReader",
+                table: "Reservations",
+                column: "ReaderId",
+                unique: true,
+                filter: "([Status] IN ('Pending', 'Confirmed'))");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rooms_Status",
+                table: "Rooms",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_Rooms_RoomName",
+                table: "Rooms",
+                column: "RoomName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_UserProfiles_AccountId",
+                table: "UserProfiles",
+                column: "AccountId",
+                unique: true,
+                filter: "[AccountId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_UserProfiles_ReaderId",
+                table: "UserProfiles",
+                column: "ReaderId",
+                unique: true,
+                filter: "[ReaderId] IS NOT NULL");
         }
 
         /// <inheritdoc />
@@ -490,7 +520,19 @@ namespace LibraryManagement.Data.Migrations
                 name: "Reservations");
 
             migrationBuilder.DropTable(
+                name: "UserProfiles");
+
+            migrationBuilder.DropTable(
+                name: "Authors");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
+
+            migrationBuilder.DropTable(
                 name: "LoanDetails");
+
+            migrationBuilder.DropTable(
+                name: "Rooms");
 
             migrationBuilder.DropTable(
                 name: "BookCopies");
@@ -502,19 +544,13 @@ namespace LibraryManagement.Data.Migrations
                 name: "Books");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Readers");
 
             migrationBuilder.DropTable(
-                name: "Authors");
-
-            migrationBuilder.DropTable(
-                name: "Categories");
+                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "Publishers");
-
-            migrationBuilder.DropTable(
-                name: "Roles");
         }
     }
 }

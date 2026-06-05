@@ -1,27 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 
 namespace LibraryManagement.Models.Models;
 
+/// <summary>
+/// Đặt phòng đọc sách tại thư viện.
+/// Mỗi Reader chỉ được có 1 lượt đặt phòng đang active (Pending/Confirmed).
+/// </summary>
 public partial class Reservation
 {
     public Guid ReservationId { get; set; }
 
-    public Guid BookId { get; set; }
+    /// <summary>FK → Readers. Độc giả đặt phòng.</summary>
+    public Guid ReaderId { get; set; }
 
-    public Guid? CopyId { get; set; }
+    /// <summary>FK → Rooms. Phòng được đặt.</summary>
+    public Guid RoomId { get; set; }
 
-    public Guid UserId { get; set; }
+    /// <summary>Ngày bắt đầu sử dụng phòng.</summary>
+    public DateTime StartTime { get; set; }
+
+    /// <summary>Ngày kết thúc sử dụng phòng.</summary>
+    public DateTime EndTime { get; set; }
 
     public DateTime ReservationDate { get; set; }
 
-    public DateTime? ExpiryDate { get; set; }
-
+    /// <summary>Pending | Confirmed | Cancelled | Completed</summary>
     public string Status { get; set; } = null!;
 
-    public virtual Book Book { get; set; } = null!;
+    // Navigation
+    public virtual Reader Reader { get; set; } = null!;
 
-    public virtual BookCopy? Copy { get; set; }
-
-    public virtual User User { get; set; } = null!;
+    public virtual Room Room { get; set; } = null!;
 }

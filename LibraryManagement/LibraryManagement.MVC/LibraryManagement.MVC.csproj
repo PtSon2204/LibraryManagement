@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <Folder Include="Common\" />
+    <Folder Include="Models\User\" />
+    <Folder Include="Views\User\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace LibraryManagement.Models.Models;
@@ -20,6 +20,4 @@ public partial class BookCopy
     public virtual Book Book { get; set; } = null!;
 
     public virtual LoanDetail? LoanDetail { get; set; }
-
-    public virtual Reservation? Reservation { get; set; }
 }
