@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace LibraryManagement.Models.Models;
 
@@ -7,13 +6,23 @@ public partial class Fine
 {
     public Guid FineId { get; set; }
 
-    /// <summary>FK → Readers. Chỉ độc giả mới bị phạt.</summary>
-    public Guid ReaderId { get; set; }
+    /// <summary>
+    /// FK → LoanDetails. Mọi khoản phạt đều phải thuộc 1 lần mượn cụ thể.
+    /// Lấy Reader qua: Fine → LoanDetail → Loan → BorrowerReader.
+    /// </summary>
+    public Guid LoanDetailId { get; set; }
 
-    public Guid? LoanDetailId { get; set; }
+    /// <summary>
+    /// FK → Payments (nullable).
+    /// NULL  = chưa thanh toán (Status = Unpaid / Waived).
+    /// Có giá trị = đã được thanh toán trong phiên Payment này.
+    /// </summary>
+    public Guid? PaymentId { get; set; }
 
+    /// <summary>Số tiền phạt cho khoản này.</summary>
     public decimal Amount { get; set; }
 
+    /// <summary>Lý do phạt, vd: "Trả trễ 5 ngày", "Rách trang 50", "Hỏng bìa".</summary>
     public string Reason { get; set; } = null!;
 
     /// <summary>Unpaid | Paid | Waived</summary>
@@ -24,7 +33,7 @@ public partial class Fine
     public DateTime? PaidAt { get; set; }
 
     // Navigation
-    public virtual Reader Reader { get; set; } = null!;
+    public virtual LoanDetail LoanDetail { get; set; } = null!;
 
-    public virtual LoanDetail? LoanDetail { get; set; }
+    public virtual Payment? Payment { get; set; }
 }

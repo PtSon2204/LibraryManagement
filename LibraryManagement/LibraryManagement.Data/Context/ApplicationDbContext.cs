@@ -34,6 +34,8 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<LoanDetail> LoanDetails { get; set; }
 
+    public virtual DbSet<Payment> Payments { get; set; }
+
     public virtual DbSet<Publisher> Publishers { get; set; }
 
     public virtual DbSet<Reservation> Reservations { get; set; }
@@ -256,7 +258,8 @@ public partial class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.FineId).HasName("PK__Fines__9D4A9B2CA6D51367");
 
-            entity.HasIndex(e => e.ReaderId, "IX_Fines_ReaderId");
+            entity.HasIndex(e => e.LoanDetailId, "IX_Fines_LoanDetailId");
+            entity.HasIndex(e => e.Status, "IX_Fines_Status");
 
             entity.Property(e => e.FineId).HasDefaultValueSql("(newsequentialid())");
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
@@ -266,15 +269,48 @@ public partial class ApplicationDbContext : DbContext
                 .HasMaxLength(30)
                 .HasDefaultValue("Unpaid");
 
+            // FK → LoanDetails (NOT NULL: mọi khoản phạt phải gắn với 1 lần mượn)
             entity.HasOne(d => d.LoanDetail).WithMany(p => p.Fines)
                 .HasForeignKey(d => d.LoanDetailId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Fines_LoanDetails");
 
-            // FK → Readers (chỉ reader mới bị phạt)
-            entity.HasOne(d => d.Reader).WithMany(p => p.Fines)
+            // FK → Payments (nullable: NULL = chưa thanh toán)
+            entity.HasOne(d => d.Payment).WithMany(p => p.Fines)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Fines_Payments");
+        });
+
+        // ── Payments ────────────────────────────────────────────────────────────
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.PaymentId);
+
+            entity.HasIndex(e => e.ReaderId, "IX_Payments_ReaderId");
+            entity.HasIndex(e => e.ProcessedByAccountId, "IX_Payments_ProcessedByAccountId");
+            entity.HasIndex(e => e.PaidAt, "IX_Payments_PaidAt");
+
+            entity.Property(e => e.PaymentId).HasDefaultValueSql("(newsequentialid())");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Method)
+                .HasMaxLength(30);
+            entity.Property(e => e.Note)
+                .HasMaxLength(500)
+                .IsRequired(false);
+            entity.Property(e => e.PaidAt).HasDefaultValueSql("(sysdatetime())");
+
+            // FK → Readers (Reader này nộp tiền)
+            entity.HasOne(d => d.Reader).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.ReaderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Fines_Readers");
+                .HasConstraintName("FK_Payments_Readers");
+
+            // FK → Accounts (thủ thư xác nhận nhận tiền, nullable)
+            entity.HasOne(d => d.ProcessedByAccount).WithMany(p => p.ProcessedPayments)
+                .HasForeignKey(d => d.ProcessedByAccountId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Payments_ProcessedByAccount");
         });
 
         // ── Loans ─────────────────────────────────────────────────────────────

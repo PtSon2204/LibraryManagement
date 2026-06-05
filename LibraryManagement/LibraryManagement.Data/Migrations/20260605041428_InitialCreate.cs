@@ -159,6 +159,34 @@ namespace LibraryManagement.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    PaymentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
+                    ReaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProcessedByAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Method = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Note = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(sysdatetime())")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.PaymentId);
+                    table.ForeignKey(
+                        name: "FK_Payments_ProcessedByAccount",
+                        column: x => x.ProcessedByAccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Payments_Readers",
+                        column: x => x.ReaderId,
+                        principalTable: "Readers",
+                        principalColumn: "ReaderId");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserProfiles",
                 columns: table => new
                 {
@@ -314,8 +342,8 @@ namespace LibraryManagement.Data.Migrations
                 columns: table => new
                 {
                     FineId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newsequentialid())"),
-                    ReaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    LoanDetailId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    LoanDetailId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PaymentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "Unpaid"),
@@ -331,10 +359,11 @@ namespace LibraryManagement.Data.Migrations
                         principalTable: "LoanDetails",
                         principalColumn: "LoanDetailId");
                     table.ForeignKey(
-                        name: "FK_Fines_Readers",
-                        column: x => x.ReaderId,
-                        principalTable: "Readers",
-                        principalColumn: "ReaderId");
+                        name: "FK_Fines_Payments",
+                        column: x => x.PaymentId,
+                        principalTable: "Payments",
+                        principalColumn: "PaymentId",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateIndex(
@@ -403,9 +432,14 @@ namespace LibraryManagement.Data.Migrations
                 column: "LoanDetailId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Fines_ReaderId",
+                name: "IX_Fines_PaymentId",
                 table: "Fines",
-                column: "ReaderId");
+                column: "PaymentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Fines_Status",
+                table: "Fines",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LoanDetails_CopyId",
@@ -438,6 +472,21 @@ namespace LibraryManagement.Data.Migrations
                 name: "IX_Loans_Status",
                 table: "Loans",
                 column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_PaidAt",
+                table: "Payments",
+                column: "PaidAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_ProcessedByAccountId",
+                table: "Payments",
+                column: "ProcessedByAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_ReaderId",
+                table: "Payments",
+                column: "ReaderId");
 
             migrationBuilder.CreateIndex(
                 name: "UQ__Publishe__5F0E22495C071047",
@@ -530,6 +579,9 @@ namespace LibraryManagement.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "LoanDetails");
+
+            migrationBuilder.DropTable(
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "Rooms");
