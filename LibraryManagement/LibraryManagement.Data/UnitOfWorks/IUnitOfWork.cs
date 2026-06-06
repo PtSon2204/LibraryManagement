@@ -9,9 +9,9 @@ namespace LibraryManagement.Data.UnitOfWorks
         // Repositories chuyên biệt
         IReaderRepository ReaderRepository { get; }
         IAccountRepository AccountRepository { get; }
-        IAuthorRepository AuthorRepository { get; }
 
         // Generic repositories
+        IRepository<Author> Authors { get; }
         IRepository<Book> Books { get; }
         IRepository<BookCopy> BookCopies { get; }
         IRepository<Reader> Readers { get; }

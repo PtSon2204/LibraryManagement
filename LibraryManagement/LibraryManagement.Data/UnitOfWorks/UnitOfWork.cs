@@ -11,7 +11,6 @@ namespace LibraryManagement.Data.UnitOfWorks
 
         public IReaderRepository ReaderRepository { get; }
         public IAccountRepository AccountRepository { get; }
-        public IAuthorRepository AuthorRepository { get; }
 
         public IRepository<Book> Books { get; }
         public IRepository<BookCopy> BookCopies { get; }
@@ -25,13 +24,14 @@ namespace LibraryManagement.Data.UnitOfWorks
         public IRepository<Fine> Fines { get; }
         public IRepository<Payment> Payments { get; }
 
+        public IRepository<Author> Authors { get; }
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
 
             ReaderRepository = new ReaderRepository(context);
             AccountRepository = new AccountRepository(context);
-            AuthorRepository = new AuthorRepository(context);
+            Authors = new Repository<Author>(context);
 
             Books = new Repository<Book>(context);
             BookCopies = new Repository<BookCopy>(context);
