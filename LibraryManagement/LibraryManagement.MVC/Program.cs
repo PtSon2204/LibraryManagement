@@ -1,10 +1,5 @@
-using LibraryManagement.MVC.Interface;
-using LibraryManagement.MVC.Services;
+using LibraryManagement.MVC.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using LibraryManagement.MVC.Interface.API.Books;
-using LibraryManagement.MVC.Interface.API.Dashboard;
-using LibraryManagement.MVC.Services.API.Books;
-using LibraryManagement.MVC.Services.API.Dashboard;
 
 
 namespace LibraryManagement.MVC
@@ -15,42 +10,17 @@ namespace LibraryManagement.MVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddSession();
+
+            builder.Services.AddHttpContextAccessor();
+
             builder.Services.AddAuthentication(
-                 CookieAuthenticationDefaults.AuthenticationScheme)
-                     .AddCookie(options =>
-                     {
-                         options.LoginPath = "/Account/Login";
-                         options.AccessDeniedPath = "/Account/AccessDenied";
-                         options.ExpireTimeSpan = TimeSpan.FromHours(2);
-                     });
+                CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie();
 
-            builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
-            {
-                client.BaseAddress =
-                       new Uri("https://localhost:7229/");
-            });
-
-            builder.Services.AddAuthorization();
-            var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"]
-                ?? throw new InvalidOperationException("ApiSettings:BaseUrl is not configured.");
-
-            builder.Services.AddHttpClient<IBookApiClient, BookApiClient>(client =>
-            {
-                client.BaseAddress = new Uri(apiBaseUrl);
-            });
-
-            builder.Services.AddHttpClient<IStaffDashboardApiClient, StaffDashboardApiClient>(client =>
-            {
-                client.BaseAddress = new Uri(apiBaseUrl);
-            });
-
-            builder.Services.AddHttpClient<LibraryApiClient>(client =>
-            {
-                client.BaseAddress = new Uri(apiBaseUrl);
-            });
+            builder.Services.AddApiServices(builder.Configuration);
 
             var app = builder.Build();
 
@@ -66,6 +36,8 @@ namespace LibraryManagement.MVC
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseSession();
 
             app.UseAuthentication();
             app.UseAuthorization();

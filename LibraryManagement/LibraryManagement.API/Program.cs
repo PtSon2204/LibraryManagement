@@ -1,6 +1,5 @@
-//using LibraryManagement.API.Extensions;
+using LibraryManagement.API.Extensions;
 using LibraryManagement.API.Middleware;
-using LibraryManagement.Business.DTOs.BookDTOs;
 using LibraryManagement.Data;
 using LibraryManagement.Models.Context;
 using Microsoft.AspNetCore.OData;
@@ -25,7 +24,7 @@ namespace LibraryManagement.API
             builder.Services.AddData();
 
             //Đăng kí service
-           // builder.Services.AddCustomServices(builder.Configuration);
+            builder.Services.AddCustomServices(builder.Configuration);
 
             // Add services to the container.
             builder.Services.AddEndpointsApiExplorer();
@@ -59,6 +58,7 @@ namespace LibraryManagement.API
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
@@ -71,9 +71,9 @@ namespace LibraryManagement.API
         {
             var builder = new ODataConventionModelBuilder();
 
-            builder.EntitySet<BookOdataDto>("Books")
-               .EntityType
-               .HasKey(b => b.BookId);
+            //builder.EntitySet<BookOdataDto>("Books")
+            //   .EntityType
+            //   .HasKey(b => b.BookId);
 
             return builder.GetEdmModel();
         }

@@ -3,11 +3,11 @@ using LibraryManagement.MVC.Models.Auth;
 
 namespace LibraryManagement.MVC.Services
 {
-    public class AuthService : IAuthService
+    public class AccountService : IAccountService
     {
         private readonly HttpClient _httpClient;
 
-        public AuthService(HttpClient httpClient)
+        public AccountService(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }

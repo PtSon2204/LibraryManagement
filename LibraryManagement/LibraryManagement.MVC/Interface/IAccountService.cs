@@ -2,7 +2,7 @@
 
 namespace LibraryManagement.MVC.Interface
 {
-    public interface IAuthService
+    public interface IAccountService
     {
         Task<bool> RegisterAsync(RegisterViewModel model);
 
