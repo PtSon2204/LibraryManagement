@@ -1,11 +1,11 @@
-﻿using LibraryManagement.MVC.Models.Auth;
+﻿using LibraryManagement.MVC.Common;
+using LibraryManagement.MVC.ViewModels.Auth;
 
 namespace LibraryManagement.MVC.Interface
 {
     public interface IAccountService
     {
-        Task<bool> RegisterAsync(RegisterViewModel model);
-
+        Task<ValidationErrorResponse?> RegisterAsync(RegisterViewModel model);
         Task<LoginResponseDto?> LoginAsync(LoginViewModel model);
     }
 }

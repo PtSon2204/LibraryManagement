@@ -16,6 +16,11 @@ namespace LibraryManagement.MVC.Extensions
                 x.BaseAddress = new Uri(apiUrl);
             });
 
+            services.AddHttpClient<IUserProfileService, UserProfileService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            });
+
             return services;
         }
     }

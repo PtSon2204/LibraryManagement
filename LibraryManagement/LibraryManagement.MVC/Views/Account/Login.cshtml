@@ -1,4 +1,5 @@
-@model LibraryManagement.MVC.Models.Auth.LoginViewModel
+@using LibraryManagement.MVC.ViewModels.Auth
+@model LoginViewModel
 @{
     ViewData["Title"] = "Đăng nhập";
 }
@@ -235,7 +236,12 @@
         <div class="auth-right">
             <h1 class="auth-title">Đăng nhập</h1>
             <p class="auth-subtitle">Vui lòng nhập thông tin của bạn</p>
-
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">
+                    @ViewBag.Error
+                </div>
+            }
             <form asp-action="Login" asp-controller="Account" method="post">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 border-0 small"></div>
 
