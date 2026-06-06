@@ -1,10 +1,10 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using LibraryManagement.MVC.Interface;
-using LibraryManagement.MVC.Models.Auth;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using LibraryManagement.MVC.ViewModels.Auth;
 
 namespace LibraryManagement.MVC.Controllers
 {
@@ -41,6 +41,7 @@ namespace LibraryManagement.MVC.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role)
             };
@@ -63,11 +64,18 @@ namespace LibraryManagement.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult>Register(RegisterViewModel model)
         {
-            var result = await _authService.RegisterAsync(model);
+            var errors = await _authService.RegisterAsync(model);
 
-            if (!result)
+            if (errors != null)
             {
-                ViewBag.Error = "đăng kí thất bại";
+                foreach (var item in errors.Errors)
+                {
+                    foreach (var message in item.Value)
+                    {
+                        ModelState.AddModelError(item.Key, message);
+                    }
+                }
+
                 return View(model);
             }
 

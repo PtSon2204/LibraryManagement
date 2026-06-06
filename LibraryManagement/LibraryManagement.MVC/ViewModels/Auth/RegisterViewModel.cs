@@ -1,4 +1,4 @@
-﻿namespace LibraryManagement.MVC.Models.Auth
+﻿namespace LibraryManagement.MVC.ViewModels.Auth
 {
     public class RegisterViewModel
     {

@@ -42,9 +42,14 @@ namespace LibraryManagement.Business.Services
 
             var account = await _unitOfWork.AccountRepository.GetAccountByEmailAsync(dto.Email);
 
-            bool check = BCrypt.Net.BCrypt.Verify(dto.Password, account.PasswordHash);
+            if (account == null)
+                throw new Exception("Email hoặc mật khẩu không chính xác");
 
-            if (account == null || !check)
+            bool check = BCrypt.Net.BCrypt.Verify(
+                dto.Password,
+                account.PasswordHash);
+
+            if (!check)
                 throw new Exception("Email hoặc mật khẩu không chính xác");
 
             var jwt = _jwtService.GenerateToken(account.AccountId, account.Email, account.Role);
@@ -66,7 +71,9 @@ namespace LibraryManagement.Business.Services
 
             var readerExist = await _unitOfWork.ReaderRepository.GetReaderByEmailAsync(dto.Email);
 
-            if (readerExist != null)
+            var accountExist = await _unitOfWork.AccountRepository.GetAccountByEmailAsync(dto.Email);
+
+            if (readerExist != null || accountExist != null)
             {
                 throw new Exception("Email đã tồn tại");
             }
