@@ -1,4 +1,4 @@
-﻿using LibraryManagement.Business.Interfaces;
+using LibraryManagement.Business.Interfaces;
 using LibraryManagement.Business.Services;
 using LibraryManagement.Business.Validators.AuthValidators;
 using FluentValidation;
@@ -6,6 +6,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using LibraryManagement.Business.DTOs.EmailDTOs;
 
 namespace LibraryManagement.API.Extensions
 {
@@ -22,6 +23,11 @@ namespace LibraryManagement.API.Extensions
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
 
+            // cấu hình email
+            services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+            services.AddScoped<IEmailService, EmailService>();
+
+            //cấu hình authen
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                            .AddJwtBearer(options =>
                            {
@@ -42,6 +48,8 @@ namespace LibraryManagement.API.Extensions
                            });
 
             services.AddAuthorization();
+
+         
 
 
             return services;

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using LibraryManagement.Business.DTOs.AuthDTOs;
 using LibraryManagement.Business.Interfaces;
@@ -11,12 +12,72 @@ namespace LibraryManagement.Business.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IJwtService _jwtService;
+        private readonly IEmailService _emailService;
 
-        public AuthService(IUnitOfWork unitOfWork, IJwtService jwtService)
+        public AuthService(IUnitOfWork unitOfWork, IJwtService jwtService, IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _jwtService = jwtService;
+            _emailService = emailService;
+        }
 
+        public async Task<bool> ForgotPasswordAsync(string email)
+        {
+            // Kiểm tra cả Account (Staff/Admin) và Reader
+            var account = await _unitOfWork.AccountRepository.GetAccountByEmailAsync(email);
+            var reader = await _unitOfWork.ReaderRepository.GetReaderByEmailAsync(email);
+
+            if (account == null && reader == null)
+                return false; // Email không tồn tại
+
+            var newPassword = GenerateRandomPassword();
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            if (account != null)
+            {
+                account.PasswordHash = hashedPassword;
+                _unitOfWork.AccountRepository.UpdateAccount(account);
+            }
+            else if (reader != null)
+            {
+                reader.PasswordHash = hashedPassword;
+                _unitOfWork.ReaderRepository.UpdateReader(reader);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            // Gửi email chứa mật khẩu mới
+            await _emailService.SendEmailAsync(
+                email,
+                "[Library] Khôi phục mật khẩu",
+                $"<p>Xin chào,</p><p>Hệ thống đã tạo một mật khẩu mới ngẫu nhiên cho bạn.</p><p>Mật khẩu mới của bạn là: <strong>{newPassword}</strong></p><p>Vui lòng đăng nhập bằng mật khẩu này. Bạn nên đổi lại mật khẩu của riêng mình sau khi đăng nhập thành công.</p><p>Nếu không phải bạn, hãy liên hệ với quản trị viên ngay lập tức.</p>"
+            );
+
+            return true;
+        }
+
+        private string GenerateRandomPassword()
+        {
+            const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string lower = "abcdefghijklmnopqrstuvwxyz";
+            const string digits = "0123456789";
+            const string special = "!@#$%^&*()";
+
+            var random = new Random();
+            var password = new char[10];
+
+            password[0] = upper[random.Next(upper.Length)];
+            password[1] = lower[random.Next(lower.Length)];
+            password[2] = digits[random.Next(digits.Length)];
+            password[3] = special[random.Next(special.Length)];
+
+            const string allChars = upper + lower + digits + special;
+            for (int i = 4; i < 10; i++)
+            {
+                password[i] = allChars[random.Next(allChars.Length)];
+            }   
+
+            return new string(password.OrderBy(x => random.Next()).ToArray());
         }
 
         public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
@@ -89,7 +150,18 @@ namespace LibraryManagement.Business.Services
 
             await _unitOfWork.Readers.AddAsync(reader);
 
+            var profile = new UserProfile
+            {
+                UserProfileId = Guid.NewGuid(),
+                ReaderId = reader.ReaderId,
+                FullName = dto.FullName
+            };
+            
+            await _unitOfWork.UserProfiles.AddAsync(profile);
+
             await _unitOfWork.SaveChangesAsync();
         }
+
+
     }
 }

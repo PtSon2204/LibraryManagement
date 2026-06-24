@@ -1,4 +1,4 @@
-﻿using LibraryManagement.MVC.Common;
+using LibraryManagement.MVC.Common;
 using LibraryManagement.MVC.Interface;
 using LibraryManagement.MVC.ViewModels.Auth;
 
@@ -11,6 +11,16 @@ namespace LibraryManagement.MVC.Services
         public AccountService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+        }
+
+        public async Task<string?> ForgotPasswordAsync(string email)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/forgot-password", new { Email = email });
+            if (response.IsSuccessStatusCode)
+                return null;
+            
+            var error = await response.Content.ReadAsStringAsync();
+            return !string.IsNullOrEmpty(error) ? error : "Lỗi hệ thống khi gửi email";
         }
 
         public async Task<LoginResponseDto?> LoginAsync(LoginViewModel model)
@@ -35,5 +45,6 @@ namespace LibraryManagement.MVC.Services
             return await response.Content
                 .ReadFromJsonAsync<ValidationErrorResponse>();
         }
+
     }
 }

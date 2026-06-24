@@ -12,7 +12,6 @@ namespace LibraryManagement.Data
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IReaderRepository, ReaderRepository>();
             services.AddScoped<IAccountRepository, AccountRepository>();
-
             return services;
         }
     }
