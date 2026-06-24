@@ -30,6 +30,12 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Books" asp-action="Index">Danh sách sách</a>
                         </li>
+                        @if (User.IsInRole("Reader"))
+                        {
+                            <li>
+                                <a class="dropdown-item py-2" href="#"><i class="bi bi-journal-bookmark me-2 text-muted"></i>Sách đang mượn</a>
+                            </li>
+                        }
                         @if (User.IsInRole("Librarian"))
                         {
                             <li class="nav-item">

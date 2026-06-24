@@ -18,6 +18,11 @@ namespace LibraryManagement.MVC.Controllers
             var model =
                 await _userProfileService.GetProfile();
 
+            if (model == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             return View(model);
         }
 
