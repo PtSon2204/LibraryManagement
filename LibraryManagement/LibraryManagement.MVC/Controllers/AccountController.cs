@@ -82,6 +82,34 @@ namespace LibraryManagement.MVC.Controllers
             return RedirectToAction(nameof(Login));
         }
 
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var error = await _authService.ForgotPasswordAsync(model.Email);
+
+            if (error != null)
+            {
+                ModelState.AddModelError("", error);
+                return View(model);
+            }
+
+            ViewBag.Message = "Mật khẩu mới ngẫu nhiên đã được gửi đến email của bạn. Vui lòng kiểm tra email và đăng nhập.";
+            return View();
+        }
+
+
+
         [Authorize]
         public async Task<IActionResult> Logout()
         {

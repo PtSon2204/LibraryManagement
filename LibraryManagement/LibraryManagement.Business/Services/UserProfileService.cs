@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -34,7 +34,7 @@ namespace LibraryManagement.Business.Services
                 return new UserProfileDto
                 {
                     Email = reader.Email,
-                    FullName = reader.Profile.FullName,
+                    FullName = reader.Profile?.FullName ?? "Chưa có tên",
                     Phone = reader.Profile?.Phone,
                     Address = reader.Profile?.Address,
                     DateOfBirth = reader.Profile?.DateOfBirth
@@ -48,7 +48,7 @@ namespace LibraryManagement.Business.Services
             return new UserProfileDto
             {
                 Email = account.Email,
-                FullName = account.Profile.FullName,
+                FullName = account.Profile?.FullName ?? "Chưa có tên",
                 Phone = account.Profile?.Phone,
                 Address = account.Profile?.Address,
                 DateOfBirth = account.Profile?.DateOfBirth
@@ -60,6 +60,11 @@ namespace LibraryManagement.Business.Services
             if (role == "Reader")
             {
                 var reader = await _unitOfWork.ReaderRepository.GetReaderByIdAsync(userId);
+                if (reader.Profile == null)
+                {
+                    reader.Profile = new UserProfile { UserProfileId = Guid.NewGuid(), ReaderId = userId, FullName = model.FullName };
+                    await _unitOfWork.UserProfiles.AddAsync(reader.Profile);
+                }
 
                 reader.Profile.FullName = model.FullName;
                 reader.Profile.Phone = model.Phone;
@@ -71,6 +76,11 @@ namespace LibraryManagement.Business.Services
             else
             {
                 var account = await _unitOfWork.AccountRepository.GetAccountByIdAsync(userId);
+                if (account.Profile == null)
+                {
+                    account.Profile = new UserProfile { UserProfileId = Guid.NewGuid(), AccountId = userId, FullName = model.FullName };
+                    await _unitOfWork.UserProfiles.AddAsync(account.Profile);
+                }
 
                 account.Profile.FullName = model.FullName;
                 account.Profile.Phone = model.Phone;

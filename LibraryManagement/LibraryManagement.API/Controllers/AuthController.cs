@@ -1,4 +1,4 @@
-﻿using LibraryManagement.Business.DTOs.AuthDTOs;
+using LibraryManagement.Business.DTOs.AuthDTOs;
 using LibraryManagement.Business.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,5 +30,19 @@ namespace LibraryManagement.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+        {
+            var success = await _authService.ForgotPasswordAsync(dto.Email);
+
+            if (!success)
+            {
+                return BadRequest("Email không tồn tại trong hệ thống.");
+            }
+
+            return Ok();
+        }
+
     }
 }

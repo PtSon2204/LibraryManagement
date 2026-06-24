@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +12,6 @@ namespace LibraryManagement.Business.Interfaces
         Task RegisterAsync(RegisterDto dto);
 
         Task<LoginResponseDto> LoginAsync(LoginDto dto);
+        Task<bool> ForgotPasswordAsync(string email);
     }
 }

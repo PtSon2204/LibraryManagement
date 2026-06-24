@@ -39,7 +39,6 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<Publisher> Publishers { get; set; }
 
     public virtual DbSet<Reservation> Reservations { get; set; }
-
     public virtual DbSet<Room> Rooms { get; set; }
 
     // --- Bảng mới thay thế Users + Roles ---
