@@ -1,0 +1,77 @@
+@model LibraryManagement.MVC.ViewModels.Publisher.PublisherViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết nhà xuất bản";
+    Layout = "~/Views/Shared/_LibrarianLayout.cshtml";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white pt-4 pb-0" style="border-bottom: 2px solid #2563eb;">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                        <i class="bi bi-building fs-3 text-primary"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">@Model.PublisherName</h4>
+                        <small class="text-muted">Mã NXB: #@Model.PublisherId</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row mb-3 align-items-center">
+                    <div class="col-sm-4 text-muted">
+                        <i class="bi bi-building me-2"></i>Tên nhà xuất bản
+                    </div>
+                    <div class="col-sm-8 fw-medium">@Model.PublisherName</div>
+                </div>
+                <hr class="text-muted opacity-25" />
+
+                <div class="row mb-3 align-items-center">
+                    <div class="col-sm-4 text-muted">
+                        <i class="bi bi-envelope me-2"></i>Email
+                    </div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <a href="mailto:@Model.Email" class="text-decoration-none text-primary fw-medium">
+                                @Model.Email
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">Chưa cập nhật</span>
+                        }
+                    </div>
+                </div>
+                <hr class="text-muted opacity-25" />
+
+                <div class="row mb-3 align-items-center">
+                    <div class="col-sm-4 text-muted">
+                        <i class="bi bi-telephone me-2"></i>Điện thoại
+                    </div>
+                    <div class="col-sm-8 fw-medium">
+                        @(string.IsNullOrEmpty(Model.Phone) ? "Chưa cập nhật" : Model.Phone)
+                    </div>
+                </div>
+                <hr class="text-muted opacity-25" />
+
+                <div class="row mb-3 align-items-center">
+                    <div class="col-sm-4 text-muted">
+                        <i class="bi bi-geo-alt me-2"></i>Địa chỉ
+                    </div>
+                    <div class="col-sm-8 fw-medium">
+                        @(string.IsNullOrEmpty(Model.Address) ? "Chưa cập nhật" : Model.Address)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
