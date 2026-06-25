@@ -1,87 +1,124 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using LibraryManagement.Business.DTOs.AuthDTOs;
-using LibraryManagement.MVC.Services;
-using Microsoft.AspNetCore.Authentication;
+using LibraryManagement.MVC.Interface;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using LibraryManagement.MVC.ViewModels.Auth;
 
 namespace LibraryManagement.MVC.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly LibraryApiClient _apiClient;
+        private readonly IAccountService _authService;
 
-        public AccountController(LibraryApiClient apiClient)
+        public AccountController(IAccountService authService)
         {
-            _apiClient = apiClient;
+            _authService = authService;
         }
-
         [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public IActionResult Login()
         {
-            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginDto loginDto, string? returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(loginDto);
-            }
+            var user = await _authService.LoginAsync(model);
 
-            var user = await _apiClient.LoginAsync(loginDto);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không chính xác.");
-                return View(loginDto);
+                ViewBag.Error = "Tài khoản và mật khẩu sai. Vui lòng kiểm tra lại";
+                return View(model);
             }
+
+            // Lưu JWT
+            HttpContext.Session.SetString(
+                "AccessToken",
+                user.Token);
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name, user.FullName),
+                new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role ?? string.Empty)
+                new Claim(ClaimTypes.Role, user.Role)
             };
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
-            };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+            var principal = new ClaimsPrincipal(identity);
 
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
-            }
-
-            if (user.Role == "Admin")
-            {
-                return RedirectToAction("Index", "Admin");
-            }
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "Home");
-        }
-
-        [HttpGet]
-        public IActionResult AccessDenied()
+        public IActionResult Register()
         {
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult>Register(RegisterViewModel model)
+        {
+            var errors = await _authService.RegisterAsync(model);
+
+            if (errors != null)
+            {
+                foreach (var item in errors.Errors)
+                {
+                    foreach (var message in item.Value)
+                    {
+                        ModelState.AddModelError(item.Key, message);
+                    }
+                }
+
+                return View(model);
+            }
+
+            return RedirectToAction(nameof(Login));
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var error = await _authService.ForgotPasswordAsync(model.Email);
+
+            if (error != null)
+            {
+                ModelState.AddModelError("", error);
+                return View(model);
+            }
+
+            ViewBag.Message = "Mật khẩu mới ngẫu nhiên đã được gửi đến email của bạn. Vui lòng kiểm tra email và đăng nhập.";
+            return View();
+        }
+
+
+
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            HttpContext.Session.Remove("AccessToken");
+
+            await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return RedirectToAction(nameof(Login));
         }
     }
 }

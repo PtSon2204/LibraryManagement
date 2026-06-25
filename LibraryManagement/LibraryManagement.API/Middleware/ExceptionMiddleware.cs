@@ -1,4 +1,4 @@
-﻿namespace LibraryManagement.API.Middleware
+namespace LibraryManagement.API.Middleware
 {
     public class ExceptionMiddleware
     {
@@ -20,7 +20,8 @@
                 context.Response.StatusCode = 500;
                 await context.Response.WriteAsJsonAsync(new
                 {
-                    message = ex.Message
+                    message = ex.Message,
+                    inner = ex.InnerException?.Message
                 });
             }
         }

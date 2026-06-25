@@ -1,8 +1,7 @@
 using LibraryManagement.API.Extensions;
 using LibraryManagement.API.Middleware;
-using LibraryManagement.Business.DTOs.BookDTOs;
 using LibraryManagement.Data;
- using LibraryManagement.Models.Context;
+using LibraryManagement.Models.Context;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OData.Edm;
@@ -16,6 +15,9 @@ namespace LibraryManagement.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Tải biến môi trường từ file .env (TraversePath giúp tự động tìm file .env ở các thư mục cha nếu chạy từ thư mục bin)
+            DotNetEnv.Env.TraversePath().Load();
+            builder.Configuration.AddEnvironmentVariables();
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
               options.UseSqlServer(builder.Configuration.GetConnectionString("MyCnn")));
@@ -59,6 +61,7 @@ namespace LibraryManagement.API
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
@@ -71,9 +74,9 @@ namespace LibraryManagement.API
         {
             var builder = new ODataConventionModelBuilder();
 
-            builder.EntitySet<BookOdataDto>("Books")
-               .EntityType
-               .HasKey(b => b.BookId);
+            //builder.EntitySet<BookOdataDto>("Books")
+            //   .EntityType
+            //   .HasKey(b => b.BookId);
 
             return builder.GetEdmModel();
         }

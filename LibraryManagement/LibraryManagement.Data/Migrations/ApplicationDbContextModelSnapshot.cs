@@ -22,6 +22,55 @@ namespace LibraryManagement.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("LibraryManagement.Models.Models.Account", b =>
+                {
+                    b.Property<Guid>("AccountId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("(newsequentialid())");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Active");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("AccountId");
+
+                    b.HasIndex(new[] { "Role" }, "IX_Accounts_Role");
+
+                    b.HasIndex(new[] { "Email" }, "UQ_Accounts_Email")
+                        .IsUnique();
+
+                    b.ToTable("Accounts", (string)null);
+                });
+
             modelBuilder.Entity("LibraryManagement.Models.Models.Author", b =>
                 {
                     b.Property<int>("AuthorId")
@@ -41,7 +90,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasKey("AuthorId")
                         .HasName("PK__Authors__70DAFC34CC5F8E3C");
 
-                    b.ToTable("Authors");
+                    b.ToTable("Authors", (string)null);
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Book", b =>
@@ -50,12 +99,6 @@ namespace LibraryManagement.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newsequentialid())");
-
-                    b.Property<int?>("AuthorId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("int");
 
                     b.Property<string>("CoverImageUrl")
                         .HasMaxLength(1000)
@@ -101,10 +144,6 @@ namespace LibraryManagement.Data.Migrations
                     b.HasKey("BookId")
                         .HasName("PK__Books__3DE0C2070B8D05FB");
 
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("CategoryId");
-
                     b.HasIndex("PublisherId");
 
                     b.HasIndex(new[] { "Title" }, "IX_Books_Title");
@@ -113,7 +152,7 @@ namespace LibraryManagement.Data.Migrations
                         .IsUnique()
                         .HasFilter("[ISBN] IS NOT NULL");
 
-                    b.ToTable("Books");
+                    b.ToTable("Books", (string)null);
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.BookAuthor", b =>
@@ -128,7 +167,7 @@ namespace LibraryManagement.Data.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("BookAuthors");
+                    b.ToTable("BookAuthors", (string)null);
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.BookCategory", b =>
@@ -143,7 +182,7 @@ namespace LibraryManagement.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("BookCategories");
+                    b.ToTable("BookCategories", (string)null);
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.BookCopy", b =>
@@ -188,7 +227,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasIndex(new[] { "Barcode" }, "UQ__BookCopi__177800D33A29574E")
                         .IsUnique();
 
-                    b.ToTable("BookCopies");
+                    b.ToTable("BookCopies", (string)null);
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Category", b =>
@@ -214,7 +253,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasIndex(new[] { "CategoryName" }, "UQ__Categori__8517B2E0882B8F80")
                         .IsUnique();
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Fine", b =>
@@ -232,11 +271,14 @@ namespace LibraryManagement.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("(sysdatetime())");
 
-                    b.Property<Guid?>("LoanDetailId")
+                    b.Property<Guid>("LoanDetailId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Reason")
                         .IsRequired()
@@ -250,17 +292,16 @@ namespace LibraryManagement.Data.Migrations
                         .HasColumnType("nvarchar(30)")
                         .HasDefaultValue("Unpaid");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("FineId")
                         .HasName("PK__Fines__9D4A9B2CA6D51367");
 
-                    b.HasIndex("LoanDetailId");
+                    b.HasIndex("PaymentId");
 
-                    b.HasIndex(new[] { "UserId" }, "IX_Fines_UserId");
+                    b.HasIndex(new[] { "LoanDetailId" }, "IX_Fines_LoanDetailId");
 
-                    b.ToTable("Fines");
+                    b.HasIndex(new[] { "Status" }, "IX_Fines_Status");
+
+                    b.ToTable("Fines", (string)null);
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Loan", b =>
@@ -275,7 +316,7 @@ namespace LibraryManagement.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("(sysdatetime())");
 
-                    b.Property<Guid>("BorrowerUserId")
+                    b.Property<Guid>("BorrowerReaderId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -286,7 +327,7 @@ namespace LibraryManagement.Data.Migrations
                     b.Property<DateTime>("DueAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("ProcessedByUserId")
+                    b.Property<Guid?>("ProcessedByAccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
@@ -302,13 +343,13 @@ namespace LibraryManagement.Data.Migrations
                     b.HasKey("LoanId")
                         .HasName("PK__Loans__4F5AD457CBAEC671");
 
-                    b.HasIndex(new[] { "BorrowerUserId" }, "IX_Loans_BorrowerUserId");
+                    b.HasIndex(new[] { "BorrowerReaderId" }, "IX_Loans_BorrowerReaderId");
 
-                    b.HasIndex(new[] { "ProcessedByUserId" }, "IX_Loans_ProcessedByUserId");
+                    b.HasIndex(new[] { "ProcessedByAccountId" }, "IX_Loans_ProcessedByAccountId");
 
                     b.HasIndex(new[] { "Status" }, "IX_Loans_Status");
 
-                    b.ToTable("Loans");
+                    b.ToTable("Loans", (string)null);
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.LoanDetail", b =>
@@ -345,7 +386,48 @@ namespace LibraryManagement.Data.Migrations
                         .IsUnique()
                         .HasFilter("([Status]='Borrowed')");
 
-                    b.ToTable("LoanDetails");
+                    b.ToTable("LoanDetails", (string)null);
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.Payment", b =>
+                {
+                    b.Property<Guid>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("(newsequentialid())");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("PaidAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<Guid?>("ProcessedByAccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ReaderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex(new[] { "PaidAt" }, "IX_Payments_PaidAt");
+
+                    b.HasIndex(new[] { "ProcessedByAccountId" }, "IX_Payments_ProcessedByAccountId");
+
+                    b.HasIndex(new[] { "ReaderId" }, "IX_Payments_ReaderId");
+
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Publisher", b =>
@@ -381,107 +463,20 @@ namespace LibraryManagement.Data.Migrations
                     b.HasIndex(new[] { "PublisherName" }, "UQ__Publishe__5F0E22495C071047")
                         .IsUnique();
 
-                    b.ToTable("Publishers");
+                    b.ToTable("Publishers", (string)null);
                 });
 
-            modelBuilder.Entity("LibraryManagement.Models.Models.Reservation", b =>
+            modelBuilder.Entity("LibraryManagement.Models.Models.Reader", b =>
                 {
-                    b.Property<Guid>("ReservationId")
+                    b.Property<Guid>("ReaderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newsequentialid())");
-
-                    b.Property<Guid>("BookId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("CopyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ExpiryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ReservationDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("(sysdatetime())");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)")
-                        .HasDefaultValue("Pending");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("ReservationId")
-                        .HasName("PK__Reservat__B7EE5F24EE6920B8");
-
-                    b.HasIndex(new[] { "BookId" }, "IX_Reservations_BookId");
-
-                    b.HasIndex(new[] { "UserId" }, "IX_Reservations_UserId");
-
-                    b.HasIndex(new[] { "CopyId" }, "UX_Reservations_OneActiveReservationPerCopy")
-                        .IsUnique()
-                        .HasFilter("([CopyId] IS NOT NULL AND ([Status] IN ('Pending', 'ReadyForPickup')))");
-
-                    b.HasIndex(new[] { "UserId", "BookId" }, "UX_Reservations_OneActiveReservationPerMemberBook")
-                        .IsUnique()
-                        .HasFilter("([Status] IN ('Pending', 'ReadyForPickup'))");
-
-                    b.ToTable("Reservations", t =>
-                        {
-                            t.HasTrigger("TRG_Reservations_CopyMatchesBook");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
-            modelBuilder.Entity("LibraryManagement.Models.Models.Role", b =>
-                {
-                    b.Property<int>("RoleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleId"));
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("RoleName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("RoleId")
-                        .HasName("PK__Roles__8AFACE1AC2BA1463");
-
-                    b.HasIndex(new[] { "RoleName" }, "UQ__Roles__8A2B61606178B3F3")
-                        .IsUnique();
-
-                    b.ToTable("Roles");
-                });
-
-            modelBuilder.Entity("LibraryManagement.Models.Models.User", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasDefaultValueSql("(newsequentialid())");
-
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("(sysdatetime())");
-
-                    b.Property<DateOnly?>("DateOfBirth")
-                        .HasColumnType("date");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -489,24 +484,11 @@ namespace LibraryManagement.Data.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(500)
                         .IsUnicode(false)
                         .HasColumnType("varchar(500)");
-
-                    b.Property<string>("Phone")
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -518,31 +500,151 @@ namespace LibraryManagement.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("UserId")
-                        .HasName("PK__Users__1788CC4CF1485FA5");
+                    b.HasKey("ReaderId");
 
-                    b.HasIndex(new[] { "Email" }, "IX_Users_Email");
+                    b.HasIndex(new[] { "Status" }, "IX_Readers_Status");
 
-                    b.HasIndex(new[] { "RoleId" }, "IX_Users_RoleId");
-
-                    b.HasIndex(new[] { "Status" }, "IX_Users_Status");
-
-                    b.HasIndex(new[] { "Email" }, "UQ__Users__A9D10534911F2EB8")
+                    b.HasIndex(new[] { "Email" }, "UQ_Readers_Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Readers", (string)null);
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.Reservation", b =>
+                {
+                    b.Property<Guid>("ReservationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("(newsequentialid())");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ReaderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ReservationDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Pending");
+
+                    b.HasKey("ReservationId");
+
+                    b.HasIndex(new[] { "ReaderId" }, "IX_Reservations_ReaderId");
+
+                    b.HasIndex(new[] { "RoomId" }, "IX_Reservations_RoomId");
+
+                    b.HasIndex(new[] { "Status" }, "IX_Reservations_Status");
+
+                    b.HasIndex(new[] { "ReaderId" }, "UQ_Reservations_OneActivePerReader")
+                        .IsUnique()
+                        .HasFilter("([Status] IN ('Pending', 'Confirmed'))");
+
+                    b.ToTable("Reservations", (string)null);
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.Room", b =>
+                {
+                    b.Property<Guid>("RoomId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("(newsequentialid())");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RoomName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Available");
+
+                    b.HasKey("RoomId");
+
+                    b.HasIndex(new[] { "Status" }, "IX_Rooms_Status");
+
+                    b.HasIndex(new[] { "RoomName" }, "UQ_Rooms_RoomName")
+                        .IsUnique();
+
+                    b.ToTable("Rooms", (string)null);
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.UserProfile", b =>
+                {
+                    b.Property<Guid>("UserProfileId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("(newsequentialid())");
+
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<Guid?>("ReaderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserProfileId");
+
+                    b.HasIndex(new[] { "AccountId" }, "UQ_UserProfiles_AccountId")
+                        .IsUnique()
+                        .HasFilter("[AccountId] IS NOT NULL");
+
+                    b.HasIndex(new[] { "ReaderId" }, "UQ_UserProfiles_ReaderId")
+                        .IsUnique()
+                        .HasFilter("[ReaderId] IS NOT NULL");
+
+                    b.ToTable("UserProfiles", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_UserProfiles_OneOwner", "([ReaderId] IS NOT NULL AND [AccountId] IS NULL) OR ([ReaderId] IS NULL AND [AccountId] IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Book", b =>
                 {
-                    b.HasOne("LibraryManagement.Models.Models.Author", null)
-                        .WithMany("Books")
-                        .HasForeignKey("AuthorId");
-
-                    b.HasOne("LibraryManagement.Models.Models.Category", null)
-                        .WithMany("Books")
-                        .HasForeignKey("CategoryId");
-
                     b.HasOne("LibraryManagement.Models.Models.Publisher", "Publisher")
                         .WithMany("Books")
                         .HasForeignKey("PublisherId")
@@ -605,35 +707,36 @@ namespace LibraryManagement.Data.Migrations
                     b.HasOne("LibraryManagement.Models.Models.LoanDetail", "LoanDetail")
                         .WithMany("Fines")
                         .HasForeignKey("LoanDetailId")
+                        .IsRequired()
                         .HasConstraintName("FK_Fines_LoanDetails");
 
-                    b.HasOne("LibraryManagement.Models.Models.User", "User")
+                    b.HasOne("LibraryManagement.Models.Models.Payment", "Payment")
                         .WithMany("Fines")
-                        .HasForeignKey("UserId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Fines_Users");
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Fines_Payments");
 
                     b.Navigation("LoanDetail");
 
-                    b.Navigation("User");
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Loan", b =>
                 {
-                    b.HasOne("LibraryManagement.Models.Models.User", "BorrowerUser")
-                        .WithMany("LoanBorrowerUsers")
-                        .HasForeignKey("BorrowerUserId")
+                    b.HasOne("LibraryManagement.Models.Models.Reader", "BorrowerReader")
+                        .WithMany("Loans")
+                        .HasForeignKey("BorrowerReaderId")
                         .IsRequired()
-                        .HasConstraintName("FK_Loans_BorrowerUser");
+                        .HasConstraintName("FK_Loans_BorrowerReader");
 
-                    b.HasOne("LibraryManagement.Models.Models.User", "ProcessedByUser")
-                        .WithMany("LoanProcessedByUsers")
-                        .HasForeignKey("ProcessedByUserId")
-                        .HasConstraintName("FK_Loans_ProcessedByUser");
+                    b.HasOne("LibraryManagement.Models.Models.Account", "ProcessedByAccount")
+                        .WithMany("ProcessedLoans")
+                        .HasForeignKey("ProcessedByAccountId")
+                        .HasConstraintName("FK_Loans_ProcessedByAccount");
 
-                    b.Navigation("BorrowerUser");
+                    b.Navigation("BorrowerReader");
 
-                    b.Navigation("ProcessedByUser");
+                    b.Navigation("ProcessedByAccount");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.LoanDetail", b =>
@@ -655,48 +758,75 @@ namespace LibraryManagement.Data.Migrations
                     b.Navigation("Loan");
                 });
 
-            modelBuilder.Entity("LibraryManagement.Models.Models.Reservation", b =>
+            modelBuilder.Entity("LibraryManagement.Models.Models.Payment", b =>
                 {
-                    b.HasOne("LibraryManagement.Models.Models.Book", "Book")
-                        .WithMany("Reservations")
-                        .HasForeignKey("BookId")
+                    b.HasOne("LibraryManagement.Models.Models.Account", "ProcessedByAccount")
+                        .WithMany("ProcessedPayments")
+                        .HasForeignKey("ProcessedByAccountId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Payments_ProcessedByAccount");
+
+                    b.HasOne("LibraryManagement.Models.Models.Reader", "Reader")
+                        .WithMany("Payments")
+                        .HasForeignKey("ReaderId")
                         .IsRequired()
-                        .HasConstraintName("FK_Reservations_Books");
+                        .HasConstraintName("FK_Payments_Readers");
 
-                    b.HasOne("LibraryManagement.Models.Models.BookCopy", "Copy")
-                        .WithOne("Reservation")
-                        .HasForeignKey("LibraryManagement.Models.Models.Reservation", "CopyId")
-                        .HasConstraintName("FK_Reservations_BookCopies");
+                    b.Navigation("ProcessedByAccount");
 
-                    b.HasOne("LibraryManagement.Models.Models.User", "User")
-                        .WithMany("Reservations")
-                        .HasForeignKey("UserId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Reservations_Users");
-
-                    b.Navigation("Book");
-
-                    b.Navigation("Copy");
-
-                    b.Navigation("User");
+                    b.Navigation("Reader");
                 });
 
-            modelBuilder.Entity("LibraryManagement.Models.Models.User", b =>
+            modelBuilder.Entity("LibraryManagement.Models.Models.Reservation", b =>
                 {
-                    b.HasOne("LibraryManagement.Models.Models.Role", "Role")
-                        .WithMany("Users")
-                        .HasForeignKey("RoleId")
+                    b.HasOne("LibraryManagement.Models.Models.Reader", "Reader")
+                        .WithMany("Reservations")
+                        .HasForeignKey("ReaderId")
                         .IsRequired()
-                        .HasConstraintName("FK_Users_Roles");
+                        .HasConstraintName("FK_Reservations_Readers");
 
-                    b.Navigation("Role");
+                    b.HasOne("LibraryManagement.Models.Models.Room", "Room")
+                        .WithMany("Reservations")
+                        .HasForeignKey("RoomId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Reservations_Rooms");
+
+                    b.Navigation("Reader");
+
+                    b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.UserProfile", b =>
+                {
+                    b.HasOne("LibraryManagement.Models.Models.Account", "Account")
+                        .WithOne("Profile")
+                        .HasForeignKey("LibraryManagement.Models.Models.UserProfile", "AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_UserProfiles_Accounts");
+
+                    b.HasOne("LibraryManagement.Models.Models.Reader", "Reader")
+                        .WithOne("Profile")
+                        .HasForeignKey("LibraryManagement.Models.Models.UserProfile", "ReaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_UserProfiles_Readers");
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Reader");
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.Account", b =>
+                {
+                    b.Navigation("ProcessedLoans");
+
+                    b.Navigation("ProcessedPayments");
+
+                    b.Navigation("Profile");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Author", b =>
                 {
                     b.Navigation("BookAuthors");
-
-                    b.Navigation("Books");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Book", b =>
@@ -706,22 +836,16 @@ namespace LibraryManagement.Data.Migrations
                     b.Navigation("BookCategories");
 
                     b.Navigation("BookCopies");
-
-                    b.Navigation("Reservations");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.BookCopy", b =>
                 {
                     b.Navigation("LoanDetail");
-
-                    b.Navigation("Reservation");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Category", b =>
                 {
                     b.Navigation("BookCategories");
-
-                    b.Navigation("Books");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Loan", b =>
@@ -734,24 +858,29 @@ namespace LibraryManagement.Data.Migrations
                     b.Navigation("Fines");
                 });
 
+            modelBuilder.Entity("LibraryManagement.Models.Models.Payment", b =>
+                {
+                    b.Navigation("Fines");
+                });
+
             modelBuilder.Entity("LibraryManagement.Models.Models.Publisher", b =>
                 {
                     b.Navigation("Books");
                 });
 
-            modelBuilder.Entity("LibraryManagement.Models.Models.Role", b =>
+            modelBuilder.Entity("LibraryManagement.Models.Models.Reader", b =>
                 {
-                    b.Navigation("Users");
+                    b.Navigation("Loans");
+
+                    b.Navigation("Payments");
+
+                    b.Navigation("Profile");
+
+                    b.Navigation("Reservations");
                 });
 
-            modelBuilder.Entity("LibraryManagement.Models.Models.User", b =>
+            modelBuilder.Entity("LibraryManagement.Models.Models.Room", b =>
                 {
-                    b.Navigation("Fines");
-
-                    b.Navigation("LoanBorrowerUsers");
-
-                    b.Navigation("LoanProcessedByUsers");
-
                     b.Navigation("Reservations");
                 });
 #pragma warning restore 612, 618

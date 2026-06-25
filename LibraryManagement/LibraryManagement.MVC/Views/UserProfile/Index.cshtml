@@ -1,0 +1,108 @@
+@model LibraryManagement.MVC.ViewModels.UserProfiles.UserProfileViewModel
+
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0" style="border-radius: 1rem;">
+                <div class="card-header bg-white pt-4 pb-0" style="border-bottom: 2px solid var(--brand-green);">
+                    <h3 class="mb-3 text-center" style="color: var(--brand-green);">
+                        <i class="bi bi-person-circle me-2"></i>Hồ sơ cá nhân
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <div asp-validation-summary="All" class="mb-0"></div>
+                        </div>
+                    }
+
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-sm-4 text-muted"><i class="bi bi-envelope me-2"></i>Email</div>
+                        <div class="col-sm-8 fw-medium">@Model.Email</div>
+                    </div>
+                    <hr class="text-muted opacity-25" />
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-sm-4 text-muted"><i class="bi bi-person-badge me-2"></i>Họ và tên</div>
+                        <div class="col-sm-8 fw-medium">@Model.FullName</div>
+                    </div>
+                    <hr class="text-muted opacity-25" />
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-sm-4 text-muted"><i class="bi bi-telephone me-2"></i>Số điện thoại</div>
+                        <div class="col-sm-8 fw-medium">@(string.IsNullOrEmpty(Model.Phone) ? "Chưa cập nhật" : Model.Phone)</div>
+                    </div>
+                    <hr class="text-muted opacity-25" />
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-sm-4 text-muted"><i class="bi bi-geo-alt me-2"></i>Địa chỉ</div>
+                        <div class="col-sm-8 fw-medium">@(string.IsNullOrEmpty(Model.Address) ? "Chưa cập nhật" : Model.Address)</div>
+                    </div>
+                    <hr class="text-muted opacity-25" />
+                    <div class="row mb-4 align-items-center">
+                        <div class="col-sm-4 text-muted"><i class="bi bi-calendar-event me-2"></i>Ngày sinh</div>
+                        <div class="col-sm-8 fw-medium">@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-brand px-4 py-2" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="bi bi-pencil-square me-2"></i>Cập nhật thông tin
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Update Profile -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 1rem; border: none; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
+            <div class="modal-header bg-light" style="border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+                <h5 class="modal-title fw-bold" id="editProfileModalLabel" style="color: var(--brand-green);">
+                    <i class="bi bi-pencil-square me-2"></i>Cập nhật thông tin
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="UserProfile" asp-action="Edit" method="post">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Họ và tên <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
+                            <input type="text" name="FullName" class="form-control" value="@Model.FullName" required placeholder="Nhập họ và tên" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Số điện thoại</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-telephone"></i></span>
+                            <input type="text" name="Phone" class="form-control" value="@Model.Phone" placeholder="Nhập số điện thoại" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Địa chỉ</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-geo-alt"></i></span>
+                            <input type="text" name="Address" class="form-control" value="@Model.Address" placeholder="Nhập địa chỉ" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Ngày sinh</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-calendar"></i></span>
+                            <input type="date" name="DateOfBirth" class="form-control" value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light" style="border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-brand px-4"><i class="bi bi-check-lg me-1"></i>Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

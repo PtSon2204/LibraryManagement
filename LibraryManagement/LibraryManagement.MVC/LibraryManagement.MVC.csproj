@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Common\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\LibraryManagement.Business\LibraryManagement.Business.csproj" />
   </ItemGroup>
 

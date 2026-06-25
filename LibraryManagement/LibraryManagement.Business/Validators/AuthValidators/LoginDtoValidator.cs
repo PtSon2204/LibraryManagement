@@ -13,11 +13,18 @@ namespace LibraryManagement.Business.Validators.AuthValidators
         public LoginDtoValidator()
         {
             RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Name không được để trống")
-            .MaximumLength(100).WithMessage("Name tối đa 100 ký tự");
+                .NotEmpty()
+                    .WithMessage("Email không được để trống.")
+                .EmailAddress()
+                    .WithMessage("Email không đúng định dạng.")
+                .MaximumLength(100)
+                    .WithMessage("Email không được vượt quá 100 ký tự.");
 
             RuleFor(x => x.Password)
-                 .NotEmpty().WithMessage("Name không được để trống");
+                .NotEmpty()
+                    .WithMessage("Mật khẩu không được để trống.")
+                .MaximumLength(100)
+                    .WithMessage("Mật khẩu không được vượt quá 100 ký tự.");
         }
     }
 }

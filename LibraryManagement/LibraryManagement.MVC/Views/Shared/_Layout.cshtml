@@ -19,7 +19,7 @@
                     <span class="brand-text">Thư viện sách cộng động</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse">
@@ -46,6 +46,19 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Publisher" asp-action="Index">Nhà xuất bản</a>
+                                <a class="nav-link"
+                                asp-controller="StaffDashboard"
+                                asp-action="Index">
+                                    Staff Dashboard
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                asp-controller="StaffBooks"
+                                asp-action="Index">
+                                    Quản lý sách
+                                </a>
                             </li>
                         }
                         @if (User.IsInRole("Admin"))
@@ -68,12 +81,12 @@
                                     <span class="ms-2 fw-medium d-none d-sm-block">@(User.Identity.Name ?? "Người dùng")</span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-3" aria-labelledby="userDropdown" style="border-radius: 0.75rem;">
-                                    <li><a class="dropdown-item py-2" href="#"><i class="bi bi-person me-2 text-muted"></i>Hồ sơ cá nhân</a></li>
+                                    <li><a class="dropdown-item py-2" asp-controller="UserProfile" asp-action="Index"><i class="bi bi-person me-2 text-muted"></i>Hồ sơ cá nhân</a></li>
                                     <li><a class="dropdown-item py-2" href="#"><i class="bi bi-journal-bookmark me-2 text-muted"></i>Sách đang mượn</a></li>
                                     <li><a class="dropdown-item py-2" href="#"><i class="bi bi-heart me-2 text-muted"></i>Sách yêu thích</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
                                             <button type="submit" class="dropdown-item py-2 text-danger"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
                                         </form>
                                     </li>
@@ -82,8 +95,8 @@
                         }
                         else
                         {
-                            <a asp-controller="Auth" asp-action="Login" class="btn btn-outline-brand">Đăng nhập</a>
-                            <a asp-controller="Auth" asp-action="Register" class="btn btn-brand">Đăng ký</a>
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-brand">Đăng nhập</a>
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-brand">Đăng ký</a>
                         }
                     </div>
                 </div>

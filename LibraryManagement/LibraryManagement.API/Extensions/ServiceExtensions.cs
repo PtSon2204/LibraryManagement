@@ -3,6 +3,10 @@ using LibraryManagement.Business.Services;
 using LibraryManagement.Business.Validators.AuthValidators;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using LibraryManagement.Business.DTOs.EmailDTOs;
 
 namespace LibraryManagement.API.Extensions
 {
@@ -17,10 +21,41 @@ namespace LibraryManagement.API.Extensions
             services.AddScoped<IStaffDashboardService, StaffDashboardService>();
             services.AddSingleton<ILibraryPolicyService, LibraryPolicyService>();
             services.AddScoped<IPublisherService, PublisherService>();
+            services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<IUserProfileService, UserProfileService>();
 
             //Đăng kí fluentValidation
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
+
+            // cấu hình email
+            services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+            services.AddScoped<IEmailService, EmailService>();
+
+            //cấu hình authen
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                           .AddJwtBearer(options =>
+                           {
+                               options.TokenValidationParameters =
+                                   new TokenValidationParameters
+                                   {
+                                       ValidateIssuer = true,
+                                       ValidateAudience = true,
+                                       ValidateLifetime = true,
+                                       ValidateIssuerSigningKey = true,
+                          
+                                       ValidIssuer = configuration["Jwt:Issuer"],
+                                       ValidAudience = configuration["Jwt:Audience"],
+                          
+                                       IssuerSigningKey =
+                                           new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                                   };
+                           });
+
+            services.AddAuthorization();
+
+         
+
 
             return services;
         }

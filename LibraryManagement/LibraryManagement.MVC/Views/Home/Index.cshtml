@@ -1,5 +1,4 @@
-@model LibraryManagement.MVC.ViewModels.Home.HomePageViewModel
-
+﻿
 @{
     ViewData["Title"] = "Trang chủ";
 }
@@ -14,7 +13,7 @@
             Thư viện sách cộng đồng cho phép người dùng mượn/trả sách một cách tiện lợi.<br />
             Chúng tôi có rất nhiều sách thuộc nhiều thể loại, bạn đọc có thể xem, đặt sách trước dễ dàng.
         </p>
-        
+
         <form class="search-box" asp-controller="Books" asp-action="Index" method="get">
             <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
             <input type="text" name="Title" placeholder="Tìm kiếm..." class="ps-5" />
@@ -28,7 +27,7 @@
     <!-- Ebooks Section -->
     <h2 class="section-heading">Sách mới cập nhật</h2>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4 mb-5">
-        @if (Model.LatestBooks.Any())
+        @if (Model != null && Model.LatestBooks != null)
         {
             @foreach (var book in Model.LatestBooks)
             {
@@ -62,7 +61,6 @@
         <div class="col">
             <div class="book-card">
                 <div class="book-cover">
-                    <span class="book-badge audiobook">Audiobook</span>
                     <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=99+Dieu" alt="99 Điều">
                 </div>
                 <div class="book-info">
@@ -75,7 +73,6 @@
         <div class="col">
             <div class="book-card">
                 <div class="book-cover">
-                    <span class="book-badge audiobook">Audiobook</span>
                     <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=Ban+Nang" alt="Bản Năng">
                 </div>
                 <div class="book-info">
@@ -88,7 +85,6 @@
         <div class="col">
             <div class="book-card">
                 <div class="book-cover">
-                    <span class="book-badge audiobook">Audiobook</span>
                     <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=Power+of+Now" alt="Sức Mạnh">
                 </div>
                 <div class="book-info">
@@ -101,7 +97,6 @@
         <div class="col">
             <div class="book-card">
                 <div class="book-cover">
-                    <span class="book-badge audiobook">Audiobook</span>
                     <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=100+Y+Tuong" alt="100 Ý Tưởng">
                 </div>
                 <div class="book-info">
@@ -114,7 +109,6 @@
         <div class="col">
             <div class="book-card">
                 <div class="book-cover">
-                    <span class="book-badge audiobook">Audiobook</span>
                     <img src="https://via.placeholder.com/300x420/e2e8f0/64748b?text=Giai+Phap" alt="Giải Pháp">
                 </div>
                 <div class="book-info">
