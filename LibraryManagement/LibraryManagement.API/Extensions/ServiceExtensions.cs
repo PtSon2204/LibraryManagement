@@ -16,10 +16,6 @@ namespace LibraryManagement.API.Extensions
         {
             //Đăng kí serivce
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IBookQueryService, BookQueryService>();
-            services.AddScoped<IStaffDashboardService, StaffDashboardService>();
-            services.AddSingleton<ILibraryPolicyService, LibraryPolicyService>();
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserProfileService, UserProfileService>();
