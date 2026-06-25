@@ -85,13 +85,18 @@
                 <small class="text-muted" style="font-size: 0.7rem;">Hệ thống thư viện</small>
             </div>
         </div>
+        
         <div class="sidebar-menu">
-            <a href="@Url.Action("Index", "Publisher")"
-               class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Publisher" ? "active" : "")">
-                <i class="bi bi-building"></i> Nhà xuất bản
+            <a asp-controller="Librarian" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Librarian" ? "active" : "")">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a asp-controller="Publisher" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Publisher" ? "active" : "")">
+                <i class="bi bi-building"></i> Quản lý nhà xuất bản
             </a>
         </div>
+
         <div class="p-3 border-top border-secondary">
+
             <a asp-controller="UserProfile" asp-action="Index" class="menu-link">
                 <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
             </a>
