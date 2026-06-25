@@ -19,6 +19,8 @@ namespace LibraryManagement.Data.UnitOfWorks
         IRepository<LoanDetail> LoanDetails { get; }
         IRepository<Reservation> Reservations { get; }
         IRepository<Fine> Fines { get; }
+        IRepository<Payment> Payments { get; }
+        IRepository<Publisher> Publishers { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

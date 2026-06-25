@@ -1,0 +1,166 @@
+@model LibraryManagement.MVC.ViewModels.Publisher.PublisherListViewModel
+
+@{
+    ViewData["Title"] = "Quản lý nhà xuất bản";
+    Layout = "~/Views/Shared/_LibrarianLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">Danh sách nhà xuất bản</h4>
+        <small class="text-muted">Tổng cộng @Model.TotalRecords nhà xuất bản</small>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-3">
+        <form method="get" asp-action="Index" class="d-flex gap-2">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text"
+                       name="search"
+                       class="form-control border-start-0 ps-0"
+                       placeholder="Tìm theo tên, email, điện thoại, địa chỉ..."
+                       value="@Model.Search" />
+            </div>
+            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-search me-1"></i> Tìm kiếm
+            </button>
+            @if (!string.IsNullOrWhiteSpace(Model.Search))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary px-3">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            }
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body p-0">
+        @if (Model.Data.Count == 0)
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-building fs-1 text-muted opacity-50"></i>
+                <p class="text-muted mt-3">Không tìm thấy nhà xuất bản nào.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4" style="width: 50px;">#</th>
+                            <th>Tên nhà xuất bản</th>
+                            <th>Email</th>
+                            <th>Điện thoại</th>
+                            <th>Địa chỉ</th>
+                            <th class="text-center pe-4" style="width: 100px;">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var stt = (Model.PageNumber - 1) * Model.PageSize + 1;
+                        }
+                        @foreach (var item in Model.Data)
+                        {
+                            <tr>
+                                <td class="ps-4 text-muted">@(stt++)</td>
+                                <td class="fw-medium">@item.PublisherName</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Email))
+                                    {
+                                        <a href="mailto:@item.Email" class="text-decoration-none text-primary">
+                                            <i class="bi bi-envelope me-1"></i>@item.Email
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Phone))
+                                    {
+                                        <span><i class="bi bi-telephone me-1 text-muted"></i>@item.Phone</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Address))
+                                    {
+                                        <span class="text-truncate d-inline-block" style="max-width:200px;" title="@item.Address">
+                                            <i class="bi bi-geo-alt me-1 text-muted"></i>@item.Address
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">—</span>
+                                    }
+                                </td>
+                                <td class="text-center pe-4">
+                                    <a asp-action="Details" asp-route-id="@item.PublisherId"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+                    <small class="text-muted">
+                        Trang @Model.PageNumber / @Model.TotalPages
+                        &nbsp;•&nbsp; @Model.TotalRecords bản ghi
+                    </small>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-search="@Model.Search"
+                                   asp-route-pageNumber="@(Model.PageNumber - 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-search="@Model.Search"
+                                       asp-route-pageNumber="@i"
+                                       asp-route-pageSize="@Model.PageSize">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-search="@Model.Search"
+                                   asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        }
+    </div>
+</div>

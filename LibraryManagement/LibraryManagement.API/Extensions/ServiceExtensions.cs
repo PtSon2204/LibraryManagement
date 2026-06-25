@@ -1,4 +1,4 @@
-﻿using LibraryManagement.Business.Interfaces;
+using LibraryManagement.Business.Interfaces;
 using LibraryManagement.Business.Services;
 using LibraryManagement.Business.Validators.AuthValidators;
 using FluentValidation;
@@ -13,9 +13,10 @@ namespace LibraryManagement.API.Extensions
             //Đăng kí serivce
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IBookQueryService,  BookQueryService>();
-            services.AddScoped<IStaffDashboardService,  StaffDashboardService>();
+            services.AddScoped<IBookQueryService, BookQueryService>();
+            services.AddScoped<IStaffDashboardService, StaffDashboardService>();
             services.AddSingleton<ILibraryPolicyService, LibraryPolicyService>();
+            services.AddScoped<IPublisherService, PublisherService>();
 
             //Đăng kí fluentValidation
             services.AddFluentValidationAutoValidation();
