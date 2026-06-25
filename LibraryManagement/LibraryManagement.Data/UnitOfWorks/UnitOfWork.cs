@@ -27,10 +27,19 @@ namespace LibraryManagement.Data.UnitOfWorks
         public IRepository<Author> Authors { get; }
 
 
+        public IRepository<Payment> Payments { get; }
+
+        public IRepository<Publisher> Publishers { get; }
+
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
 
+            UserRepository = new UserRepository(context);
+            AuthorRepository = new AuthorRepository(context);
+
+            Publishers = new Repository<Publisher>(context);
+            Payments = new Repository<Payment>(context);
             ReaderRepository = new ReaderRepository(context);
             AccountRepository = new AccountRepository(context);
 
