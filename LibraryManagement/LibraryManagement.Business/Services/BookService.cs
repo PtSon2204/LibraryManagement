@@ -89,6 +89,16 @@ public class BookService : IBookService
                     .ToList(),
                 TotalCopies = b.BookCopies.Count,
                 AvailableCopies = b.BookCopies.Count(c => c.Status == "Available"),
+                LocationAvailability = b.BookCopies
+                    .GroupBy(c => string.IsNullOrWhiteSpace(c.Location) ? "Chưa xác định" : c.Location)
+                    .OrderBy(g => g.Key)
+                    .Select(g => new BookLocationAvailabilityDto
+                    {
+                        Location = g.Key,
+                        TotalCopies = g.Count(),
+                        AvailableCopies = g.Count(c => c.Status == "Available")
+                    })
+                    .ToList(),
                 Copies = b.BookCopies
                     .OrderBy(c => c.Barcode)
                     .Select(c => new BookCopyDto

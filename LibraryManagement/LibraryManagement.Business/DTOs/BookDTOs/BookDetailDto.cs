@@ -28,5 +28,7 @@ public class BookDetailDto
 
     public int AvailableCopies { get; set; }
 
+    public List<BookLocationAvailabilityDto> LocationAvailability { get; set; } = new();
+
     public List<BookCopyDto> Copies { get; set; } = new();
 }
