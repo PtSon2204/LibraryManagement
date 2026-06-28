@@ -66,5 +66,62 @@ namespace LibraryManagement.Business.Services
                 Email = publisher.Email
             };
         }
+
+        public async Task<PublisherDto> CreatePublisherAsync(CreatePublisherDto dto)
+        {
+            var publisher = new LibraryManagement.Models.Models.Publisher
+            {
+                PublisherName = dto.PublisherName,
+                Address = dto.Address,
+                Phone = dto.Phone,
+                Email = dto.Email
+            };
+
+            await _unitOfWork.Publishers.AddAsync(publisher);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new PublisherDto
+            {
+                PublisherId = publisher.PublisherId,
+                PublisherName = publisher.PublisherName,
+                Address = publisher.Address,
+                Phone = publisher.Phone,
+                Email = publisher.Email
+            };
+        }
+
+        public async Task<PublisherDto?> UpdatePublisherAsync(int id, UpdatePublisherDto dto)
+        {
+            var publisher = await _unitOfWork.Publishers.GetByIdAsync(id);
+            if (publisher == null) return null;
+
+            publisher.PublisherName = dto.PublisherName;
+            publisher.Address = dto.Address;
+            publisher.Phone = dto.Phone;
+            publisher.Email = dto.Email;
+
+            _unitOfWork.Publishers.Update(publisher);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new PublisherDto
+            {
+                PublisherId = publisher.PublisherId,
+                PublisherName = publisher.PublisherName,
+                Address = publisher.Address,
+                Phone = publisher.Phone,
+                Email = publisher.Email
+            };
+        }
+
+        public async Task<bool> DeletePublisherAsync(int id)
+        {
+            var publisher = await _unitOfWork.Publishers.GetByIdAsync(id);
+            if (publisher == null) return false;
+
+            _unitOfWork.Publishers.Delete(publisher);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

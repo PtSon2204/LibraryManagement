@@ -1,0 +1,43 @@
+@model LibraryManagement.MVC.ViewModels.Publisher.PublisherViewModel
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-pencil-square text-warning me-2"></i>Chỉnh sửa thông tin nhà xuất bản
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="editPublisherForm" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="PublisherId" />
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-12">
+                <label asp-for="PublisherName" class="form-label fw-medium">Tên nhà xuất bản <span class="text-danger">*</span></label>
+                <input asp-for="PublisherName" class="form-control" placeholder="Nhập tên nhà xuất bản..." />
+                <span asp-validation-for="PublisherName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Email" class="form-label fw-medium">Email</label>
+                <input asp-for="Email" type="email" class="form-control" placeholder="Nhập địa chỉ email..." />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Phone" class="form-label fw-medium">Điện thoại</label>
+                <input asp-for="Phone" class="form-control" placeholder="Nhập số điện thoại..." />
+                <span asp-validation-for="Phone" class="text-danger small"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Address" class="form-label fw-medium">Địa chỉ</label>
+                <textarea asp-for="Address" class="form-control" rows="3" placeholder="Nhập địa chỉ..."></textarea>
+                <span asp-validation-for="Address" class="text-danger small"></span>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-save me-1"></i>Lưu thay đổi
+        </button>
+    </div>
+</form>

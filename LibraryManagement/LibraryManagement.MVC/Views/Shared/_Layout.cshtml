@@ -66,6 +66,7 @@
                                     @if (User.IsInRole("Reader"))
                                     {
                                         <li><a class="dropdown-item py-2" asp-controller="Loans" asp-action="Index"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Sách đang mượn </a></li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Loan" asp-action="Index"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Lịch sử mượn sách </a></li>
                                     }
                                     <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="ChangePassword"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Đổi mật khẩu </a></li>
                                     <li><hr class="dropdown-divider"></li>

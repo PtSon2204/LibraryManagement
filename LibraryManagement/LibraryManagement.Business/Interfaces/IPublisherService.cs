@@ -7,5 +7,8 @@ namespace LibraryManagement.Business.Interfaces
     {
         Task<PagedResult<PublisherDto>> GetPublishersAsync(string? search, int pageNumber, int pageSize);
         Task<PublisherDto?> GetPublisherByIdAsync(int id);
+        Task<PublisherDto> CreatePublisherAsync(CreatePublisherDto dto);
+        Task<PublisherDto?> UpdatePublisherAsync(int id, UpdatePublisherDto dto);
+        Task<bool> DeletePublisherAsync(int id);
     }
 }

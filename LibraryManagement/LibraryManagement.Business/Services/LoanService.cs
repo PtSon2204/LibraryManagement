@@ -1,7 +1,9 @@
 using LibraryManagement.Business.DTOs.LoanDTOs;
 using LibraryManagement.Business.Interfaces;
+using LibraryManagement.Data.Common;
 using LibraryManagement.Data.UnitOfWorks;
 using LibraryManagement.Models.Models;
+using LibraryManagement.Models.Queries;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagement.Business.Services;
@@ -21,16 +23,16 @@ public class LoanService : ILoanService
 
     public async Task<LoanListPageDto> GetStaffLoansAsync(string? status, string? search, int page, int pageSize)
     {
-        var query = BuildLoanQuery(status, search);
-        return await ToPageAsync(query, page, pageSize);
+        var query = BuildLoanDetailQuery(status, search);
+        return await ToLoanListPageAsync(query, page, pageSize);
     }
 
     public async Task<LoanListPageDto> GetReaderLoansAsync(Guid readerId, int page, int pageSize)
     {
-        var query = BuildLoanQuery(null, null)
+        var query = BuildLoanDetailQuery(null, null)
             .Where(d => d.Loan.BorrowerReaderId == readerId);
 
-        return await ToPageAsync(query, page, pageSize);
+        return await ToLoanListPageAsync(query, page, pageSize);
     }
 
     public async Task<BorrowBookResultDto> BorrowBookAsync(Guid readerId, Guid bookId)
@@ -116,7 +118,37 @@ public class LoanService : ILoanService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    private IQueryable<LoanDetail> BuildLoanQuery(string? status, string? search)
+    public async Task<PagedResult<LoanHistoryDto>> GetReaderLoanHistoryAsync(Guid readerId, LoanQuery query)
+    {
+        query.PageNumber = Math.Max(query.PageNumber, 1);
+
+        var dbQuery = BuildLoanHistoryQuery(readerId, query);
+        var totalCount = await dbQuery.CountAsync();
+        var items = await ProjectLoanHistory(dbQuery
+                .OrderByDescending(l => l.CreatedAt)
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize))
+            .ToListAsync();
+
+        return new PagedResult<LoanHistoryDto>
+        {
+            Data = items,
+            TotalRecords = totalCount,
+            PageNumber = query.PageNumber,
+            PageSize = query.PageSize,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize)
+        };
+    }
+
+    public async Task<LoanHistoryDto?> GetLoanDetailByIdAsync(Guid loanId)
+    {
+        return await ProjectLoanHistory(_unitOfWork.Loans.Query()
+                .AsNoTracking()
+                .Where(l => l.LoanId == loanId))
+            .FirstOrDefaultAsync();
+    }
+
+    private IQueryable<LoanDetail> BuildLoanDetailQuery(string? status, string? search)
     {
         var query = _unitOfWork.LoanDetails.Query()
             .AsNoTracking()
@@ -139,7 +171,33 @@ public class LoanService : ILoanService
         return query.OrderByDescending(d => d.Loan.BorrowedAt);
     }
 
-    private static async Task<LoanListPageDto> ToPageAsync(IQueryable<LoanDetail> query, int page, int pageSize)
+    private IQueryable<Loan> BuildLoanHistoryQuery(Guid readerId, LoanQuery query)
+    {
+        var dbQuery = _unitOfWork.Loans.Query()
+            .AsNoTracking()
+            .Where(l => l.BorrowerReaderId == readerId);
+
+        if (!string.IsNullOrWhiteSpace(query.Status))
+            dbQuery = dbQuery.Where(l => l.Status == query.Status);
+
+        if (query.FromDate.HasValue)
+            dbQuery = dbQuery.Where(l => l.BorrowedAt >= query.FromDate.Value);
+
+        if (query.ToDate.HasValue)
+            dbQuery = dbQuery.Where(l => l.BorrowedAt <= query.ToDate.Value);
+
+        if (!string.IsNullOrWhiteSpace(query.SearchTerm))
+        {
+            var term = query.SearchTerm.ToLower();
+            dbQuery = dbQuery.Where(l => l.LoanDetails.Any(ld =>
+                ld.Copy.Book.Title.ToLower().Contains(term) ||
+                ld.Copy.Barcode.ToLower().Contains(term)));
+        }
+
+        return dbQuery;
+    }
+
+    private static async Task<LoanListPageDto> ToLoanListPageAsync(IQueryable<LoanDetail> query, int page, int pageSize)
     {
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 50);
@@ -172,5 +230,30 @@ public class LoanService : ILoanService
             TotalCount = totalCount,
             TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
         };
+    }
+
+    private static IQueryable<LoanHistoryDto> ProjectLoanHistory(IQueryable<Loan> query)
+    {
+        return query.Select(l => new LoanHistoryDto
+        {
+            LoanId = l.LoanId,
+            BorrowedAt = l.BorrowedAt,
+            DueAt = l.DueAt,
+            Status = l.Status,
+            CreatedAt = l.CreatedAt,
+            ProcessedByLibrarian = l.ProcessedByAccount != null
+                ? (l.ProcessedByAccount.Profile != null ? l.ProcessedByAccount.Profile.FullName : l.ProcessedByAccount.Email)
+                : null,
+            LoanDetails = l.LoanDetails.Select(ld => new LoanDetailHistoryDto
+            {
+                LoanDetailId = ld.LoanDetailId,
+                CopyId = ld.CopyId,
+                BookTitle = ld.Copy.Book.Title,
+                Barcode = ld.Copy.Barcode,
+                CoverImageUrl = ld.Copy.Book.CoverImageUrl,
+                ReturnedAt = ld.ReturnedAt,
+                Status = ld.Status
+            }).ToList()
+        });
     }
 }

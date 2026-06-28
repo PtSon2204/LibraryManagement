@@ -23,7 +23,7 @@ public class LoanService : ILoanService
     public async Task<LoanListPageViewModel?> GetStaffLoansAsync(LoanSearchViewModel search)
     {
         AddJwt();
-        var query = BuildQuery(search, includeStaffFilters: true);
+        var query = BuildCurrentLoanQuery(search, includeStaffFilters: true);
         var response = await _httpClient.GetAsync($"api/loans?{query}");
         if (!response.IsSuccessStatusCode) return null;
 
@@ -36,7 +36,7 @@ public class LoanService : ILoanService
     public async Task<LoanListPageViewModel?> GetMyLoansAsync(LoanSearchViewModel search)
     {
         AddJwt();
-        var query = BuildQuery(search, includeStaffFilters: false);
+        var query = BuildCurrentLoanQuery(search, includeStaffFilters: false);
         var response = await _httpClient.GetAsync($"api/loans/my?{query}");
         if (!response.IsSuccessStatusCode) return null;
 
@@ -65,7 +65,48 @@ public class LoanService : ILoanService
         return string.IsNullOrWhiteSpace(error) ? "Không thể trả sách. Vui lòng thử lại." : error;
     }
 
-    private static string BuildQuery(LoanSearchViewModel search, bool includeStaffFilters)
+    public async Task<LoanListViewModel?> GetMyLoanHistoryAsync(string? searchTerm, string? status, DateTime? fromDate, DateTime? toDate, int pageNumber, int pageSize)
+    {
+        AddJwt();
+        var query = new List<string>
+        {
+            $"pageNumber={pageNumber}",
+            $"pageSize={pageSize}"
+        };
+
+        AddQuery(query, "searchTerm", searchTerm);
+        AddQuery(query, "status", status);
+        if (fromDate.HasValue) query.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
+        if (toDate.HasValue) query.Add($"toDate={toDate.Value:yyyy-MM-dd}");
+
+        var response = await _httpClient.GetAsync($"api/Loan/history?{string.Join('&', query)}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<LoanListViewModel>(json, _jsonOptions);
+
+        if (result != null)
+        {
+            result.SearchTerm = searchTerm;
+            result.Status = status;
+            result.FromDate = fromDate;
+            result.ToDate = toDate;
+        }
+
+        return result;
+    }
+
+    public async Task<LoanViewModel?> GetLoanDetailAsync(Guid loanId)
+    {
+        AddJwt();
+        var response = await _httpClient.GetAsync($"api/Loan/{loanId}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<LoanViewModel>(json, _jsonOptions);
+    }
+
+    private static string BuildCurrentLoanQuery(LoanSearchViewModel search, bool includeStaffFilters)
     {
         var query = new List<string>
         {
