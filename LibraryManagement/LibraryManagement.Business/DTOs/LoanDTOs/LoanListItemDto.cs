@@ -25,4 +25,6 @@ public class LoanListItemDto
     public string Status { get; set; } = string.Empty;
 
     public bool IsOverdue { get; set; }
+
+    public List<LoanCopyOptionDto> CopyOptions { get; set; } = new();
 }

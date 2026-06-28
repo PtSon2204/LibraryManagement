@@ -30,5 +30,7 @@ public class BookDetailViewModel
 
     public int AvailableCopies { get; set; }
 
+    public List<BookLocationAvailabilityViewModel> LocationAvailability { get; set; } = new();
+
     public List<BookCopyViewModel> Copies { get; set; } = new();
 }

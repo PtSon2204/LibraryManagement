@@ -25,4 +25,6 @@ public class LoanListItemViewModel
     public string Status { get; set; } = string.Empty;
 
     public bool IsOverdue { get; set; }
+
+    public List<LoanCopyOptionViewModel> CopyOptions { get; set; } = new();
 }

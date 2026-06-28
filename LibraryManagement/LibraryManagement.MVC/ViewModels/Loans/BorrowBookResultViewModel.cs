@@ -9,4 +9,6 @@ public class BorrowBookResultViewModel
     public string BookTitle { get; set; } = string.Empty;
 
     public DateTime DueAt { get; set; }
+
+    public string Status { get; set; } = string.Empty;
 }

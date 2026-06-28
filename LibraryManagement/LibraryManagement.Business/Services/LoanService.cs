@@ -11,6 +11,7 @@ namespace LibraryManagement.Business.Services;
 public class LoanService : ILoanService
 {
     private const string BorrowedStatus = "Borrowed";
+    private const string PendingStatus = "Pending";
     private const string ReturnedStatus = "Returned";
     private const string AvailableStatus = "Available";
 
@@ -42,6 +43,13 @@ public class LoanService : ILoanService
         if (!readerExists)
             throw new InvalidOperationException("Tài khoản độc giả không hợp lệ hoặc đã bị khóa.");
 
+        var hasActiveRequestForBook = await _unitOfWork.LoanDetails.Query()
+            .AnyAsync(d => d.Loan.BorrowerReaderId == readerId
+                && d.Copy.BookId == bookId
+                && (d.Status == PendingStatus || d.Status == BorrowedStatus));
+        if (hasActiveRequestForBook)
+            throw new InvalidOperationException("Bạn đã có yêu cầu hoặc phiếu mượn đang hoạt động cho sách này.");
+
         var copy = await _unitOfWork.BookCopies.Query()
             .Include(c => c.Book)
             .Where(c => c.BookId == bookId && c.Status == AvailableStatus)
@@ -57,8 +65,8 @@ public class LoanService : ILoanService
             LoanId = Guid.NewGuid(),
             BorrowerReaderId = readerId,
             BorrowedAt = now,
-            DueAt = now.Date.AddDays(14),
-            Status = BorrowedStatus,
+            DueAt = now.Date,
+            Status = PendingStatus,
             CreatedAt = now
         };
 
@@ -67,10 +75,10 @@ public class LoanService : ILoanService
             LoanDetailId = Guid.NewGuid(),
             LoanId = loan.LoanId,
             CopyId = copy.CopyId,
-            Status = BorrowedStatus
+            Status = PendingStatus
         };
 
-        copy.Status = BorrowedStatus;
+        copy.Status = PendingStatus;
 
         await _unitOfWork.Loans.AddAsync(loan);
         await _unitOfWork.LoanDetails.AddAsync(detail);
@@ -82,8 +90,59 @@ public class LoanService : ILoanService
             LoanId = loan.LoanId,
             LoanDetailId = detail.LoanDetailId,
             BookTitle = copy.Book.Title,
-            DueAt = loan.DueAt
+            DueAt = loan.DueAt,
+            Status = loan.Status
         };
+    }
+
+    public async Task ConfirmLoanDetailAsync(Guid actorId, Guid loanDetailId, Guid copyId)
+    {
+        var detail = await _unitOfWork.LoanDetails.Query()
+            .Include(d => d.Copy)
+                .ThenInclude(c => c.Book)
+            .Include(d => d.Loan)
+            .FirstOrDefaultAsync(d => d.LoanDetailId == loanDetailId);
+
+        if (detail == null)
+            throw new InvalidOperationException("Không tìm thấy yêu cầu mượn cần xác nhận.");
+
+        if (detail.Status != PendingStatus)
+            throw new InvalidOperationException("Chỉ có thể xác nhận yêu cầu đang chờ duyệt.");
+
+        var selectedCopy = await _unitOfWork.BookCopies.Query()
+            .FirstOrDefaultAsync(c => c.CopyId == copyId && c.BookId == detail.Copy.BookId);
+
+        if (selectedCopy == null)
+            throw new InvalidOperationException("Bản sao được chọn không thuộc sách trong yêu cầu mượn.");
+
+        if (selectedCopy.CopyId != detail.CopyId && selectedCopy.Status != AvailableStatus)
+            throw new InvalidOperationException("Bản sao được chọn hiện không có sẵn để cho mượn.");
+
+        if (selectedCopy.CopyId == detail.CopyId && selectedCopy.Status != PendingStatus)
+            throw new InvalidOperationException("Bản sao đang giữ cho yêu cầu không còn ở trạng thái chờ xác nhận.");
+
+        var now = DateTime.UtcNow;
+        if (selectedCopy.CopyId != detail.CopyId)
+        {
+            detail.Copy.Status = AvailableStatus;
+            _unitOfWork.BookCopies.Update(detail.Copy);
+
+            detail.CopyId = selectedCopy.CopyId;
+            detail.Copy = selectedCopy;
+        }
+
+        detail.Status = BorrowedStatus;
+        selectedCopy.Status = BorrowedStatus;
+        detail.Loan.Status = BorrowedStatus;
+        detail.Loan.BorrowedAt = now;
+        detail.Loan.DueAt = now.Date.AddDays(14);
+        detail.Loan.ProcessedByAccountId = actorId;
+        detail.Loan.UpdatedAt = now;
+
+        _unitOfWork.LoanDetails.Update(detail);
+        _unitOfWork.BookCopies.Update(selectedCopy);
+        _unitOfWork.Loans.Update(detail.Loan);
+        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task ReturnLoanDetailAsync(Guid actorId, string role, Guid loanDetailId)
@@ -99,8 +158,11 @@ public class LoanService : ILoanService
         if (detail.Status == ReturnedStatus)
             throw new InvalidOperationException("Sách này đã được trả trước đó.");
 
-        if (role == "Reader" && detail.Loan.BorrowerReaderId != actorId)
-            throw new UnauthorizedAccessException("Bạn không có quyền trả phiếu mượn này.");
+        if (detail.Status == PendingStatus)
+            throw new InvalidOperationException("Yêu cầu mượn chưa được xác nhận nên không thể trả sách.");
+
+        if (role is not ("Librarian" or "Admin"))
+            throw new UnauthorizedAccessException("Chỉ thủ thư hoặc quản trị viên mới có thể ghi nhận trả sách.");
 
         var now = DateTime.UtcNow;
         detail.Status = ReturnedStatus;
@@ -220,7 +282,21 @@ public class LoanService : ILoanService
                 DueAt = d.Loan.DueAt,
                 ReturnedAt = d.ReturnedAt,
                 Status = d.Status,
-                IsOverdue = d.Status == BorrowedStatus && d.Loan.DueAt.Date < today
+                IsOverdue = d.Status == BorrowedStatus && d.Loan.DueAt.Date < today,
+                CopyOptions = d.Status == PendingStatus
+                    ? d.Copy.Book.BookCopies
+                        .Where(c => c.Status == AvailableStatus || c.CopyId == d.CopyId)
+                        .OrderBy(c => c.Location)
+                        .ThenBy(c => c.Barcode)
+                        .Select(c => new LoanCopyOptionDto
+                        {
+                            CopyId = c.CopyId,
+                            Barcode = c.Barcode,
+                            Location = c.Location,
+                            Status = c.Status
+                        })
+                        .ToList()
+                    : new List<LoanCopyOptionDto>()
             })
             .ToListAsync();
 
