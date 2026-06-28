@@ -1,0 +1,61 @@
+@model LibraryManagement.MVC.ViewModels.Room.RoomViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết phòng";
+    Layout = User.IsInRole("Admin") ? "~/Views/Shared/_AdminLayout.cshtml" : "~/Views/Shared/_LibrarianLayout.cshtml";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3 d-inline-flex">
+                <i class="bi bi-door-open fs-3"></i>
+            </div>
+            <div>
+                <h4 class="fw-bold mb-0">@Model.RoomName</h4>
+                <small class="text-muted">Mã phòng: @Model.RoomId</small>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <h6 class="text-muted mb-2"><i class="bi bi-person-workspace me-1"></i>Số chỗ tối đa</h6>
+                <p class="fw-bold fs-5">@Model.Capacity chỗ ngồi</p>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <h6 class="text-muted mb-2"><i class="bi bi-info-circle me-1"></i>Trạng thái</h6>
+                <div>
+                    @if (Model.Status == "Available")
+                    {
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6">Có sẵn (Available)</span>
+                    }
+                    else if (Model.Status == "Occupied")
+                    {
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fs-6">Đang sử dụng (Occupied)</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 fs-6">Bảo trì (Maintenance)</span>
+                    }
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <h6 class="text-muted mb-2"><i class="bi bi-calendar-event me-1"></i>Ngày tạo</h6>
+                <p class="fw-medium fs-5">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+            <div class="col-12 mt-4 border-top pt-4">
+                <h6 class="text-muted mb-2"><i class="bi bi-text-paragraph me-1"></i>Mô tả chi tiết</h6>
+                <p class="fw-medium text-dark bg-light p-3 rounded-3" style="min-height: 80px; white-space: pre-wrap;">
+                    @(string.IsNullOrWhiteSpace(Model.Description) ? "Không có mô tả chi tiết." : Model.Description)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

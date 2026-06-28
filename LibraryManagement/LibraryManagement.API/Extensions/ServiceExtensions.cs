@@ -18,12 +18,9 @@ namespace LibraryManagement.API.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IPublisherService, PublisherService>();
-<<<<<<< Updated upstream
             services.AddScoped<IStaffDashboardService, StaffDashboardService>();
-            services.AddScoped<ILoanService, LoanService>();
-=======
             services.AddScoped<ICategoryService, CategoryService>();
->>>>>>> Stashed changes
+            services.AddScoped<IRoomService, RoomService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddScoped<IBookService, BookService>();
