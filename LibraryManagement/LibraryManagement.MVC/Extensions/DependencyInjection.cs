@@ -50,6 +50,12 @@ namespace LibraryManagement.MVC.Extensions
             })
             .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
 
+            services.AddHttpClient<ILoanService, LoanService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            })
+            .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
+
             return services;
         }
     }

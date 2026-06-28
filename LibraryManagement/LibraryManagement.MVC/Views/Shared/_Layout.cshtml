@@ -33,7 +33,7 @@
                         @if (User.IsInRole("Reader"))
                         {
                             <li>
-                                <a class="dropdown-item py-2" href="#"><i class="bi bi-journal-bookmark me-2 text-muted"></i>Sách đang mượn</a>
+                                <a class="nav-link dropdown-item py-2"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Sách đang mượn </a>
                             </li>
                         }
                         @if (User.IsInRole("Librarian"))
@@ -65,7 +65,7 @@
                                     <li><a class="dropdown-item py-2" asp-controller="UserProfile" asp-action="Index"><i class="bi bi-person me-2 text-muted"></i>Hồ sơ cá nhân</a></li>
                                     @if (User.IsInRole("Reader"))
                                     {
-                                        <li><a class="dropdown-item py-2" href="#"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Lịch sử mượn sách </a></li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Loan" asp-action="Index"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Lịch sử mượn sách </a></li>
                                     }
                                     <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="ChangePassword"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Đổi mật khẩu </a></li>
                                     <li><hr class="dropdown-divider"></li>
