@@ -13,8 +13,10 @@
   <ItemGroup>
     <Folder Include="ViewModels\Books\" />
     <Folder Include="ViewModels\BookCopies\" />
+    <Folder Include="ViewModels\Loans\" />
     <Folder Include="Views\Book\" />
     <Folder Include="Views\BookCopies\" />
+    <Folder Include="Views\Loan\" />
   </ItemGroup>
 
 </Project>

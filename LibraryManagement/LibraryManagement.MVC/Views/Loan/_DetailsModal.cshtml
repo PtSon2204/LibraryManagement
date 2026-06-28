@@ -1,0 +1,120 @@
+@model LibraryManagement.MVC.ViewModels.Loans.LoanViewModel
+
+<div class="modal fade" id="loanDetailsModal" tabindex="-1" aria-labelledby="loanDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light border-bottom-0">
+                <h5 class="modal-title fw-bold" id="loanDetailsModalLabel">Chi tiết phiếu mượn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Mã phiếu</p>
+                        <p class="fw-medium">@Model.LoanId</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Người duyệt</p>
+                        <p class="fw-medium">@(Model.ProcessedByLibrarian ?? "Hệ thống")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Thời gian mượn</p>
+                        <p class="fw-medium">@Model.BorrowedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Hạn trả</p>
+                        <p class="fw-medium text-danger">@Model.DueAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Trạng thái chung</p>
+                        <p class="fw-medium">
+                            @if (Model.Status == "Borrowed")
+                            {
+                                <span class="badge bg-primary">Đang mượn</span>
+                            }
+                            else if (Model.Status == "Returned")
+                            {
+                                <span class="badge bg-success">Đã trả</span>
+                            }
+                            else if (Model.Status == "Overdue")
+                            {
+                                <span class="badge bg-danger">Quá hạn</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@Model.Status</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3">Sách đã mượn</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sách</th>
+                                <th>Mã vạch</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày trả thực tế</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detail in Model.LoanDetails)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(detail.CoverImageUrl))
+                                            {
+                                                <img src="@detail.CoverImageUrl" alt="Cover" class="rounded me-2" style="width: 40px; height: 60px; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 60px;">
+                                                    <i class="bi bi-book text-muted"></i>
+                                                </div>
+                                            }
+                                            <span class="fw-medium">@detail.BookTitle</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">@detail.Barcode</span></td>
+                                    <td>
+                                        @if (detail.Status == "Borrowed")
+                                        {
+                                            <span class="text-primary"><i class="bi bi-clock-history"></i> Đang mượn</span>
+                                        }
+                                        else if (detail.Status == "Returned")
+                                        {
+                                            <span class="text-success"><i class="bi bi-check-circle"></i> Đã trả</span>
+                                        }
+                                        else if (detail.Status == "Overdue")
+                                        {
+                                            <span class="text-danger"><i class="bi bi-exclamation-triangle"></i> Quá hạn</span>
+                                        }
+                                        else if (detail.Status == "Lost")
+                                        {
+                                            <span class="text-secondary"><i class="bi bi-x-circle"></i> Mất</span>
+                                        }
+                                        else
+                                        {
+                                            @detail.Status
+                                        }
+                                    </td>
+                                    <td>
+                                        @(detail.ReturnedAt.HasValue ? detail.ReturnedAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+            <div class="modal-footer border-top-0 bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
