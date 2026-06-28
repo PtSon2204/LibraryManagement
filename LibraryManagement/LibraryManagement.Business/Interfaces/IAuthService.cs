@@ -13,5 +13,6 @@ namespace LibraryManagement.Business.Interfaces
 
         Task<LoginResponseDto> LoginAsync(LoginDto dto);
         Task<bool> ForgotPasswordAsync(string email);
+        Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
     }
 }

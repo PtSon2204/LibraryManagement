@@ -128,6 +128,10 @@
                                 }
                                 <td class="text-center pe-4">
                                     <div class="d-flex justify-content-center gap-1">
+                                        <a class="btn btn-sm btn-outline-primary" title="Quản lý bản sao"
+                                           asp-controller="BookCopies" asp-action="Index" asp-route-bookId="@item.BookId">
+                                            <i class="bi bi-collection"></i>
+                                        </a>
                                         <button class="btn btn-sm btn-outline-info" title="Chi tiết"
                                                 onclick="openDetailsModal('@item.BookId')">
                                             <i class="bi bi-eye"></i>

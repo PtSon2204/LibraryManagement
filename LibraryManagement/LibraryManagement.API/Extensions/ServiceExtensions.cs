@@ -21,6 +21,7 @@ namespace LibraryManagement.API.Extensions
             services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<IBookCopyService, BookCopyService>();
 
             //Đăng kí fluentValidation
             services.AddFluentValidationAutoValidation();
