@@ -20,6 +20,8 @@ namespace LibraryManagement.API.Extensions
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IStaffDashboardService, StaffDashboardService>();
             services.AddScoped<ILoanService, LoanService>();
+            services.AddScoped<IAuthorService, AuthorService>();
+            services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddScoped<IBookService, BookService>();

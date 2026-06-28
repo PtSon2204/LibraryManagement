@@ -23,5 +23,11 @@ namespace LibraryManagement.MVC.ViewModels.Books
 
         // Dữ liệu phụ trợ cho dropdown — không submit lên server
         public List<PublisherOption> Publishers { get; set; } = new();
+
+        public List<int> AuthorIds { get; set; } = new();
+        public List<AuthorOption> Authors { get; set; } = new();
+
+        public List<int> CategoryIds { get; set; } = new();
+        public List<CategoryOption> Categories { get; set; } = new();
     }
 }

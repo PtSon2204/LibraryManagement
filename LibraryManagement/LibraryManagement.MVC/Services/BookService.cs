@@ -115,7 +115,9 @@ public class BookService : IBookService
             model.Language,
             model.Edition,
             model.Description,
-            model.CoverImageUrl
+            model.CoverImageUrl,
+            model.AuthorIds,
+            model.CategoryIds
         };
 
         var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
@@ -137,7 +139,9 @@ public class BookService : IBookService
             model.Language,
             model.Edition,
             model.Description,
-            model.CoverImageUrl
+            model.CoverImageUrl,
+            model.AuthorIds,
+            model.CategoryIds
         };
 
         var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
