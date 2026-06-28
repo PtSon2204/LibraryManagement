@@ -1,35 +1,44 @@
 using LibraryManagement.MVC.Interface;
-using LibraryManagement.MVC.ViewModels.Publisher;
+using LibraryManagement.MVC.ViewModels.Room;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
 namespace LibraryManagement.MVC.Controllers
 {
     [Authorize(Roles = "Admin,Librarian")]
-    public class PublisherController : Controller
+    public class RoomController : Controller
     {
-        private readonly IPublisherService _publisherService;
+        private readonly IRoomService _roomService;
 
-        public PublisherController(IPublisherService publisherService)
+        public RoomController(IRoomService roomService)
         {
-            _publisherService = publisherService;
+            _roomService = roomService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(string? search, string? status, int pageNumber = 1, int pageSize = 10)
         {
-            var model = await _publisherService.GetPublishersAsync(search, pageNumber, pageSize);
+            var model = await _roomService.GetRoomsAsync(search, status, pageNumber, pageSize);
 
             if (model == null)
-                return RedirectToAction("Logout", "Account");
+            {
+                TempData["Error"] = "Không thể tải danh sách phòng. Vui lòng thử lại sau.";
+                model = new RoomListViewModel();
+            }
+
+            // Keep query parameter inputs in model to repopulate fields
+            model.Search = search;
+            model.Status = status;
 
             return View(model);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(Guid id)
         {
-            var model = await _publisherService.GetPublisherByIdAsync(id);
+            var model = await _roomService.GetRoomByIdAsync(id);
 
             if (model == null)
                 return NotFound();
@@ -43,22 +52,22 @@ namespace LibraryManagement.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult GetCreateForm()
         {
-            var model = new PublisherViewModel();
+            var model = new RoomViewModel();
             return PartialView("_Create", model);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(PublisherViewModel model)
+        public async Task<IActionResult> Create(RoomViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return PartialView("_Create", model);
             }
 
-            var error = await _publisherService.CreatePublisherAsync(model);
+            var error = await _roomService.CreateRoomAsync(model);
             if (error == null)
-                return Json(new { success = true, message = "Thêm nhà xuất bản thành công!" });
+                return Json(new { success = true, message = "Thêm phòng thành công!" });
 
             return Json(new { success = false, message = error });
         }
@@ -67,26 +76,26 @@ namespace LibraryManagement.MVC.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetEditForm(int id)
+        public async Task<IActionResult> GetEditForm(Guid id)
         {
-            var publisher = await _publisherService.GetPublisherByIdAsync(id);
-            if (publisher == null) return NotFound();
+            var room = await _roomService.GetRoomByIdAsync(id);
+            if (room == null) return NotFound();
 
-            return PartialView("_Edit", publisher);
+            return PartialView("_Edit", room);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(PublisherViewModel model)
+        public async Task<IActionResult> Edit(RoomViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return PartialView("_Edit", model);
             }
 
-            var error = await _publisherService.UpdatePublisherAsync(model);
+            var error = await _roomService.UpdateRoomAsync(model);
             if (error == null)
-                return Json(new { success = true, message = "Cập nhật nhà xuất bản thành công!" });
+                return Json(new { success = true, message = "Cập nhật thông tin phòng thành công!" });
 
             return Json(new { success = false, message = error });
         }
@@ -95,13 +104,13 @@ namespace LibraryManagement.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var success = await _publisherService.DeletePublisherAsync(id);
+            var success = await _roomService.DeleteRoomAsync(id);
             if (success)
-                return Json(new { success = true, message = "Xóa nhà xuất bản thành công!" });
+                return Json(new { success = true, message = "Xóa phòng thành công!" });
 
-            return Json(new { success = false, message = "Xóa nhà xuất bản thất bại. Có thể do nhà xuất bản đang liên kết với sách trong hệ thống." });
+            return Json(new { success = false, message = "Xóa phòng thất bại. Có thể do phòng này đang có đặt phòng được liên kết trong hệ thống." });
         }
     }
 }

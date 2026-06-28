@@ -34,6 +34,7 @@ namespace LibraryManagement.Data.UnitOfWorks
             _context = context;
 
             Publishers = new Repository<Publisher>(context);
+            Categories = new Repository<Category>(context);
             ReaderRepository = new ReaderRepository(context);
             AccountRepository = new AccountRepository(context);
 

@@ -106,6 +106,12 @@
             <a asp-controller="Reports" asp-action="Index" class="menu-link @(currentController == "Reports" ? "active" : "")">
                 <i class="bi bi-graph-up-arrow"></i> Báo cáo thống kê
             </a>
+            <a asp-controller="Category" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Category" ? "active" : "")">
+                <i class="bi bi-tags"></i> Quản lý thể loại
+            </a>
+            <a asp-controller="Room" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Room" ? "active" : "")">
+                <i class="bi bi-door-open"></i> Quản lý phòng
+            </a>
         </div>
 
         <div class="p-3 border-top border-secondary">
