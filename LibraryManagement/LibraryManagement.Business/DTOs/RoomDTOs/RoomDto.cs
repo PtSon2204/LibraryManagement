@@ -9,6 +9,7 @@ namespace LibraryManagement.Business.DTOs.RoomDTOs
         public int Capacity { get; set; }
         public string? Description { get; set; }
         public string Status { get; set; } = null!;
+        public string? Image { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

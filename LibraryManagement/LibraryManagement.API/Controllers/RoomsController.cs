@@ -10,7 +10,6 @@ namespace LibraryManagement.API.Controllers
 {
     [ApiController]
     [Route("api/rooms")]
-    [Authorize(Roles = "Admin,Librarian")]
     public class RoomsController : ControllerBase
     {
         private readonly IRoomService _roomService;

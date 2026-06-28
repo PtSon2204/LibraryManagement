@@ -17,6 +17,8 @@ public partial class Room
     /// <summary>Available | Occupied | Maintenance</summary>
     public string Status { get; set; } = null!;
 
+    public string? Image { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     // Navigation

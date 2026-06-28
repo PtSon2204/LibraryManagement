@@ -7,7 +7,7 @@
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
 
-<form id="editRoomForm" novalidate>
+<form id="editRoomForm" novalidate enctype="multipart/form-data">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="RoomId" />
     <input type="hidden" asp-for="CreatedAt" />
@@ -23,6 +23,12 @@
                 <label asp-for="Capacity" class="form-label fw-medium">Số chỗ ngồi tối đa <span class="text-danger">*</span></label>
                 <input asp-for="Capacity" type="number" class="form-control" placeholder="Nhập số chỗ ngồi..." />
                 <span asp-validation-for="Capacity" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="ImageFile" class="form-label fw-medium">Cập nhật hình ảnh (Bỏ trống nếu không đổi)</label>
+                <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
+                <span asp-validation-for="ImageFile" class="text-danger small"></span>
             </div>
 
             <div class="col-12">

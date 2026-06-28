@@ -6,5 +6,6 @@ namespace LibraryManagement.Business.DTOs.RoomDTOs
         public int Capacity { get; set; }
         public string? Description { get; set; }
         public string Status { get; set; } = "Available";
+        public string? Image { get; set; }
     }
 }
