@@ -10,4 +10,9 @@
     <ProjectReference Include="..\LibraryManagement.Business\LibraryManagement.Business.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ViewModels\Books\" />
+    <Folder Include="Views\Book\" />
+  </ItemGroup>
+
 </Project>

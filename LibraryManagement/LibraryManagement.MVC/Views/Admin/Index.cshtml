@@ -1,0 +1,323 @@
+@model LibraryManagement.MVC.ViewModels.Dashboard.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard Admin";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--brand-green) 0%, #047857 100%);
+        border-radius: 1.25rem;
+        padding: 2.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header::after {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        border: none;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.primary { background: rgba(16, 185, 129, 0.1); color: var(--brand-green); }
+    .stat-icon.info { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; }
+    .stat-icon.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .stat-icon.danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+    .stat-details h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-details p {
+        color: #64748b;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .quick-action-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1.5rem;
+        background: white;
+        border-radius: 1.25rem;
+        text-align: center;
+        text-decoration: none;
+        color: #475569;
+        transition: all 0.2s ease;
+        border: 1px solid #e2e8f0;
+        height: 100%;
+    }
+
+    .quick-action-card:hover {
+        border-color: var(--brand-green);
+        background: rgba(16, 185, 129, 0.03);
+        color: var(--brand-green);
+        transform: translateY(-3px);
+    }
+
+    .quick-action-card i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #94a3b8;
+        transition: color 0.2s ease;
+    }
+
+    .quick-action-card:hover i {
+        color: var(--brand-green);
+    }
+
+    .quick-action-card span {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .activity-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 1.25rem;
+        padding: 1.25rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-top: 6px;
+        flex-shrink: 0;
+    }
+
+    .activity-content h6 {
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-content p {
+        font-size: 0.875rem;
+        color: #64748b;
+        margin-bottom: 0;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        white-space: nowrap;
+    }
+</style>
+
+<!-- Welcome Header -->
+<div class="dashboard-header">
+    <div class="row align-items-center position-relative" style="z-index: 1;">
+        <div class="col-md-8">
+            <h2 class="fw-bold mb-2">Chào mừng trở lại, @User.Identity?.Name! 👋</h2>
+            <p class="fs-6 mb-0 opacity-75">Đây là báo cáo tổng quan về hoạt động của thư viện trong hệ thống của bạn.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0 d-none d-md-block">
+            <div class="bg-white bg-opacity-25 rounded-3 d-inline-block px-4 py-3 text-center" style="backdrop-filter: blur(10px);">
+                <div class="text-uppercase text-white-50" style="font-size: 0.75rem; font-weight: 600; letter-spacing: 1px;">Ngày hôm nay</div>
+                <div class="fs-5 fw-bold text-white mt-1">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-4 mb-5">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-book"></i>
+            </div>
+            <div class="stat-details">
+                <h3>@Model.TotalBooks.ToString("N0")</h3>
+                <p>Tổng tựa sách</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-details">
+                <h3>@Model.TotalReaders.ToString("N0")</h3>
+                <p>Thành viên</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-journal-arrow-up"></i>
+            </div>
+            <div class="stat-details">
+                <h3>@Model.ActiveLoans.ToString("N0")</h3>
+                <p>Đang cho mượn</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="stat-details">
+                <h3>@Model.OverdueLoans.ToString("N0")</h3>
+                <p>Mượn quá hạn</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Quick Actions -->
+    <div class="col-lg-7">
+        <h5 class="section-title"><i class="bi bi-lightning-charge text-warning"></i> Truy cập nhanh</h5>
+        <div class="row g-3">
+            <div class="col-md-4 col-sm-6">
+                <a href="/Book/Index" class="quick-action-card">
+                    <i class="bi bi-journal-plus"></i>
+                    <span>Thêm Sách Mới</span>
+                </a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <a href="/Admin/Users" class="quick-action-card">
+                    <i class="bi bi-person-plus"></i>
+                    <span>Tạo Tài Khoản</span>
+                </a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <a href="#" class="quick-action-card">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>Xem Báo Cáo</span>
+                </a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <a href="/Admin/Authors" class="quick-action-card">
+                    <i class="bi bi-pen"></i>
+                    <span>Quản lý Tác Giả</span>
+                </a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <a href="/Publisher/Index" class="quick-action-card">
+                    <i class="bi bi-building"></i>
+                    <span>Quản lý NXB</span>
+                </a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <a href="#" class="quick-action-card">
+                    <i class="bi bi-gear"></i>
+                    <span>Cài Đặt Hệ Thống</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                <h5 class="section-title mb-0"><i class="bi bi-activity text-primary"></i> Hoạt động gần đây</h5>
+            </div>
+            <div class="card-body p-4">
+                <ul class="activity-list">
+                    <li class="activity-item">
+                        <div class="activity-indicator bg-success"></div>
+                        <div class="activity-content flex-grow-1">
+                            <h6>Thêm sách mới thành công</h6>
+                            <p>Admin đã thêm cuốn "Clean Architecture" vào hệ thống.</p>
+                        </div>
+                        <div class="activity-time">5 phút trước</div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-indicator bg-info"></div>
+                        <div class="activity-content flex-grow-1">
+                            <h6>Cấp quyền người dùng</h6>
+                            <p>Người dùng "Nguyễn Văn A" được phân quyền Thủ thư.</p>
+                        </div>
+                        <div class="activity-time">1 giờ trước</div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-indicator bg-warning"></div>
+                        <div class="activity-content flex-grow-1">
+                            <h6>Cập nhật hệ thống</h6>
+                            <p>Backup cơ sở dữ liệu định kỳ hoàn tất.</p>
+                        </div>
+                        <div class="activity-time">3 giờ trước</div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-indicator bg-danger"></div>
+                        <div class="activity-content flex-grow-1">
+                            <h6>Xóa tài khoản</h6>
+                            <p>Tài khoản spam_123 đã bị khóa vĩnh viễn.</p>
+                        </div>
+                        <div class="activity-time">Hôm qua</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

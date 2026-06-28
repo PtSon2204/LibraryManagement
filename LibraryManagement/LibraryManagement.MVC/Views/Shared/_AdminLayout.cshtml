@@ -92,6 +92,9 @@
             <a href="/Admin/Users" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Users" ? "active" : "")">
                 <i class="bi bi-people"></i> Quản lý thành viên
             </a>
+            <a href="/Book/Index" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Book" ? "active" : "")">
+                <i class="bi bi-book"></i> Quản lý sách
+            </a>
             <a href="/Admin/Authors" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Authors" ? "active" : "")">
                 <i class="bi bi-journal-text"></i> Quản lý tác giả
             </a>
