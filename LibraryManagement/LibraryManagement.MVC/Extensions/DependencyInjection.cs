@@ -72,6 +72,11 @@ namespace LibraryManagement.MVC.Extensions
             })
             .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
 
+            services.AddHttpClient<IReportService, ReportService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            });
+
             return services;
         }
     }

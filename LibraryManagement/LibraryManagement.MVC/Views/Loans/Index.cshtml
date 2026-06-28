@@ -5,7 +5,7 @@
     var search = Model.Search;
 }
 
-<section class="py-5" style="background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 60%, #eff6ff 100%);">
+<section class="public-page-hero py-5">
     <div class="container">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
@@ -49,7 +49,7 @@
                         {
                             <tr>
                                 <td class="fw-semibold">@loan.BookTitle</td>
-                                <td><span class="badge text-bg-light">@loan.Barcode</span></td>
+                                <td><span class="badge loan-barcode-badge">@loan.Barcode</span></td>
                                 <td>@loan.BorrowedAt.ToString("dd/MM/yyyy")</td>
                                 <td class="@(loan.IsOverdue ? "text-danger fw-semibold" : "")">@loan.DueAt.ToString("dd/MM/yyyy")</td>
                                 <td>

@@ -3,10 +3,9 @@
 @{
     ViewData["Title"] = "Danh sách sách";
     var search = Model.Search;
-    const string fallbackCover = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='420' viewBox='0 0 300 420'%3E%3Crect width='300' height='420' fill='%23e2e8f0'/%3E%3Ctext x='150' y='210' text-anchor='middle' fill='%2364748b' font-family='Arial' font-size='28'%3EBook%3C/text%3E%3C/svg%3E";
 }
 
-<section class="py-5" style="background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 55%, #eff6ff 100%);">
+<section class="public-page-hero py-5">
     <div class="container">
         <div class="row align-items-center g-4">
             <div class="col-lg-7">
@@ -87,7 +86,14 @@
                     <div class="book-card">
                         <div class="book-cover">
                             <span class="book-badge">@book.Language</span>
-                            <img src="@(book.CoverImageUrl ?? fallbackCover)" alt="@book.Title" />
+                            @if (!string.IsNullOrWhiteSpace(book.CoverImageUrl))
+                            {
+                                <img src="@book.CoverImageUrl" alt="@book.Title" />
+                            }
+                            else
+                            {
+                                <div class="book-cover-placeholder">Book</div>
+                            }
                         </div>
                         <div class="book-info">
                             <h2 class="book-title">@book.Title</h2>

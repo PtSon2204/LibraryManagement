@@ -77,6 +77,9 @@
     </style>
 </head>
 <body>
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    }
     <div class="admin-sidebar">
         <div class="sidebar-header d-flex align-items-center gap-2">
             <i class="bi bi-book text-info fs-3"></i>
@@ -87,22 +90,28 @@
         </div>
         
         <div class="sidebar-menu">
-            <a asp-controller="Librarian" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Librarian" ? "active" : "")">
+            <a asp-controller="Librarian" asp-action="Index" class="menu-link @(currentController == "Librarian" ? "active" : "")">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
-            <a asp-controller="Publisher" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Publisher" ? "active" : "")">
+            <a asp-controller="Publisher" asp-action="Index" class="menu-link @(currentController == "Publisher" ? "active" : "")">
                 <i class="bi bi-building"></i> Quản lý nhà xuất bản
             </a>
-            <a asp-controller="LoanManagement" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "LoanManagement" ? "active" : "")">
+            <a asp-controller="LoanManagement" asp-action="Index" class="menu-link @(currentController == "LoanManagement" ? "active" : "")">
                 <i class="bi bi-arrow-left-right"></i> Quản lý mượn trả
             </a>
-            <a asp-controller="Book" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Book" ? "active" : "")">
+            <a asp-controller="Book" asp-action="Index" class="menu-link @(currentController == "Book" ? "active" : "")">
                 <i class="bi bi-book"></i> Quản lý sách
+            </a>
+            <a asp-controller="Reports" asp-action="Index" class="menu-link @(currentController == "Reports" ? "active" : "")">
+                <i class="bi bi-graph-up-arrow"></i> Báo cáo thống kê
             </a>
         </div>
 
         <div class="p-3 border-top border-secondary">
 
+            <a asp-controller="Home" asp-action="Index" class="menu-link">
+                <i class="bi bi-house-door"></i> Trang chủ
+            </a>
             <a asp-controller="UserProfile" asp-action="Index" class="menu-link">
                 <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
             </a>
