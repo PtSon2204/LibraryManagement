@@ -10,15 +10,19 @@ namespace LibraryManagement.MVC.Controllers
     {
         private readonly IBookService _bookService;
         private readonly IPublisherService _publisherService;
+        private readonly IAuthorService _authorService;
+        private readonly ICategoryService _categoryService;
         private readonly IWebHostEnvironment _env;
 
         private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
         private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-        public BookController(IBookService bookService, IPublisherService publisherService, IWebHostEnvironment env)
+        public BookController(IBookService bookService, IPublisherService publisherService, IAuthorService authorService, ICategoryService categoryService, IWebHostEnvironment env)
         {
             _bookService = bookService;
             _publisherService = publisherService;
+            _authorService = authorService;
+            _categoryService = categoryService;
             _env = env;
         }
 
@@ -30,7 +34,7 @@ namespace LibraryManagement.MVC.Controllers
         {
             var model = await _bookService.GetBooksAsync(searchTerm, publisherId, publicationYear, language, pageNumber, pageSize);
             if (model == null)
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Logout", "Account");
             return View(model);
         }
 
@@ -41,6 +45,8 @@ namespace LibraryManagement.MVC.Controllers
         {
             var model = new CreateBookViewModel();
             await PopulatePublishers(model.Publishers);
+            await PopulateAuthors(model.Authors);
+            await PopulateCategories(model.Categories);
             return PartialView("_Create", model);
         }
 
@@ -50,6 +56,8 @@ namespace LibraryManagement.MVC.Controllers
             if (!ModelState.IsValid)
             {
                 await PopulatePublishers(model.Publishers);
+                await PopulateAuthors(model.Authors);
+                await PopulateCategories(model.Categories);
                 return PartialView("_Create", model);
             }
 
@@ -82,9 +90,13 @@ namespace LibraryManagement.MVC.Controllers
                 Language     = book.Language,
                 Edition      = book.Edition,
                 Description  = book.Description,
-                CoverImageUrl = book.CoverImageUrl
+                CoverImageUrl = book.CoverImageUrl,
+                AuthorIds    = book.AuthorIds ?? new List<int>(),
+                CategoryIds  = book.CategoryIds ?? new List<int>()
             };
             await PopulatePublishers(model.Publishers);
+            await PopulateAuthors(model.Authors);
+            await PopulateCategories(model.Categories);
             return PartialView("_Edit", model);
         }
 
@@ -94,6 +106,8 @@ namespace LibraryManagement.MVC.Controllers
             if (!ModelState.IsValid)
             {
                 await PopulatePublishers(model.Publishers);
+                await PopulateAuthors(model.Authors);
+                await PopulateCategories(model.Categories);
                 return PartialView("_Edit", model);
             }
 
@@ -113,7 +127,7 @@ namespace LibraryManagement.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> GetDetails(Guid id)
         {
-            var book = await _bookService.GetBookByIdAsync(id);
+            var book = await _bookService.GetBookDetailAsync(id);
             if (book == null) return NotFound();
             return PartialView("_Details", book);
         }
@@ -141,6 +155,24 @@ namespace LibraryManagement.MVC.Controllers
                 PublisherId  = p.PublisherId,
                 PublisherName = p.PublisherName
             }) ?? Enumerable.Empty<PublisherOption>());
+        }
+
+        private async Task PopulateAuthors(List<AuthorOption> list)
+        {
+            var authors = await _authorService.GetAllAuthorsAsync();
+            if (authors != null)
+            {
+                list.AddRange(authors);
+            }
+        }
+
+        private async Task PopulateCategories(List<CategoryOption> list)
+        {
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            if (categories != null)
+            {
+                list.AddRange(categories);
+            }
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-@model LibraryManagement.MVC.ViewModels.Books.BookViewModel
+@model LibraryManagement.MVC.ViewModels.Books.BookDetailViewModel
 
 <div class="modal-header border-0 pb-0">
     <h5 class="modal-title fw-bold">
@@ -44,13 +44,24 @@
                 <div class="col-sm-5 text-muted small"><i class="bi bi-layers me-1"></i>Phiên bản</div>
                 <div class="col-sm-7 fw-medium small">@(Model.Edition ?? "—")</div>
 
-                <div class="col-sm-5 text-muted small"><i class="bi bi-clock me-1"></i>Ngày tạo</div>
-                <div class="col-sm-7 fw-medium small">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                <div class="col-sm-5 text-muted small"><i class="bi bi-journals me-1"></i>Số bản sao</div>
+                <div class="col-sm-7 fw-medium small">@Model.TotalCopies (Sẵn có: @Model.AvailableCopies)</div>
 
-                @if (Model.UpdatedAt.HasValue)
+                @if (Model.Authors.Any())
                 {
-                    <div class="col-sm-5 text-muted small"><i class="bi bi-pencil me-1"></i>Cập nhật lần cuối</div>
-                    <div class="col-sm-7 fw-medium small">@Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                    <div class="col-sm-5 text-muted small"><i class="bi bi-person-lines-fill me-1"></i>Tác giả</div>
+                    <div class="col-sm-7 fw-medium small">@string.Join(", ", Model.Authors)</div>
+                }
+
+                @if (Model.Categories.Any())
+                {
+                    <div class="col-sm-5 text-muted small"><i class="bi bi-tags me-1"></i>Thể loại</div>
+                    <div class="col-sm-7 fw-medium small">
+                        @foreach(var cat in Model.Categories)
+                        {
+                            <span class="badge bg-secondary me-1">@cat</span>
+                        }
+                    </div>
                 }
             </div>
 

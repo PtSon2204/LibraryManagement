@@ -87,6 +87,8 @@ public class BookService : IBookService
                     .OrderBy(c => c.Category.CategoryName)
                     .Select(c => c.Category.CategoryName)
                     .ToList(),
+                AuthorIds = b.BookAuthors.Select(a => a.AuthorId).ToList(),
+                CategoryIds = b.BookCategories.Select(c => c.CategoryId).ToList(),
                 TotalCopies = b.BookCopies.Count,
                 AvailableCopies = b.BookCopies.Count(c => c.Status == "Available"),
                 LocationAvailability = b.BookCopies
@@ -188,6 +190,23 @@ public class BookService : IBookService
         };
 
         await _unitOfWork.Books.AddAsync(book);
+
+        if (createBookDto.AuthorIds != null && createBookDto.AuthorIds.Any())
+        {
+            foreach (var authorId in createBookDto.AuthorIds)
+            {
+                book.BookAuthors.Add(new BookAuthor { AuthorId = authorId });
+            }
+        }
+
+        if (createBookDto.CategoryIds != null && createBookDto.CategoryIds.Any())
+        {
+            foreach (var categoryId in createBookDto.CategoryIds)
+            {
+                book.BookCategories.Add(new BookCategory { CategoryId = categoryId });
+            }
+        }
+
         await _unitOfWork.SaveChangesAsync();
 
         return new BookDto
@@ -209,7 +228,11 @@ public class BookService : IBookService
 
     public async Task<bool> UpdateBookAsync(UpdateBookDto updateBookDto)
     {
-        var book = await _unitOfWork.Books.GetByIdAsync(updateBookDto.BookId);
+        var book = await _unitOfWork.Books.Query()
+            .Include(b => b.BookAuthors)
+            .Include(b => b.BookCategories)
+            .FirstOrDefaultAsync(b => b.BookId == updateBookDto.BookId);
+            
         if (book == null) return false;
 
         book.Title = updateBookDto.Title;
@@ -221,6 +244,24 @@ public class BookService : IBookService
         book.Description = updateBookDto.Description;
         book.CoverImageUrl = updateBookDto.CoverImageUrl;
         book.UpdatedAt = DateTime.UtcNow;
+
+        book.BookAuthors.Clear();
+        if (updateBookDto.AuthorIds != null && updateBookDto.AuthorIds.Any())
+        {
+            foreach (var authorId in updateBookDto.AuthorIds)
+            {
+                book.BookAuthors.Add(new BookAuthor { AuthorId = authorId });
+            }
+        }
+
+        book.BookCategories.Clear();
+        if (updateBookDto.CategoryIds != null && updateBookDto.CategoryIds.Any())
+        {
+            foreach (var categoryId in updateBookDto.CategoryIds)
+            {
+                book.BookCategories.Add(new BookCategory { CategoryId = categoryId });
+            }
+        }
 
         _unitOfWork.Books.Update(book);
         await _unitOfWork.SaveChangesAsync();
@@ -304,7 +345,9 @@ public class BookService : IBookService
             CoverImageUrl = b.CoverImageUrl,
             CreatedAt = b.CreatedAt,
             UpdatedAt = b.UpdatedAt,
-            IsHidden = b.IsHidden
+            IsHidden = b.IsHidden,
+            AuthorIds = b.BookAuthors.Select(a => a.AuthorId).ToList(),
+            CategoryIds = b.BookCategories.Select(c => c.CategoryId).ToList()
         });
     }
 }

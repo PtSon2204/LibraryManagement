@@ -20,7 +20,7 @@ namespace LibraryManagement.MVC.Controllers
 
             if (model == null)
             {
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Logout", "Account");
             }
 
             return View(model);

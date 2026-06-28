@@ -21,7 +21,7 @@ namespace LibraryManagement.MVC.Controllers
             var model = await _publisherService.GetPublishersAsync(search, pageNumber, pageSize);
 
             if (model == null)
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Logout", "Account");
 
             return View(model);
         }

@@ -1,0 +1,51 @@
+@model LibraryManagement.MVC.ViewModels.Room.RoomViewModel
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-pencil-square text-warning me-2"></i>Chỉnh sửa thông tin phòng
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="editRoomForm" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="RoomId" />
+    <input type="hidden" asp-for="CreatedAt" />
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-12">
+                <label asp-for="RoomName" class="form-label fw-medium">Tên phòng <span class="text-danger">*</span></label>
+                <input asp-for="RoomName" class="form-control" placeholder="Nhập tên phòng..." />
+                <span asp-validation-for="RoomName" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Capacity" class="form-label fw-medium">Số chỗ ngồi tối đa <span class="text-danger">*</span></label>
+                <input asp-for="Capacity" type="number" class="form-control" placeholder="Nhập số chỗ ngồi..." />
+                <span asp-validation-for="Capacity" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Status" class="form-label fw-medium">Trạng thái phòng <span class="text-danger">*</span></label>
+                <select asp-for="Status" class="form-select">
+                    <option value="Available">Có sẵn (Available)</option>
+                    <option value="Occupied">Đang sử dụng (Occupied)</option>
+                    <option value="Maintenance">Đang bảo trì (Maintenance)</option>
+                </select>
+                <span asp-validation-for="Status" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Description" class="form-label fw-medium">Mô tả phòng</label>
+                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập mô tả phòng..."></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-save me-1"></i>Lưu thay đổi
+        </button>
+    </div>
+</form>

@@ -18,5 +18,7 @@ namespace LibraryManagement.MVC.ViewModels.Books
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public bool IsHidden { get; set; }
+        public System.Collections.Generic.List<int> AuthorIds { get; set; } = new();
+        public System.Collections.Generic.List<int> CategoryIds { get; set; } = new();
     }
 }

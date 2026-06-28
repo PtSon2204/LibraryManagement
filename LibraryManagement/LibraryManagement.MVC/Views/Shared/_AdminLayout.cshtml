@@ -6,6 +6,7 @@
     <title>@ViewData["Title"] - Admin Panel</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
         :root {
@@ -102,7 +103,13 @@
             <a href="/Publisher/Index" class="menu-link @(currentController == "Publisher" ? "active" : "")">
                 <i class="bi bi-building"></i> Quản lý nhà xuất bản
             </a>
-            <a href="/Admin/Authors" class="menu-link @(currentController == "Admin" && currentAction == "Authors" ? "active" : "")">
+            <a href="/Category/Index" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Category" ? "active" : "")">
+                <i class="bi bi-tags"></i> Quản lý thể loại
+            </a>
+            <a href="/Room/Index" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Room" ? "active" : "")">
+                <i class="bi bi-door-open"></i> Quản lý phòng
+            </a>
+            <a href="/Admin/Authors" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Authors" ? "active" : "")">
                 <i class="bi bi-journal-text"></i> Quản lý tác giả
             </a>
             <a asp-controller="Reports" asp-action="Index" class="menu-link @(currentController == "Reports" ? "active" : "")">
@@ -160,6 +167,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
