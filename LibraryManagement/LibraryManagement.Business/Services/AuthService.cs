@@ -167,5 +167,40 @@ namespace LibraryManagement.Business.Services
         }
 
 
+        public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
+        {
+            if (dto.NewPassword != dto.ConfirmNewPassword)
+                throw new Exception("Mật khẩu xác nhận không khớp.");
+
+            // Check if user is an Account
+            var account = await _unitOfWork.Accounts.GetByIdAsync(userId);
+            if (account != null)
+            {
+                bool valid = BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, account.PasswordHash);
+                if (!valid)
+                    throw new Exception("Mật khẩu hiện tại không chính xác.");
+
+                account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+                _unitOfWork.Accounts.Update(account);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+
+            // Check if user is a Reader
+            var reader = await _unitOfWork.Readers.GetByIdAsync(userId);
+            if (reader != null)
+            {
+                bool valid = BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, reader.PasswordHash);
+                if (!valid)
+                    throw new Exception("Mật khẩu hiện tại không chính xác.");
+
+                reader.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+                _unitOfWork.Readers.Update(reader);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+
+            throw new Exception("Không tìm thấy người dùng.");
+        }
     }
 }

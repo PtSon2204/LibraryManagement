@@ -68,7 +68,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasIndex(new[] { "Email" }, "UQ_Accounts_Email")
                         .IsUnique();
 
-                    b.ToTable("Accounts", (string)null);
+                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Author", b =>
@@ -90,7 +90,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasKey("AuthorId")
                         .HasName("PK__Authors__70DAFC34CC5F8E3C");
 
-                    b.ToTable("Authors", (string)null);
+                    b.ToTable("Authors");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Book", b =>
@@ -123,6 +123,9 @@ namespace LibraryManagement.Data.Migrations
                         .HasColumnType("varchar(20)")
                         .HasColumnName("ISBN");
 
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Language")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -152,7 +155,7 @@ namespace LibraryManagement.Data.Migrations
                         .IsUnique()
                         .HasFilter("[ISBN] IS NOT NULL");
 
-                    b.ToTable("Books", (string)null);
+                    b.ToTable("Books");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.BookAuthor", b =>
@@ -167,7 +170,7 @@ namespace LibraryManagement.Data.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("BookAuthors", (string)null);
+                    b.ToTable("BookAuthors");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.BookCategory", b =>
@@ -182,7 +185,7 @@ namespace LibraryManagement.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("BookCategories", (string)null);
+                    b.ToTable("BookCategories");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.BookCopy", b =>
@@ -227,7 +230,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasIndex(new[] { "Barcode" }, "UQ__BookCopi__177800D33A29574E")
                         .IsUnique();
 
-                    b.ToTable("BookCopies", (string)null);
+                    b.ToTable("BookCopies");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Category", b =>
@@ -253,7 +256,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasIndex(new[] { "CategoryName" }, "UQ__Categori__8517B2E0882B8F80")
                         .IsUnique();
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Fine", b =>
@@ -301,7 +304,7 @@ namespace LibraryManagement.Data.Migrations
 
                     b.HasIndex(new[] { "Status" }, "IX_Fines_Status");
 
-                    b.ToTable("Fines", (string)null);
+                    b.ToTable("Fines");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Loan", b =>
@@ -349,7 +352,7 @@ namespace LibraryManagement.Data.Migrations
 
                     b.HasIndex(new[] { "Status" }, "IX_Loans_Status");
 
-                    b.ToTable("Loans", (string)null);
+                    b.ToTable("Loans");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.LoanDetail", b =>
@@ -386,7 +389,7 @@ namespace LibraryManagement.Data.Migrations
                         .IsUnique()
                         .HasFilter("([Status]='Borrowed')");
 
-                    b.ToTable("LoanDetails", (string)null);
+                    b.ToTable("LoanDetails");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Payment", b =>
@@ -427,7 +430,7 @@ namespace LibraryManagement.Data.Migrations
 
                     b.HasIndex(new[] { "ReaderId" }, "IX_Payments_ReaderId");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Publisher", b =>
@@ -463,7 +466,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasIndex(new[] { "PublisherName" }, "UQ__Publishe__5F0E22495C071047")
                         .IsUnique();
 
-                    b.ToTable("Publishers", (string)null);
+                    b.ToTable("Publishers");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Reader", b =>
@@ -507,7 +510,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasIndex(new[] { "Email" }, "UQ_Readers_Email")
                         .IsUnique();
 
-                    b.ToTable("Readers", (string)null);
+                    b.ToTable("Readers");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Reservation", b =>
@@ -553,7 +556,7 @@ namespace LibraryManagement.Data.Migrations
                         .IsUnique()
                         .HasFilter("([Status] IN ('Pending', 'Confirmed'))");
 
-                    b.ToTable("Reservations", (string)null);
+                    b.ToTable("Reservations");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Room", b =>
@@ -594,7 +597,7 @@ namespace LibraryManagement.Data.Migrations
                     b.HasIndex(new[] { "RoomName" }, "UQ_Rooms_RoomName")
                         .IsUnique();
 
-                    b.ToTable("Rooms", (string)null);
+                    b.ToTable("Rooms");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.UserProfile", b =>
@@ -637,7 +640,7 @@ namespace LibraryManagement.Data.Migrations
                         .IsUnique()
                         .HasFilter("[ReaderId] IS NOT NULL");
 
-                    b.ToTable("UserProfiles", null, t =>
+                    b.ToTable("UserProfiles", t =>
                         {
                             t.HasCheckConstraint("CK_UserProfiles_OneOwner", "([ReaderId] IS NOT NULL AND [AccountId] IS NULL) OR ([ReaderId] IS NULL AND [AccountId] IS NOT NULL)");
                         });

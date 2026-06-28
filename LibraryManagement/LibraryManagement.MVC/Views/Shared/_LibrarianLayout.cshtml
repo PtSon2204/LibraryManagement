@@ -96,12 +96,18 @@
             <a asp-controller="LoanManagement" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "LoanManagement" ? "active" : "")">
                 <i class="bi bi-arrow-left-right"></i> Quản lý mượn trả
             </a>
+            <a asp-controller="Book" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Book" ? "active" : "")">
+                <i class="bi bi-book"></i> Quản lý sách
+            </a>
         </div>
 
         <div class="p-3 border-top border-secondary">
 
             <a asp-controller="UserProfile" asp-action="Index" class="menu-link">
                 <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
+            </a>
+            <a asp-controller="Account" asp-action="ChangePassword" class="menu-link text-warning">
+                <i class="bi bi-shield-lock"></i> Đổi mật khẩu
             </a>
             <a href="/Account/Logout" class="menu-link text-danger">
                 <i class="bi bi-box-arrow-left"></i> Đăng xuất

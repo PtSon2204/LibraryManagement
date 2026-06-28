@@ -1,6 +1,9 @@
 using LibraryManagement.Business.DTOs.BookDTOs;
 using LibraryManagement.Business.Interfaces;
+using LibraryManagement.Data.Common;
 using LibraryManagement.Data.UnitOfWorks;
+using LibraryManagement.Models.Models;
+using LibraryManagement.Models.Queries;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagement.Business.Services;
@@ -16,24 +19,17 @@ public class BookService : IBookService
 
     public IQueryable<BookListItemDto> GetBooksQuery()
     {
-        return ProjectBooks(_unitOfWork.Books.Query().AsNoTracking());
+        return ProjectBooks(_unitOfWork.Books.Query().AsNoTracking().Where(b => !b.IsHidden));
     }
 
-    public async Task<BookListPageDto> GetBooksAsync(
-        string? title,
-        string? language,
-        string? publisher,
-        bool availableOnly,
-        string? sortBy,
-        int page,
-        int pageSize)
+    public async Task<BookListPageDto> GetPublicBooksAsync(BookQuery bookQuery)
     {
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 50);
+        var page = Math.Max(bookQuery.PageNumber, 1);
+        var pageSize = Math.Clamp(bookQuery.PageSize, 1, 50);
 
-        var query = BuildBookQuery(title, language, publisher, availableOnly);
+        var query = BuildPublicBookQuery(bookQuery);
 
-        query = sortBy switch
+        query = bookQuery.SortBy switch
         {
             "title_desc" => query.OrderByDescending(b => b.Title),
             "year" => query.OrderBy(b => b.PublicationYear),
@@ -61,6 +57,7 @@ public class BookService : IBookService
 
         return await ProjectBooks(_unitOfWork.Books.Query()
                 .AsNoTracking()
+                .Where(b => !b.IsHidden)
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(count))
             .ToListAsync();
@@ -70,7 +67,7 @@ public class BookService : IBookService
     {
         return await _unitOfWork.Books.Query()
             .AsNoTracking()
-            .Where(b => b.BookId == bookId)
+            .Where(b => b.BookId == bookId && !b.IsHidden)
             .Select(b => new BookDetailDto
             {
                 BookId = b.BookId,
@@ -107,30 +104,165 @@ public class BookService : IBookService
             .FirstOrDefaultAsync();
     }
 
-    private IQueryable<LibraryManagement.Models.Models.Book> BuildBookQuery(
-        string? title,
-        string? language,
-        string? publisher,
-        bool availableOnly)
+    public async Task<PagedResult<BookDto>> GetBooksAsync(BookQuery query)
     {
-        var query = _unitOfWork.Books.Query().AsNoTracking();
+        query.PageNumber = Math.Max(query.PageNumber, 1);
 
-        if (!string.IsNullOrWhiteSpace(title))
-            query = query.Where(b => b.Title.Contains(title));
+        var dbQuery = _unitOfWork.Books.Query().AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(language))
-            query = query.Where(b => b.Language != null && b.Language.Contains(language));
+        if (!query.IncludeHidden.GetValueOrDefault())
+        {
+            dbQuery = dbQuery.Where(b => !b.IsHidden);
+        }
 
-        if (!string.IsNullOrWhiteSpace(publisher))
-            query = query.Where(b => b.Publisher != null && b.Publisher.PublisherName.Contains(publisher));
+        if (!string.IsNullOrWhiteSpace(query.SearchTerm))
+        {
+            dbQuery = dbQuery.Where(b => b.Title.Contains(query.SearchTerm) ||
+                                         (b.ISBN != null && b.ISBN.Contains(query.SearchTerm)));
+        }
 
-        if (availableOnly)
+        if (query.PublisherId.HasValue)
+        {
+            dbQuery = dbQuery.Where(b => b.PublisherId == query.PublisherId.Value);
+        }
+
+        if (query.PublicationYear.HasValue)
+        {
+            dbQuery = dbQuery.Where(b => b.PublicationYear == query.PublicationYear.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Language))
+        {
+            dbQuery = dbQuery.Where(b => b.Language == query.Language);
+        }
+
+        var totalCount = await dbQuery.CountAsync();
+        var books = await ProjectBookDtos(dbQuery
+                .OrderByDescending(b => b.CreatedAt)
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize))
+            .ToListAsync();
+
+        return new PagedResult<BookDto>
+        {
+            Data = books,
+            TotalRecords = totalCount,
+            PageNumber = query.PageNumber,
+            PageSize = query.PageSize,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize)
+        };
+    }
+
+    public async Task<BookDto?> GetBookByIdAsync(Guid id)
+    {
+        return await ProjectBookDtos(_unitOfWork.Books.Query()
+                .AsNoTracking()
+                .Where(b => b.BookId == id))
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<BookDto> CreateBookAsync(CreateBookDto createBookDto)
+    {
+        var book = new Book
+        {
+            BookId = Guid.NewGuid(),
+            Title = createBookDto.Title,
+            ISBN = createBookDto.ISBN,
+            PublisherId = createBookDto.PublisherId,
+            PublicationYear = createBookDto.PublicationYear,
+            Language = createBookDto.Language,
+            Edition = createBookDto.Edition,
+            Description = createBookDto.Description,
+            CoverImageUrl = createBookDto.CoverImageUrl,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _unitOfWork.Books.AddAsync(book);
+        await _unitOfWork.SaveChangesAsync();
+
+        return new BookDto
+        {
+            BookId = book.BookId,
+            Title = book.Title,
+            ISBN = book.ISBN,
+            PublisherId = book.PublisherId,
+            PublicationYear = book.PublicationYear,
+            Language = book.Language,
+            Edition = book.Edition,
+            Description = book.Description,
+            CoverImageUrl = book.CoverImageUrl,
+            CreatedAt = book.CreatedAt,
+            UpdatedAt = book.UpdatedAt,
+            IsHidden = book.IsHidden
+        };
+    }
+
+    public async Task<bool> UpdateBookAsync(UpdateBookDto updateBookDto)
+    {
+        var book = await _unitOfWork.Books.GetByIdAsync(updateBookDto.BookId);
+        if (book == null) return false;
+
+        book.Title = updateBookDto.Title;
+        book.ISBN = updateBookDto.ISBN;
+        book.PublisherId = updateBookDto.PublisherId;
+        book.PublicationYear = updateBookDto.PublicationYear;
+        book.Language = updateBookDto.Language;
+        book.Edition = updateBookDto.Edition;
+        book.Description = updateBookDto.Description;
+        book.CoverImageUrl = updateBookDto.CoverImageUrl;
+        book.UpdatedAt = DateTime.UtcNow;
+
+        _unitOfWork.Books.Update(book);
+        await _unitOfWork.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> ToggleHideAsync(Guid id)
+    {
+        var book = await _unitOfWork.Books.GetByIdAsync(id);
+        if (book == null) return false;
+
+        book.IsHidden = !book.IsHidden;
+        book.UpdatedAt = DateTime.UtcNow;
+
+        _unitOfWork.Books.Update(book);
+        await _unitOfWork.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> DeleteBookAsync(Guid id)
+    {
+        var book = await _unitOfWork.Books.GetByIdAsync(id);
+        if (book == null) return false;
+
+        _unitOfWork.Books.Delete(book);
+        await _unitOfWork.SaveChangesAsync();
+
+        return true;
+    }
+
+    private IQueryable<Book> BuildPublicBookQuery(BookQuery bookQuery)
+    {
+        var query = _unitOfWork.Books.Query().AsNoTracking().Where(b => !b.IsHidden);
+
+        if (!string.IsNullOrWhiteSpace(bookQuery.Title))
+            query = query.Where(b => b.Title.Contains(bookQuery.Title));
+
+        if (!string.IsNullOrWhiteSpace(bookQuery.Language))
+            query = query.Where(b => b.Language != null && b.Language.Contains(bookQuery.Language));
+
+        if (!string.IsNullOrWhiteSpace(bookQuery.Publisher))
+            query = query.Where(b => b.Publisher != null && b.Publisher.PublisherName.Contains(bookQuery.Publisher));
+
+        if (bookQuery.AvailableOnly)
             query = query.Where(b => b.BookCopies.Any(c => c.Status == "Available"));
 
         return query;
     }
 
-    private static IQueryable<BookListItemDto> ProjectBooks(IQueryable<LibraryManagement.Models.Models.Book> query)
+    private static IQueryable<BookListItemDto> ProjectBooks(IQueryable<Book> query)
     {
         return query.Select(b => new BookListItemDto
         {
@@ -143,6 +275,26 @@ public class BookService : IBookService
             CoverImageUrl = b.CoverImageUrl,
             TotalCopies = b.BookCopies.Count,
             AvailableCopies = b.BookCopies.Count(c => c.Status == "Available")
+        });
+    }
+
+    private static IQueryable<BookDto> ProjectBookDtos(IQueryable<Book> query)
+    {
+        return query.Select(b => new BookDto
+        {
+            BookId = b.BookId,
+            Title = b.Title,
+            ISBN = b.ISBN,
+            PublisherId = b.PublisherId,
+            PublisherName = b.Publisher != null ? b.Publisher.PublisherName : null,
+            PublicationYear = b.PublicationYear,
+            Language = b.Language,
+            Edition = b.Edition,
+            Description = b.Description,
+            CoverImageUrl = b.CoverImageUrl,
+            CreatedAt = b.CreatedAt,
+            UpdatedAt = b.UpdatedAt,
+            IsHidden = b.IsHidden
         });
     }
 }

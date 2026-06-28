@@ -8,5 +8,6 @@ namespace LibraryManagement.MVC.Interface
         Task<ValidationErrorResponse?> RegisterAsync(RegisterViewModel model);
         Task<LoginResponseDto?> LoginAsync(LoginViewModel model);
         Task<string?> ForgotPasswordAsync(string email);
+        Task<string?> ChangePasswordAsync(ChangePasswordViewModel model);
     }
 }

@@ -1,3 +1,5 @@
+using LibraryManagement.MVC.ViewModels.BookCopies;
+
 namespace LibraryManagement.MVC.ViewModels.Books;
 
 public class BookDetailViewModel
