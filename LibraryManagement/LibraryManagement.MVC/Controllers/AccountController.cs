@@ -19,6 +19,10 @@ namespace LibraryManagement.MVC.Controllers
         [HttpGet]
         public IActionResult Login()
         {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
 
@@ -33,25 +37,35 @@ namespace LibraryManagement.MVC.Controllers
                 return View(model);
             }
 
-            // Lưu JWT
-            HttpContext.Session.SetString(
-                "AccessToken",
-                user.Token);
-
+            // Lưu JWT vào Claims thay vì Session để sống sót qua browser restart
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("jwt_token", user.Token)
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
             var principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = model.RememberMe,
+                ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
+            };
 
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
+
+            if (user.Role == "Admin")
+            {
+                return RedirectToAction("Index", "Admin");
+            }
+            if (user.Role == "Librarian")
+            {
+                return RedirectToAction("Index", "Librarian");
+            }
             return RedirectToAction("Index", "Home");
         }
 

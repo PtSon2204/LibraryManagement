@@ -1,0 +1,122 @@
+@model LibraryManagement.MVC.ViewModels.Books.UpdateBookViewModel
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-pencil-square text-warning me-2"></i>Chỉnh sửa thông tin sách
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="editBookForm" enctype="multipart/form-data" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="BookId" value="@Model.BookId" />
+    <!-- Giữ URL cũ nếu không upload ảnh mới -->
+    <input type="hidden" name="CoverImageUrl" value="@Model.CoverImageUrl" id="editCurrentUrl" />
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label class="form-label fw-medium">Tên sách <span class="text-danger">*</span></label>
+                <input type="text" name="Title" class="form-control" value="@Model.Title"
+                       placeholder="Nhập tên sách..." required maxlength="255" />
+                <div class="invalid-feedback">Vui lòng nhập tên sách.</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-medium">ISBN</label>
+                <input type="text" name="ISBN" class="form-control" value="@Model.ISBN"
+                       placeholder="Nhập mã ISBN..." maxlength="50" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-medium">Nhà xuất bản</label>
+                <select name="PublisherId" class="form-select">
+                    <option value="">-- Chọn nhà xuất bản --</option>
+                    @foreach (var p in Model.Publishers)
+                    {
+                        if (Model.PublisherId == p.PublisherId)
+                        {
+                            <option value="@p.PublisherId" selected>@p.PublisherName</option>
+                        }
+                        else
+                        {
+                            <option value="@p.PublisherId">@p.PublisherName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-medium">Năm xuất bản</label>
+                <input type="number" name="PublicationYear" class="form-control"
+                       value="@Model.PublicationYear" placeholder="VD: 2023" min="1900" max="2100" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-medium">Ngôn ngữ</label>
+                <input type="text" name="Language" class="form-control"
+                       value="@Model.Language" placeholder="VD: Tiếng Việt" maxlength="50" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-medium">Phiên bản / Lần xuất bản</label>
+                <input type="text" name="Edition" class="form-control"
+                       value="@Model.Edition" placeholder="VD: Lần 1" maxlength="50" />
+            </div>
+
+            <!-- Upload ảnh bìa -->
+            <div class="col-md-6">
+                <label class="form-label fw-medium">Ảnh bìa</label>
+                <div class="d-flex gap-3 align-items-start">
+                    <!-- Preview: hiện ảnh cũ nếu có -->
+                    <div class="border rounded bg-light d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:80px;height:110px;overflow:hidden;">
+                        @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                        {
+                            <img id="editPreviewImg" src="@Model.CoverImageUrl" alt="Ảnh bìa"
+                                 style="width:80px;height:110px;object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-image text-muted fs-3" id="editPreviewIcon"></i>
+                            <img id="editPreviewImg" src="#" alt="Xem trước" class="d-none"
+                                 style="width:80px;height:110px;object-fit:cover;" />
+                        }
+                    </div>
+                    <div class="flex-grow-1">
+                        <input type="file" name="CoverImageFile" id="editCoverFile" class="form-control mb-2"
+                               accept=".jpg,.jpeg,.png,.webp,.gif"
+                               onchange="editPreviewImage(this)" />
+                        <small class="text-muted">Để trống nếu không muốn thay đổi ảnh bìa.</small>
+                        <br /><small class="text-muted">Định dạng: JPG, PNG, WEBP, GIF. Tối đa 5 MB.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-medium">Mô tả</label>
+                <textarea name="Description" class="form-control" rows="3"
+                          placeholder="Nhập mô tả ngắn về sách...">@Model.Description</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Hủy bỏ
+        </button>
+        <button type="submit" class="btn btn-warning">
+            <i class="bi bi-floppy me-1"></i>Cập nhật
+        </button>
+    </div>
+</form>
+
+<script>
+    function editPreviewImage(input) {
+        const file = input.files[0];
+        const img = document.getElementById('editPreviewImg');
+        const icon = document.getElementById('editPreviewIcon');
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                img.src = e.target.result;
+                img.classList.remove('d-none');
+                if (icon) icon.classList.add('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>

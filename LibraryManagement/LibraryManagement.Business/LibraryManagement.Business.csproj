@@ -8,7 +8,9 @@
 
   <ItemGroup>
     <Folder Include="AI\" />
+    <Folder Include="DTOs\BookDTOs\" />
     <Folder Include="Helpers\" />
+    <Folder Include="Validators\BookValidators\" />
   </ItemGroup>
 	
 	<ItemGroup>

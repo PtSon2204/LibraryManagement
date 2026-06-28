@@ -1,0 +1,72 @@
+@model LibraryManagement.MVC.ViewModels.Books.BookViewModel
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-book-half text-info me-2"></i>Chi tiết sách
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    <div class="row g-0">
+        <!-- Ảnh bìa -->
+        <div class="col-md-3 text-center p-3">
+            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+            {
+                <img src="@Model.CoverImageUrl" alt="@Model.Title"
+                     class="img-fluid rounded shadow-sm" style="max-height:200px;object-fit:cover;" />
+            }
+            else
+            {
+                <div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center"
+                     style="height:160px;">
+                    <i class="bi bi-book text-secondary" style="font-size:3rem;"></i>
+                </div>
+            }
+        </div>
+
+        <!-- Thông tin chi tiết -->
+        <div class="col-md-9 p-3">
+            <h5 class="fw-bold mb-3 text-dark border-bottom pb-2">@Model.Title</h5>
+            <div class="row g-2">
+                <div class="col-sm-5 text-muted small"><i class="bi bi-upc me-1"></i>ISBN</div>
+                <div class="col-sm-7 fw-medium small">@(Model.ISBN ?? "—")</div>
+
+                <div class="col-sm-5 text-muted small"><i class="bi bi-building me-1"></i>Nhà xuất bản</div>
+                <div class="col-sm-7 fw-medium small">@(Model.PublisherName ?? "—")</div>
+
+                <div class="col-sm-5 text-muted small"><i class="bi bi-calendar me-1"></i>Năm xuất bản</div>
+                <div class="col-sm-7 fw-medium small">@(Model.PublicationYear?.ToString() ?? "—")</div>
+
+                <div class="col-sm-5 text-muted small"><i class="bi bi-translate me-1"></i>Ngôn ngữ</div>
+                <div class="col-sm-7 fw-medium small">@(Model.Language ?? "—")</div>
+
+                <div class="col-sm-5 text-muted small"><i class="bi bi-layers me-1"></i>Phiên bản</div>
+                <div class="col-sm-7 fw-medium small">@(Model.Edition ?? "—")</div>
+
+                <div class="col-sm-5 text-muted small"><i class="bi bi-clock me-1"></i>Ngày tạo</div>
+                <div class="col-sm-7 fw-medium small">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+
+                @if (Model.UpdatedAt.HasValue)
+                {
+                    <div class="col-sm-5 text-muted small"><i class="bi bi-pencil me-1"></i>Cập nhật lần cuối</div>
+                    <div class="col-sm-7 fw-medium small">@Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="mt-3">
+                    <p class="text-muted small mb-1"><i class="bi bi-card-text me-1"></i>Mô tả</p>
+                    <p class="small text-dark bg-light rounded p-2">@Model.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer border-0 pt-0">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg me-1"></i>Đóng
+    </button>
+</div>

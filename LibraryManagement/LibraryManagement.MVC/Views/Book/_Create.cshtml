@@ -1,0 +1,99 @@
+@model LibraryManagement.MVC.ViewModels.Books.CreateBookViewModel
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-plus-circle-fill text-primary me-2"></i>Thêm sách mới
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="createBookForm" enctype="multipart/form-data" novalidate>
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label class="form-label fw-medium">Tên sách <span class="text-danger">*</span></label>
+                <input type="text" name="Title" class="form-control" placeholder="Nhập tên sách..." required maxlength="255" />
+                <div class="invalid-feedback">Vui lòng nhập tên sách.</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-medium">ISBN</label>
+                <input type="text" name="ISBN" class="form-control" placeholder="Nhập mã ISBN..." maxlength="50" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-medium">Nhà xuất bản</label>
+                <select name="PublisherId" class="form-select">
+                    <option value="">-- Chọn nhà xuất bản --</option>
+                    @foreach (var p in Model.Publishers)
+                    {
+                        <option value="@p.PublisherId">@p.PublisherName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-medium">Năm xuất bản</label>
+                <input type="number" name="PublicationYear" class="form-control" placeholder="VD: 2023" min="1900" max="2100" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-medium">Ngôn ngữ</label>
+                <input type="text" name="Language" class="form-control" placeholder="VD: Tiếng Việt" maxlength="50" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-medium">Phiên bản / Lần xuất bản</label>
+                <input type="text" name="Edition" class="form-control" placeholder="VD: Lần 1" maxlength="50" />
+            </div>
+
+            <!-- Upload ảnh bìa -->
+            <div class="col-md-6">
+                <label class="form-label fw-medium">Ảnh bìa</label>
+                <div class="d-flex gap-3 align-items-start">
+                    <!-- Preview -->
+                    <div id="createPreviewWrapper" class="border rounded bg-light d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:80px;height:110px;overflow:hidden;">
+                        <i class="bi bi-image text-muted fs-3" id="createPreviewIcon"></i>
+                        <img id="createPreviewImg" src="#" alt="Xem trước" class="d-none"
+                             style="width:80px;height:110px;object-fit:cover;" />
+                    </div>
+                    <div class="flex-grow-1">
+                        <input type="file" name="CoverImageFile" id="createCoverFile" class="form-control mb-2"
+                               accept=".jpg,.jpeg,.png,.webp,.gif" onchange="previewImage(this,'createPreviewImg','createPreviewIcon')" />
+                        <small class="text-muted">Định dạng: JPG, PNG, WEBP, GIF. Tối đa 5 MB.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-medium">Mô tả</label>
+                <textarea name="Description" class="form-control" rows="3" placeholder="Nhập mô tả ngắn về sách..."></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Hủy bỏ
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-floppy me-1"></i>Lưu sách
+        </button>
+    </div>
+</form>
+
+<script>
+    function previewImage(input, imgId, iconId) {
+        const file = input.files[0];
+        const img = document.getElementById(imgId);
+        const icon = document.getElementById(iconId);
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                img.src = e.target.result;
+                img.classList.remove('d-none');
+                icon.classList.add('d-none');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            img.classList.add('d-none');
+            icon.classList.remove('d-none');
+        }
+    }
+</script>

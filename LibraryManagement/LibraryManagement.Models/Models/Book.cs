@@ -27,6 +27,8 @@ public partial class Book
 
     public DateTime? UpdatedAt { get; set; }
 
+    public bool IsHidden { get; set; } = false;
+
     public virtual ICollection<BookCopy> BookCopies { get; set; } = new List<BookCopy>();
 
     public virtual Publisher? Publisher { get; set; }
