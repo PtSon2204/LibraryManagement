@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/LibraryManagement.MVC.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
+<body class="public-layout">
     <header>
-        <nav class="navbar navbar-expand-lg bg-white sticky-top">
+        <nav class="navbar navbar-expand-lg public-navbar sticky-top">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-book text-success fs-3"></i>
@@ -32,8 +32,8 @@
                         </li>
                         @if (User.IsInRole("Reader"))
                         {
-                            <li>
-                                <a class="nav-link dropdown-item py-2"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Sách đang mượn </a>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Loans" asp-action="Index">Sách đang mượn</a>
                             </li>
                             <li>
                                 <a class="nav-link dropdown-item py-2"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Đặt phòng </a>
@@ -53,8 +53,10 @@
                         }
                     </ul>
                     <div class="d-flex align-items-center gap-3">
-                        <a href="#" class="text-dark"><i class="bi bi-search fs-5"></i></a>
-                        <a href="#" class="text-dark"><i class="bi bi-brightness-high fs-5"></i></a>
+                        <a href="#" class="public-nav-icon" aria-label="Tìm kiếm"><i class="bi bi-search fs-5"></i></a>
+                        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Bật chế độ tối" aria-pressed="false">
+                            <i class="bi bi-brightness-high fs-5" data-theme-icon></i>
+                        </button>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <div class="dropdown">
@@ -68,6 +70,7 @@
                                     <li><a class="dropdown-item py-2" asp-controller="UserProfile" asp-action="Index"><i class="bi bi-person me-2 text-muted"></i>Hồ sơ cá nhân</a></li>
                                     @if (User.IsInRole("Reader"))
                                     {
+                                        <li><a class="dropdown-item py-2" asp-controller="Loans" asp-action="Index"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Sách đang mượn </a></li>
                                         <li><a class="dropdown-item py-2" asp-controller="Loan" asp-action="Index"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Lịch sử mượn sách </a></li>
                                     }
                                     <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="ChangePassword"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Đổi mật khẩu </a></li>
@@ -92,6 +95,22 @@
     </header>
 
     <main role="main">
+        <div class="container mt-4">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+        </div>
         @RenderBody()
     </main>
 

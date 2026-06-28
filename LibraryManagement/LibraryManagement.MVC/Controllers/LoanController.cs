@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LibraryManagement.MVC.Controllers
 {
+    [Authorize(Roles = "Reader")]
     public class LoanController : Controller
     {
         private readonly Interface.ILoanService _loanService;

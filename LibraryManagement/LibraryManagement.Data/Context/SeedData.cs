@@ -1,5 +1,3 @@
-using System;
-using BCrypt.Net;
 using LibraryManagement.Models.Context;
 using LibraryManagement.Models.Models;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +12,8 @@ namespace LibraryManagement.Data
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
             await context.Database.MigrateAsync();
+
+            await EnsureOperationalSeedDataAsync(context);
 
             // Chỉ seed nếu chưa có dữ liệu
             if (context.Accounts.Any())
@@ -169,6 +169,43 @@ namespace LibraryManagement.Data
                 new BookCategory { BookId = hp.BookId, CategoryId = fantasy.CategoryId }
             );
 
+            await context.SaveChangesAsync();
+
+            await EnsureOperationalSeedDataAsync(context);
+        }
+
+        private static async Task EnsureOperationalSeedDataAsync(ApplicationDbContext context)
+        {
+            if (!await context.Books.AnyAsync() || await context.BookCopies.AnyAsync())
+                return;
+
+            var books = await context.Books
+                .OrderBy(b => b.Title)
+                .ToListAsync();
+
+            var copies = new List<BookCopy>();
+
+            foreach (var book in books)
+            {
+                copies.Add(new BookCopy
+                {
+                    BookId = book.BookId,
+                    Barcode = $"BC-{book.ISBN ?? book.BookId.ToString()[..8]}-01",
+                    Status = "Available",
+                    Location = "Kệ A1",
+                    AddedDate = DateOnly.FromDateTime(DateTime.Today)
+                });
+                copies.Add(new BookCopy
+                {
+                    BookId = book.BookId,
+                    Barcode = $"BC-{book.ISBN ?? book.BookId.ToString()[..8]}-02",
+                    Status = "Available",
+                    Location = "Kệ A2",
+                    AddedDate = DateOnly.FromDateTime(DateTime.Today)
+                });
+            }
+
+            context.BookCopies.AddRange(copies);
             await context.SaveChangesAsync();
         }
     }

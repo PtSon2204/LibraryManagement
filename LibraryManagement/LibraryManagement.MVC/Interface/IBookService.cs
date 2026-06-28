@@ -1,18 +1,24 @@
 using LibraryManagement.MVC.ViewModels.Books;
 
-namespace LibraryManagement.MVC.Interface
+namespace LibraryManagement.MVC.Interface;
+
+public interface IBookService
 {
-    public interface IBookService
-    {
-        Task<BookListViewModel?> GetBooksAsync(string? searchTerm, int? publisherId, int? publicationYear, string? language, int pageNumber, int pageSize);
-        Task<BookViewModel?> GetBookByIdAsync(Guid id);
+    Task<BookListPageViewModel?> GetBooksAsync(BookSearchViewModel search);
 
-        /// <summary>Tạo sách mới. Trả về null nếu thành công, chuỗi lỗi nếu thất bại.</summary>
-        Task<string?> CreateBookAsync(CreateBookViewModel model);
+    Task<List<BookListItemViewModel>> GetLatestBooksAsync(int count);
 
-        /// <summary>Cập nhật sách. Trả về null nếu thành công, chuỗi lỗi nếu thất bại.</summary>
-        Task<string?> UpdateBookAsync(UpdateBookViewModel model);
-        Task<bool> ToggleHideBookAsync(Guid id);
-        Task<bool> DeleteBookAsync(Guid id);
-    }
+    Task<BookDetailViewModel?> GetBookDetailAsync(Guid bookId);
+
+    Task<BookListViewModel?> GetBooksAsync(string? searchTerm, int? publisherId, int? publicationYear, string? language, int pageNumber, int pageSize);
+
+    Task<BookViewModel?> GetBookByIdAsync(Guid id);
+
+    Task<string?> CreateBookAsync(CreateBookViewModel model);
+
+    Task<string?> UpdateBookAsync(UpdateBookViewModel model);
+
+    Task<bool> ToggleHideBookAsync(Guid id);
+
+    Task<bool> DeleteBookAsync(Guid id);
 }

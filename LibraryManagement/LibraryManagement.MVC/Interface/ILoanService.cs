@@ -1,8 +1,18 @@
-namespace LibraryManagement.MVC.Interface
+using LibraryManagement.MVC.ViewModels.Loans;
+
+namespace LibraryManagement.MVC.Interface;
+
+public interface ILoanService
 {
-    public interface ILoanService
-    {
-        Task<ViewModels.Loans.LoanListViewModel?> GetMyLoanHistoryAsync(string? searchTerm, string? status, DateTime? fromDate, DateTime? toDate, int pageNumber, int pageSize);
-        Task<ViewModels.Loans.LoanViewModel?> GetLoanDetailAsync(Guid loanId);
-    }
+    Task<LoanListPageViewModel?> GetStaffLoansAsync(LoanSearchViewModel search);
+
+    Task<LoanListPageViewModel?> GetMyLoansAsync(LoanSearchViewModel search);
+
+    Task<BorrowBookResultViewModel?> BorrowBookAsync(Guid bookId);
+
+    Task<string?> ReturnBookAsync(Guid loanDetailId);
+
+    Task<LoanListViewModel?> GetMyLoanHistoryAsync(string? searchTerm, string? status, DateTime? fromDate, DateTime? toDate, int pageNumber, int pageSize);
+
+    Task<LoanViewModel?> GetLoanDetailAsync(Guid loanId);
 }

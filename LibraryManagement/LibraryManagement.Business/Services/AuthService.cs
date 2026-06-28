@@ -95,8 +95,10 @@ namespace LibraryManagement.Business.Services
 
                 return new LoginResponseDto
                 {
+                    UserId = reader.ReaderId,
                     Token = token,
                     Email = reader.Email,
+                    FullName = reader.Profile?.FullName,
                     Role = "Reader"
                 };
             }
@@ -117,8 +119,10 @@ namespace LibraryManagement.Business.Services
 
             return new LoginResponseDto
             {
+                UserId = account.AccountId,
                 Token = jwt,
                 Email = account.Email,
+                FullName = account.Profile?.FullName,
                 Role = account.Role
             };
         }

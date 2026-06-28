@@ -1,0 +1,136 @@
+@model LibraryManagement.MVC.ViewModels.Books.BookListPageViewModel
+
+@{
+    ViewData["Title"] = "Danh sách sách";
+    var search = Model.Search;
+}
+
+<section class="public-page-hero py-5">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <h1 class="display-5 fw-bold mb-3">Khám phá kho sách</h1>
+                <p class="lead text-muted mb-0">Tra cứu sách theo tên, nhà xuất bản, ngôn ngữ và tình trạng bản sao trong thư viện.</p>
+            </div>
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Tổng kết quả</span>
+                            <strong>@Model.TotalCount sách</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <span class="text-muted">Trang hiện tại</span>
+                            <strong>@search.Page / @Math.Max(Model.TotalPages, 1)</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <form method="get" class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-3">
+                    <label class="form-label fw-semibold">Tên sách</label>
+                    <input class="form-control" name="Title" value="@search.Title" placeholder="VD: Harry Potter" />
+                </div>
+                <div class="col-lg-2">
+                    <label class="form-label fw-semibold">Ngôn ngữ</label>
+                    <select class="form-select" name="Language">
+                        <option value="" selected="@(string.IsNullOrWhiteSpace(search.Language))">Tất cả</option>
+                        <option value="Vietnamese" selected="@(search.Language == "Vietnamese")">Tiếng Việt</option>
+                        <option value="English" selected="@(search.Language == "English")">Tiếng Anh</option>
+                    </select>
+                </div>
+                <div class="col-lg-3">
+                    <label class="form-label fw-semibold">Nhà xuất bản</label>
+                    <input class="form-control" name="Publisher" value="@search.Publisher" placeholder="NXB" />
+                </div>
+                <div class="col-lg-2">
+                    <label class="form-label fw-semibold">Sắp xếp</label>
+                    <select class="form-select" name="SortBy">
+                        <option value="" selected="@(string.IsNullOrEmpty(search.SortBy))">Tên A-Z</option>
+                        <option value="title_desc" selected="@(search.SortBy == "title_desc")">Tên Z-A</option>
+                        <option value="year_desc" selected="@(search.SortBy == "year_desc")">Năm mới nhất</option>
+                        <option value="year" selected="@(search.SortBy == "year")">Năm cũ nhất</option>
+                    </select>
+                </div>
+                <div class="col-lg-2">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="true" name="AvailableOnly" id="availableOnly" checked="@search.AvailableOnly" />
+                        <label class="form-check-label" for="availableOnly">Còn bản đọc</label>
+                    </div>
+                    <input type="hidden" name="PageSize" value="@search.PageSize" />
+                    <button class="btn btn-brand w-100" type="submit">Lọc sách</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    @if (!Model.Books.Any())
+    {
+        <div class="alert alert-info border-0 shadow-sm rounded-4 p-4">
+            <i class="bi bi-info-circle me-2"></i> Không tìm thấy sách phù hợp với bộ lọc hiện tại.
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+            @foreach (var book in Model.Books)
+            {
+                <div class="col">
+                    <div class="book-card">
+                        <div class="book-cover">
+                            <span class="book-badge">@book.Language</span>
+                            @if (!string.IsNullOrWhiteSpace(book.CoverImageUrl))
+                            {
+                                <img src="@book.CoverImageUrl" alt="@book.Title" />
+                            }
+                            else
+                            {
+                                <div class="book-cover-placeholder">Book</div>
+                            }
+                        </div>
+                        <div class="book-info">
+                            <h2 class="book-title">@book.Title</h2>
+                            <div class="book-author">@(book.PublisherName ?? "Chưa có NXB")</div>
+                            <div class="small text-muted mt-3">
+                                <div><i class="bi bi-upc-scan me-1"></i> ISBN: @(book.ISBN ?? "N/A")</div>
+                                <div><i class="bi bi-calendar3 me-1"></i> Năm: @(book.PublicationYear?.ToString() ?? "N/A")</div>
+                                <div><i class="bi bi-bookshelf me-1"></i> Có sẵn: @book.AvailableCopies/@book.TotalCopies</div>
+                            </div>
+                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookId" class="btn btn-brand btn-sm w-100 mt-3">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-5" aria-label="Book pages">
+            <ul class="pagination justify-content-center">
+                @for (var currentPage = 1; currentPage <= Model.TotalPages; currentPage++)
+                {
+                    <li class="page-item @(currentPage == search.Page ? "active" : "")">
+                        <a class="page-link"
+                           asp-controller="Books"
+                           asp-action="Index"
+                           asp-route-Title="@search.Title"
+                           asp-route-Language="@search.Language"
+                           asp-route-Publisher="@search.Publisher"
+                           asp-route-AvailableOnly="@search.AvailableOnly"
+                           asp-route-SortBy="@search.SortBy"
+                           asp-route-Page="@currentPage"
+                           asp-route-PageSize="@search.PageSize">@currentPage</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>

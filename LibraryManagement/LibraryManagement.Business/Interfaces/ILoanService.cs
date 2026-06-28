@@ -1,14 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using LibraryManagement.Business.DTOs.LoanDTOs;
+using LibraryManagement.Data.Common;
+using LibraryManagement.Models.Queries;
 
-namespace LibraryManagement.Business.Services
+namespace LibraryManagement.Business.Interfaces;
+
+public interface ILoanService
 {
-    public interface ILoanService
-    {
-        Task<Data.Common.PagedResult<DTOs.LoanDTOs.LoanHistoryDto>> GetReaderLoanHistoryAsync(Guid readerId, Models.Queries.LoanQuery query);
-        Task<DTOs.LoanDTOs.LoanHistoryDto?> GetLoanDetailByIdAsync(Guid loanId);
-    }
+    Task<LoanListPageDto> GetStaffLoansAsync(string? status, string? search, int page, int pageSize);
+
+    Task<LoanListPageDto> GetReaderLoansAsync(Guid readerId, int page, int pageSize);
+
+    Task<BorrowBookResultDto> BorrowBookAsync(Guid readerId, Guid bookId);
+
+    Task ReturnLoanDetailAsync(Guid actorId, string role, Guid loanDetailId);
+
+    Task<PagedResult<LoanHistoryDto>> GetReaderLoanHistoryAsync(Guid readerId, LoanQuery query);
+
+    Task<LoanHistoryDto?> GetLoanDetailByIdAsync(Guid loanId);
 }

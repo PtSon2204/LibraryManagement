@@ -1,0 +1,133 @@
+@model LibraryManagement.MVC.ViewModels.Reports.LibraryReportViewModel
+
+@{
+    ViewData["Title"] = "Báo cáo thống kê";
+    Layout = User.IsInRole("Admin") ? "~/Views/Shared/_AdminLayout.cshtml" : "~/Views/Shared/_LibrarianLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Báo cáo hoạt động thư viện</h2>
+        <p class="text-muted mb-0">Tổng hợp lượt mượn, lượt trả, độc giả mới và sách được mượn nhiều trong khoảng thời gian đã chọn.</p>
+    </div>
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+        @Model.FromDate.ToString("dd/MM/yyyy") - @Model.ToDate.ToString("dd/MM/yyyy")
+    </span>
+</div>
+
+@if (ViewBag.ReportError is string reportError)
+{
+    <div class="alert alert-warning border-0 shadow-sm rounded-4" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>@reportError
+    </div>
+}
+
+<form asp-controller="Reports" asp-action="Index" method="get" class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="FromDate" class="form-label fw-semibold">Từ ngày</label>
+                <input id="FromDate" name="FromDate" type="date" class="form-control" value="@(Model.Filter.FromDate?.ToString("yyyy-MM-dd"))" />
+            </div>
+            <div class="col-md-4">
+                <label for="ToDate" class="form-label fw-semibold">Đến ngày</label>
+                <input id="ToDate" name="ToDate" type="date" class="form-control" value="@(Model.Filter.ToDate?.ToString("yyyy-MM-dd"))" />
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="bi bi-funnel me-2"></i>Lọc báo cáo
+                </button>
+                <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-secondary">Đặt lại</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-4"><p class="text-muted mb-1">Lượt mượn mới</p><h3 class="fw-bold mb-0">@Model.LoansCreated</h3></div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-4"><p class="text-muted mb-1">Sách đã trả</p><h3 class="fw-bold mb-0">@Model.BooksReturned</h3></div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-4"><p class="text-muted mb-1">Độc giả mới</p><h3 class="fw-bold mb-0">@Model.NewReaders</h3></div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-4"><p class="text-muted mb-1">Phạt chưa thanh toán</p><h3 class="fw-bold mb-0">@Model.UnpaidFineAmount.ToString("N0")</h3></div></div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-4"><p class="text-muted mb-1">Tổng sách</p><h3 class="fw-bold mb-0">@Model.TotalBooks</h3></div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-4"><p class="text-muted mb-1">Bản sao có sẵn</p><h3 class="fw-bold mb-0">@Model.AvailableCopies / @Model.TotalCopies</h3></div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-4"><p class="text-muted mb-1">Đang mượn</p><h3 class="fw-bold mb-0">@Model.ActiveLoans</h3></div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-4"><p class="text-muted mb-1">Quá hạn</p><h3 class="fw-bold mb-0">@Model.OverdueLoans</h3></div></div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-5">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-1">Trạng thái phiếu mượn</h5>
+            </div>
+            <div class="card-body p-4">
+                @if (!Model.LoansByStatus.Any())
+                {
+                    <div class="text-center text-muted py-4"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Không có phiếu mượn trong khoảng thời gian này.</div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.LoansByStatus)
+                        {
+                            <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">@item.Status</span>
+                                <span class="badge bg-primary rounded-pill">@item.Count</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-1">Top sách được mượn nhiều</h5>
+            </div>
+            <div class="card-body p-4">
+                @if (!Model.TopBorrowedBooks.Any())
+                {
+                    <div class="text-center text-muted py-4"><i class="bi bi-book fs-1 d-block mb-2"></i>Không có dữ liệu mượn sách trong khoảng thời gian này.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Sách</th><th>ISBN</th><th class="text-end">Lượt mượn</th></tr></thead>
+                            <tbody>
+                                @foreach (var book in Model.TopBorrowedBooks)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@book.Title</td>
+                                        <td>@(book.ISBN ?? "-")</td>
+                                        <td class="text-end"><span class="badge bg-success-subtle text-success">@book.BorrowCount</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
