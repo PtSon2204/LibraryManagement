@@ -46,5 +46,20 @@ namespace LibraryManagement.MVC.Services
                 .ReadFromJsonAsync<ValidationErrorResponse>();
         }
 
+        public async Task<string?> ChangePasswordAsync(ChangePasswordViewModel model)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/change-password", new
+            {
+                CurrentPassword = model.CurrentPassword,
+                NewPassword = model.NewPassword,
+                ConfirmNewPassword = model.ConfirmNewPassword
+            });
+
+            if (response.IsSuccessStatusCode)
+                return null;
+
+            var error = await response.Content.ReadAsStringAsync();
+            return !string.IsNullOrEmpty(error) ? error : "Lỗi hệ thống khi đổi mật khẩu";
+        }
     }
 }

@@ -2,6 +2,7 @@ using LibraryManagement.Business.DTOs.AuthDTOs;
 using LibraryManagement.Business.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LibraryManagement.API.Controllers
 {
@@ -44,5 +45,25 @@ namespace LibraryManagement.API.Controllers
             return Ok();
         }
 
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+            {
+                return Unauthorized("Không thể xác thực người dùng.");
+            }
+
+            try
+            {
+                var success = await _authService.ChangePasswordAsync(userId, dto);
+                return Ok("Đổi mật khẩu thành công.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

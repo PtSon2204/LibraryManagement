@@ -122,7 +122,38 @@ namespace LibraryManagement.MVC.Controllers
             return View();
         }
 
+        [HttpGet]
+        [Authorize]
+        public IActionResult ChangePassword()
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var model = new ChangePasswordViewModel { Email = email };
+            return View(model);
+        }
 
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            // Email is read-only, ensure it is set for the view if validation fails
+            model.Email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var error = await _authService.ChangePasswordAsync(model);
+
+            if (error != null)
+            {
+                ModelState.AddModelError("", error);
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "Đổi mật khẩu thành công!";
+            return RedirectToAction("Index", "Home");
+        }
 
         [Authorize]
         public async Task<IActionResult> Logout()
