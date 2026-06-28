@@ -30,7 +30,7 @@ namespace LibraryManagement.MVC.Controllers
         {
             var model = await _bookService.GetBooksAsync(searchTerm, publisherId, publicationYear, language, pageNumber, pageSize);
             if (model == null)
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Logout", "Account");
             return View(model);
         }
 

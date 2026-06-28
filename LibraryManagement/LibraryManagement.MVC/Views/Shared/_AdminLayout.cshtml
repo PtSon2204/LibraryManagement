@@ -102,7 +102,13 @@
             <a href="/Publisher/Index" class="menu-link @(currentController == "Publisher" ? "active" : "")">
                 <i class="bi bi-building"></i> Quản lý nhà xuất bản
             </a>
-            <a href="/Admin/Authors" class="menu-link @(currentController == "Admin" && currentAction == "Authors" ? "active" : "")">
+            <a href="/Category/Index" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Category" ? "active" : "")">
+                <i class="bi bi-tags"></i> Quản lý thể loại
+            </a>
+            <a href="/Room/Index" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Room" ? "active" : "")">
+                <i class="bi bi-door-open"></i> Quản lý phòng
+            </a>
+            <a href="/Admin/Authors" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Authors" ? "active" : "")">
                 <i class="bi bi-journal-text"></i> Quản lý tác giả
             </a>
             <a asp-controller="Reports" asp-action="Index" class="menu-link @(currentController == "Reports" ? "active" : "")">
