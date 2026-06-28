@@ -47,5 +47,65 @@ namespace LibraryManagement.MVC.Services
             var json = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<PublisherViewModel>(json, _jsonOptions);
         }
+
+        public async Task<string?> CreatePublisherAsync(PublisherViewModel model)
+        {
+            var payload = new
+            {
+                model.PublisherName,
+                model.Address,
+                model.Phone,
+                model.Email
+            };
+
+            var content = new System.Net.Http.StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("api/publishers", content);
+            if (response.IsSuccessStatusCode) return null;
+
+            return await ReadErrorMessage(response, "Thêm nhà xuất bản thất bại. Vui lòng thử lại.");
+        }
+
+        public async Task<string?> UpdatePublisherAsync(PublisherViewModel model)
+        {
+            var payload = new
+            {
+                model.PublisherId,
+                model.PublisherName,
+                model.Address,
+                model.Phone,
+                model.Email
+            };
+
+            var content = new System.Net.Http.StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync($"api/publishers/{model.PublisherId}", content);
+            if (response.IsSuccessStatusCode) return null;
+
+            return await ReadErrorMessage(response, "Cập nhật nhà xuất bản thất bại. Vui lòng thử lại.");
+        }
+
+        public async Task<bool> DeletePublisherAsync(int id)
+        {
+            var response = await _httpClient.DeleteAsync($"api/publishers/{id}");
+            return response.IsSuccessStatusCode;
+        }
+
+        private static async Task<string> ReadErrorMessage(HttpResponseMessage response, string fallback)
+        {
+            try
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                var err = JsonSerializer.Deserialize<PublisherErrorResponse>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return err?.Message ?? fallback;
+            }
+            catch
+            {
+                return fallback;
+            }
+        }
+    }
+
+    internal class PublisherErrorResponse
+    {
+        public string? Message { get; set; }
     }
 }

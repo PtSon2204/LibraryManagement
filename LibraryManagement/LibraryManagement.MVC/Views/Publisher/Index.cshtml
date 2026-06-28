@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Quản lý nhà xuất bản";
-    Layout = "~/Views/Shared/_LibrarianLayout.cshtml";
+    Layout = User.IsInRole("Admin") ? "~/Views/Shared/_AdminLayout.cshtml" : "~/Views/Shared/_LibrarianLayout.cshtml";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,6 +10,12 @@
         <h4 class="mb-1 fw-bold">Danh sách nhà xuất bản</h4>
         <small class="text-muted">Tổng cộng @Model.TotalRecords nhà xuất bản</small>
     </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <button class="btn btn-primary" onclick="openCreateModal()">
+            <i class="bi bi-plus-lg me-1"></i> Thêm nhà xuất bản
+        </button>
+    }
 </div>
 
 <!-- Search -->
@@ -61,7 +67,14 @@
                             <th>Email</th>
                             <th>Điện thoại</th>
                             <th>Địa chỉ</th>
-                            <th class="text-center pe-4" style="width: 100px;">Chi tiết</th>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <th class="text-center pe-4" style="width: 150px;">Thao tác</th>
+                            }
+                            else
+                            {
+                                <th class="text-center pe-4" style="width: 100px;">Chi tiết</th>
+                            }
                         </tr>
                     </thead>
                     <tbody>
@@ -108,10 +121,30 @@
                                     }
                                 </td>
                                 <td class="text-center pe-4">
-                                    <a asp-action="Details" asp-route-id="@item.PublisherId"
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a asp-action="Details" asp-route-id="@item.PublisherId"
+                                               class="btn btn-sm btn-outline-primary" title="Chi tiết">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-warning" title="Chỉnh sửa"
+                                                    onclick="openEditModal('@item.PublisherId')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" title="Xóa"
+                                                    onclick="deletePublisher('@item.PublisherId')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="Details" asp-route-id="@item.PublisherId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -164,3 +197,105 @@
         }
     </div>
 </div>
+
+<!-- Modal dùng chung -->
+<div class="modal fade" id="publisherModal" tabindex="-1" aria-labelledby="publisherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div id="publisherModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast thông báo -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000">
+    <div id="toastMsg" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-medium" id="toastText"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const publisherModal = new bootstrap.Modal(document.getElementById('publisherModal'));
+        const toast = new bootstrap.Toast(document.getElementById('toastMsg'), { delay: 3000 });
+
+        function showToast(message, isSuccess) {
+            const toastEl = document.getElementById('toastMsg');
+            toastEl.classList.remove('bg-success', 'bg-danger', 'text-white');
+            toastEl.classList.add(isSuccess ? 'bg-success' : 'bg-danger', 'text-white');
+            document.getElementById('toastText').textContent = message;
+            toast.show();
+        }
+
+        function openCreateModal() {
+            fetch('@Url.Action("GetCreateForm", "Publisher")')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('publisherModalBody').innerHTML = html;
+                    publisherModal.show();
+                    attachFormSubmit('#createPublisherForm', '@Url.Action("Create", "Publisher")');
+                });
+        }
+
+        function openEditModal(id) {
+            fetch('@Url.Action("GetEditForm", "Publisher")/' + id)
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('publisherModalBody').innerHTML = html;
+                    publisherModal.show();
+                    attachFormSubmit('#editPublisherForm', '@Url.Action("Edit", "Publisher")');
+                });
+        }
+
+        function attachFormSubmit(formSelector, actionUrl) {
+            const form = document.querySelector(formSelector);
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => {
+                    const contentType = r.headers.get('Content-Type') || '';
+                    if (contentType.includes('application/json')) {
+                        return r.json().then(result => {
+                            if (result.success) {
+                                publisherModal.hide();
+                                showToast(result.message, true);
+                                setTimeout(() => location.reload(), 1200);
+                            } else {
+                                showToast(result.message, false);
+                            }
+                        });
+                    } else {
+                        return r.text().then(html => {
+                            document.getElementById('publisherModalBody').innerHTML = html;
+                            // Re-attach submit after partial re-render
+                            attachFormSubmit(formSelector, actionUrl);
+                        });
+                    }
+                });
+            });
+        }
+
+        function deletePublisher(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa nhà xuất bản này không?')) {
+                fetch('@Url.Action("Delete", "Publisher")/' + id, {
+                    method: 'POST'
+                })
+                .then(r => r.json())
+                .then(result => {
+                    showToast(result.message, result.success);
+                    if (result.success) {
+                        setTimeout(() => location.reload(), 1200);
+                    }
+                });
+            }
+        }
+    </script>
+}
