@@ -1,12 +1,26 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using LibraryManagement.MVC.Interface;
+using LibraryManagement.MVC.ViewModels.Home;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagement.MVC.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly IBookService _bookService;
+
+        public HomeController(IBookService bookService)
         {
-            return View();
+            _bookService = bookService;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var model = new HomeViewModel
+            {
+                LatestBooks = await _bookService.GetLatestBooksAsync(5)
+            };
+
+            return View(model);
         }
     }
 }

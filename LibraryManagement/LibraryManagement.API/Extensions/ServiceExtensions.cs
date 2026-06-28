@@ -16,13 +16,17 @@ namespace LibraryManagement.API.Extensions
         {
             //Đăng kí serivce
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IBookService, BookService>();
             services.AddScoped<IPublisherService, PublisherService>();
+            services.AddScoped<IStaffDashboardService, StaffDashboardService>();
+            services.AddScoped<ILoanService, LoanService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IBookCopyService, BookCopyService>();
             services.AddScoped<ILoanService, LoanService>();
+            services.AddScoped<IReportService, ReportService>();
 
             //Đăng kí fluentValidation
             services.AddFluentValidationAutoValidation();
@@ -48,7 +52,9 @@ namespace LibraryManagement.API.Extensions
                                        ValidAudience = configuration["Jwt:Audience"],
                           
                                        IssuerSigningKey =
-                                           new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                                           new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                                               configuration["Jwt:Key"]
+                                               ?? throw new InvalidOperationException("Jwt:Key is not configured.")))
                                    };
                            });
 

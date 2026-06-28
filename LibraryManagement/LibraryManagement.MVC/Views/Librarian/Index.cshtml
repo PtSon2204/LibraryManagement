@@ -1,15 +1,155 @@
+@model LibraryManagement.MVC.ViewModels.Dashboard.StaffDashboardViewModel
+
 @{
     ViewData["Title"] = "Bảng điều khiển Thủ thư";
     Layout = "~/Views/Shared/_LibrarianLayout.cshtml";
 }
 
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Tổng quan vận hành thư viện</h2>
+        <p class="text-muted mb-0">Theo dõi nhanh sách, bản sao, lượt mượn, đặt phòng và các khoản phạt.</p>
+    </div>
+    <a asp-controller="Publisher" asp-action="Index" class="btn btn-outline-primary">
+        <i class="bi bi-building me-2"></i>Quản lý nhà xuất bản
+    </a>
+</div>
+
+@if (ViewBag.DashboardError is string dashboardError)
+{
+    <div class="alert alert-warning border-0 shadow-sm rounded-4" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>@dashboardError
+    </div>
+}
+
 <div class="row g-4 mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body p-4 text-center">
-                <i class="bi bi-book fs-1 text-primary mb-3"></i>
-                <h4 class="fw-bold">Chào mừng đến với khu vực Quản lý Thư viện</h4>
-                <p class="text-muted mb-0">Sử dụng menu bên trái để thao tác quản lý các chức năng dành cho Thủ thư.</p>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1">Tổng sách</p>
+                        <h3 class="fw-bold mb-0">@Model.TotalBooks</h3>
+                    </div>
+                    <span class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width: 46px; height: 46px;"><i class="bi bi-book"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1">Bản sao có sẵn</p>
+                        <h3 class="fw-bold mb-0">@Model.AvailableCopies / @Model.TotalCopies</h3>
+                    </div>
+                    <span class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center" style="width: 46px; height: 46px;"><i class="bi bi-bookshelf"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1">Đang mượn</p>
+                        <h3 class="fw-bold mb-0">@Model.ActiveLoans</h3>
+                    </div>
+                    <span class="rounded-circle bg-info-subtle text-info d-inline-flex align-items-center justify-content-center" style="width: 46px; height: 46px;"><i class="bi bi-arrow-left-right"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1">Quá hạn / phạt</p>
+                        <h3 class="fw-bold mb-0">@Model.OverdueLoans / @Model.UnpaidFines</h3>
+                    </div>
+                    <span class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center" style="width: 46px; height: 46px;"><i class="bi bi-exclamation-triangle"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-1">Lượt mượn gần đây</h5>
+                <p class="text-muted small mb-0">5 phiếu mượn mới nhất trong hệ thống.</p>
+            </div>
+            <div class="card-body p-4">
+                @if (!Model.RecentLoans.Any())
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        Chưa có dữ liệu mượn sách.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Độc giả</th>
+                                    <th>Ngày mượn</th>
+                                    <th>Hạn trả</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var loan in Model.RecentLoans)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@loan.BorrowerName</td>
+                                        <td>@loan.BorrowedAt.ToString("dd/MM/yyyy")</td>
+                                        <td>@loan.DueAt.ToString("dd/MM/yyyy")</td>
+                                        <td><span class="badge bg-primary-subtle text-primary">@loan.Status</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-5">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-1">Đặt phòng đang chờ</h5>
+                <p class="text-muted small mb-0">Tổng pending: @Model.PendingReservations</p>
+            </div>
+            <div class="card-body p-4">
+                @if (!Model.RecentReservations.Any())
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-calendar-check fs-1 d-block mb-2"></i>
+                        Chưa có đặt phòng gần đây.
+                    </div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var reservation in Model.RecentReservations)
+                        {
+                            <div class="list-group-item px-0 d-flex justify-content-between gap-3">
+                                <div>
+                                    <div class="fw-semibold">@reservation.UserName</div>
+                                    <div class="text-muted small">@reservation.BookTitle · @reservation.ReservationDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                                <span class="badge bg-warning-subtle text-warning align-self-start">@reservation.Status</span>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         </div>
     </div>

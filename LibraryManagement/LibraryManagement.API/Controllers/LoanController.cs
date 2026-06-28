@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using LibraryManagement.Business.Interfaces;
 
 namespace LibraryManagement.API.Controllers
 {
@@ -7,9 +7,9 @@ namespace LibraryManagement.API.Controllers
     [ApiController]
     public class LoanController : ControllerBase
     {
-        private readonly Business.Services.ILoanService _loanService;
+        private readonly ILoanService _loanService;
 
-        public LoanController(Business.Services.ILoanService loanService)
+        public LoanController(ILoanService loanService)
         {
             _loanService = loanService;
         }

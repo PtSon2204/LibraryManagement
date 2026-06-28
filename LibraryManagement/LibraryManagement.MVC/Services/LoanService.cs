@@ -1,54 +1,139 @@
-namespace LibraryManagement.MVC.Services
+using System.Net.Http.Headers;
+using System.Text.Json;
+using LibraryManagement.MVC.Interface;
+using LibraryManagement.MVC.ViewModels.Loans;
+
+namespace LibraryManagement.MVC.Services;
+
+public class LoanService : ILoanService
 {
-    public class LoanService : Interface.ILoanService
+    private readonly HttpClient _httpClient;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
-        private readonly HttpClient _httpClient;
-        private static readonly System.Text.Json.JsonSerializerOptions _jsonOptions = new()
+        PropertyNameCaseInsensitive = true
+    };
+
+    public LoanService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+    {
+        _httpClient = httpClient;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public async Task<LoanListPageViewModel?> GetStaffLoansAsync(LoanSearchViewModel search)
+    {
+        AddJwt();
+        var query = BuildCurrentLoanQuery(search, includeStaffFilters: true);
+        var response = await _httpClient.GetAsync($"api/loans?{query}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<LoanListPageViewModel>(json, _jsonOptions);
+        if (result != null) result.Search = search;
+        return result;
+    }
+
+    public async Task<LoanListPageViewModel?> GetMyLoansAsync(LoanSearchViewModel search)
+    {
+        AddJwt();
+        var query = BuildCurrentLoanQuery(search, includeStaffFilters: false);
+        var response = await _httpClient.GetAsync($"api/loans/my?{query}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<LoanListPageViewModel>(json, _jsonOptions);
+        if (result != null) result.Search = search;
+        return result;
+    }
+
+    public async Task<BorrowBookResultViewModel?> BorrowBookAsync(Guid bookId)
+    {
+        AddJwt();
+        var response = await _httpClient.PostAsJsonAsync("api/loans/borrow", new { BookId = bookId });
+        if (!response.IsSuccessStatusCode) return null;
+
+        return await response.Content.ReadFromJsonAsync<BorrowBookResultViewModel>(_jsonOptions);
+    }
+
+    public async Task<string?> ReturnBookAsync(Guid loanDetailId)
+    {
+        AddJwt();
+        var response = await _httpClient.PostAsync($"api/loans/{loanDetailId}/return", null);
+        if (response.IsSuccessStatusCode) return null;
+
+        var error = await response.Content.ReadAsStringAsync();
+        return string.IsNullOrWhiteSpace(error) ? "Không thể trả sách. Vui lòng thử lại." : error;
+    }
+
+    public async Task<LoanListViewModel?> GetMyLoanHistoryAsync(string? searchTerm, string? status, DateTime? fromDate, DateTime? toDate, int pageNumber, int pageSize)
+    {
+        AddJwt();
+        var query = new List<string>
         {
-            PropertyNameCaseInsensitive = true
+            $"pageNumber={pageNumber}",
+            $"pageSize={pageSize}"
         };
 
-        public LoanService(HttpClient httpClient)
+        AddQuery(query, "searchTerm", searchTerm);
+        AddQuery(query, "status", status);
+        if (fromDate.HasValue) query.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
+        if (toDate.HasValue) query.Add($"toDate={toDate.Value:yyyy-MM-dd}");
+
+        var response = await _httpClient.GetAsync($"api/Loan/history?{string.Join('&', query)}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<LoanListViewModel>(json, _jsonOptions);
+
+        if (result != null)
         {
-            _httpClient = httpClient;
+            result.SearchTerm = searchTerm;
+            result.Status = status;
+            result.FromDate = fromDate;
+            result.ToDate = toDate;
         }
 
-        public async Task<ViewModels.Loans.LoanListViewModel?> GetMyLoanHistoryAsync(string? searchTerm, string? status, DateTime? fromDate, DateTime? toDate, int pageNumber, int pageSize)
+        return result;
+    }
+
+    public async Task<LoanViewModel?> GetLoanDetailAsync(Guid loanId)
+    {
+        AddJwt();
+        var response = await _httpClient.GetAsync($"api/Loan/{loanId}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<LoanViewModel>(json, _jsonOptions);
+    }
+
+    private static string BuildCurrentLoanQuery(LoanSearchViewModel search, bool includeStaffFilters)
+    {
+        var query = new List<string>
         {
-            var url = $"api/Loan/history?pageNumber={pageNumber}&pageSize={pageSize}";
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-                url += $"&searchTerm={Uri.EscapeDataString(searchTerm)}";
-            if (!string.IsNullOrWhiteSpace(status))
-                url += $"&status={Uri.EscapeDataString(status)}";
-            if (fromDate.HasValue)
-                url += $"&fromDate={fromDate.Value:yyyy-MM-dd}";
-            if (toDate.HasValue)
-                url += $"&toDate={toDate.Value:yyyy-MM-dd}";
+            $"page={Math.Max(search.Page, 1)}",
+            $"pageSize={(search.PageSize <= 0 ? 10 : search.PageSize)}"
+        };
 
-            var response = await _httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode) return null;
-
-            var json = await response.Content.ReadAsStringAsync();
-            var result = System.Text.Json.JsonSerializer.Deserialize<ViewModels.Loans.LoanListViewModel>(json, _jsonOptions);
-            
-            if (result != null)
-            {
-                result.SearchTerm = searchTerm;
-                result.Status = status;
-                result.FromDate = fromDate;
-                result.ToDate = toDate;
-            }
-
-            return result;
+        if (includeStaffFilters)
+        {
+            AddQuery(query, "status", search.Status);
+            AddQuery(query, "search", search.Search);
         }
 
-        public async Task<ViewModels.Loans.LoanViewModel?> GetLoanDetailAsync(Guid loanId)
-        {
-            var response = await _httpClient.GetAsync($"api/Loan/{loanId}");
-            if (!response.IsSuccessStatusCode) return null;
+        return string.Join('&', query);
+    }
 
-            var json = await response.Content.ReadAsStringAsync();
-            return System.Text.Json.JsonSerializer.Deserialize<ViewModels.Loans.LoanViewModel>(json, _jsonOptions);
-        }
+    private static void AddQuery(List<string> query, string name, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            query.Add($"{name}={Uri.EscapeDataString(value)}");
+    }
+
+    private void AddJwt()
+    {
+        var token = _httpContextAccessor.HttpContext!.Session.GetString("AccessToken");
+        _httpClient.DefaultRequestHeaders.Authorization = string.IsNullOrWhiteSpace(token)
+            ? null
+            : new AuthenticationHeaderValue("Bearer", token);
     }
 }

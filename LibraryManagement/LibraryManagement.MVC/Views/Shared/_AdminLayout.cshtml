@@ -77,6 +77,10 @@
     </style>
 </head>
 <body>
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    }
     <div class="admin-sidebar">
         <div class="sidebar-header d-flex align-items-center gap-2">
             <i class="bi bi-shield-lock text-success fs-3"></i>
@@ -86,23 +90,29 @@
             </div>
         </div>
         <div class="sidebar-menu">
-            <a href="/Admin" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+            <a href="/Admin" class="menu-link @(currentController == "Admin" && currentAction == "Index" ? "active" : "")">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
-            <a href="/Admin/Users" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Users" ? "active" : "")">
+            <a href="/Admin/Users" class="menu-link @(currentController == "Admin" && currentAction == "Users" ? "active" : "")">
                 <i class="bi bi-people"></i> Quản lý thành viên
             </a>
-            <a href="/Book/Index" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Book" ? "active" : "")">
+            <a href="/Book/Index" class="menu-link @(currentController == "Book" ? "active" : "")">
                 <i class="bi bi-book"></i> Quản lý sách
             </a>
-            <a href="/Publisher/Index" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Publisher" ? "active" : "")">
+            <a href="/Publisher/Index" class="menu-link @(currentController == "Publisher" ? "active" : "")">
                 <i class="bi bi-building"></i> Quản lý nhà xuất bản
             </a>
-            <a href="/Admin/Authors" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Authors" ? "active" : "")">
+            <a href="/Admin/Authors" class="menu-link @(currentController == "Admin" && currentAction == "Authors" ? "active" : "")">
                 <i class="bi bi-journal-text"></i> Quản lý tác giả
+            </a>
+            <a asp-controller="Reports" asp-action="Index" class="menu-link @(currentController == "Reports" ? "active" : "")">
+                <i class="bi bi-graph-up-arrow"></i> Báo cáo thống kê
             </a>
         </div>
         <div class="p-3 border-top border-secondary">
+            <a asp-controller="Home" asp-action="Index" class="menu-link">
+                <i class="bi bi-house-door"></i> Trang chủ
+            </a>
             <a asp-controller="Account" asp-action="ChangePassword" class="menu-link text-warning">
                 <i class="bi bi-shield-lock"></i> Đổi mật khẩu
             </a>

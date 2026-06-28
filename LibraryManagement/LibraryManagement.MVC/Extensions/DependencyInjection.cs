@@ -9,7 +9,8 @@ namespace LibraryManagement.MVC.Extensions
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var apiUrl = configuration["ApiSettings:BaseUrl"];
+            var apiUrl = configuration["ApiSettings:BaseUrl"]
+                         ?? throw new InvalidOperationException("ApiSettings:BaseUrl is not configured.");
 
             // Đăng ký JwtAuthorizationHandler
             services.AddTransient<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
@@ -20,11 +21,26 @@ namespace LibraryManagement.MVC.Extensions
             })
             .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
 
+            services.AddHttpClient<IBookService, BookService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            });
+
             services.AddHttpClient<IUserProfileService, UserProfileService>(x =>
             {
                 x.BaseAddress = new Uri(apiUrl);
             })
             .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
+
+            services.AddHttpClient<IStaffDashboardService, StaffDashboardService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            });
+
+            services.AddHttpClient<ILoanService, LoanService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            });
 
             services.AddHttpClient<IPublisherService, PublisherService>(x =>
             {
@@ -55,6 +71,11 @@ namespace LibraryManagement.MVC.Extensions
                 x.BaseAddress = new Uri(apiUrl);
             })
             .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
+
+            services.AddHttpClient<IReportService, ReportService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            });
 
             return services;
         }
