@@ -11,10 +11,15 @@ namespace LibraryManagement.MVC.Controllers
     public class RoomController : Controller
     {
         private readonly IRoomService _roomService;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
 
-        public RoomController(IRoomService roomService)
+        private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
+
+        public RoomController(IRoomService roomService, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
         {
             _roomService = roomService;
+            _env = env;
         }
 
         [HttpGet]
@@ -65,6 +70,10 @@ namespace LibraryManagement.MVC.Controllers
                 return PartialView("_Create", model);
             }
 
+            var uploadError = await HandleImageUpload(model.ImageFile, result => model.Image = result);
+            if (uploadError != null)
+                return Json(new { success = false, message = uploadError });
+
             var error = await _roomService.CreateRoomAsync(model);
             if (error == null)
                 return Json(new { success = true, message = "Thêm phòng thành công!" });
@@ -93,6 +102,10 @@ namespace LibraryManagement.MVC.Controllers
                 return PartialView("_Edit", model);
             }
 
+            var uploadError = await HandleImageUpload(model.ImageFile, result => model.Image = result);
+            if (uploadError != null)
+                return Json(new { success = false, message = uploadError });
+
             var error = await _roomService.UpdateRoomAsync(model);
             if (error == null)
                 return Json(new { success = true, message = "Cập nhật thông tin phòng thành công!" });
@@ -111,6 +124,28 @@ namespace LibraryManagement.MVC.Controllers
                 return Json(new { success = true, message = "Xóa phòng thành công!" });
 
             return Json(new { success = false, message = "Xóa phòng thất bại. Có thể do phòng này đang có đặt phòng được liên kết trong hệ thống." });
+        }
+
+        private async Task<string?> HandleImageUpload(Microsoft.AspNetCore.Http.IFormFile? file, Action<string> setUrl)
+        {
+            if (file == null || file.Length == 0) return null;
+
+            if (file.Length > MaxFileSizeBytes)
+                return "Hình ảnh vượt quá 5 MB. Vui lòng chọn ảnh nhỏ hơn.";
+
+            var ext = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!AllowedExtensions.Contains(ext))
+                return $"Định dạng không hỗ trợ ({ext}). Chỉ chấp nhận: jpg, jpeg, png, webp, gif.";
+
+            var fileName = $"{Guid.NewGuid()}{ext}";
+            var folder = System.IO.Path.Combine(_env.WebRootPath, "images", "rooms");
+            System.IO.Directory.CreateDirectory(folder);
+
+            using (var stream = new System.IO.FileStream(System.IO.Path.Combine(folder, fileName), System.IO.FileMode.Create))
+                await file.CopyToAsync(stream);
+
+            setUrl($"/images/rooms/{fileName}");
+            return null;
         }
     }
 }

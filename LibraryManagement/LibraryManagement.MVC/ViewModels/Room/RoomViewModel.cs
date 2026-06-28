@@ -21,6 +21,10 @@ namespace LibraryManagement.MVC.ViewModels.Room
         [Required(ErrorMessage = "Trạng thái không được để trống.")]
         public string Status { get; set; } = "Available";
 
+        public string? Image { get; set; }
+
+        public Microsoft.AspNetCore.Http.IFormFile? ImageFile { get; set; }
+
         public DateTime CreatedAt { get; set; }
     }
 

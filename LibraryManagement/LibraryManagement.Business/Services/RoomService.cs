@@ -49,6 +49,7 @@ namespace LibraryManagement.Business.Services
                     Capacity = r.Capacity,
                     Description = r.Description,
                     Status = r.Status,
+                    Image = r.Image,
                     CreatedAt = r.CreatedAt
                 })
                 .ToListAsync();
@@ -75,6 +76,7 @@ namespace LibraryManagement.Business.Services
                 Capacity = room.Capacity,
                 Description = room.Description,
                 Status = room.Status,
+                Image = room.Image,
                 CreatedAt = room.CreatedAt
             };
         }
@@ -88,6 +90,7 @@ namespace LibraryManagement.Business.Services
                 Capacity = dto.Capacity,
                 Description = dto.Description?.Trim(),
                 Status = dto.Status.Trim(),
+                Image = dto.Image?.Trim(),
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -101,6 +104,7 @@ namespace LibraryManagement.Business.Services
                 Capacity = room.Capacity,
                 Description = room.Description,
                 Status = room.Status,
+                Image = room.Image,
                 CreatedAt = room.CreatedAt
             };
         }
@@ -114,6 +118,10 @@ namespace LibraryManagement.Business.Services
             room.Capacity = dto.Capacity;
             room.Description = dto.Description?.Trim();
             room.Status = dto.Status.Trim();
+            if (dto.Image != null)
+            {
+                room.Image = dto.Image.Trim();
+            }
 
             _unitOfWork.Rooms.Update(room);
             await _unitOfWork.SaveChangesAsync();
@@ -125,6 +133,7 @@ namespace LibraryManagement.Business.Services
                 Capacity = room.Capacity,
                 Description = room.Description,
                 Status = room.Status,
+                Image = room.Image,
                 CreatedAt = room.CreatedAt
             };
         }
