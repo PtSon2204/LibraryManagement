@@ -9,8 +9,8 @@
     <div class="container">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
-                <h1 class="display-6 fw-bold mb-2">Sách đang mượn</h1>
-                <p class="text-muted mb-0">Theo dõi sách đã mượn, hạn trả và thực hiện trả sách khi hoàn tất.</p>
+                <h1 class="display-6 fw-bold mb-2">Yêu cầu và sách đang mượn</h1>
+                <p class="text-muted mb-0">Theo dõi yêu cầu chờ xác nhận, hạn trả và trạng thái trả sách.</p>
             </div>
             <a asp-controller="Books" asp-action="Index" class="btn btn-brand">
                 <i class="bi bi-search me-2"></i>Tìm sách để mượn
@@ -38,10 +38,9 @@
                         <tr>
                             <th>Sách</th>
                             <th>Mã bản sao</th>
-                            <th>Ngày mượn</th>
+                            <th>Ngày yêu cầu/mượn</th>
                             <th>Hạn trả</th>
                             <th>Trạng thái</th>
-                            <th class="text-end">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -49,11 +48,26 @@
                         {
                             <tr>
                                 <td class="fw-semibold">@loan.BookTitle</td>
-                                <td><span class="badge loan-barcode-badge">@loan.Barcode</span></td>
-                                <td>@loan.BorrowedAt.ToString("dd/MM/yyyy")</td>
-                                <td class="@(loan.IsOverdue ? "text-danger fw-semibold" : "")">@loan.DueAt.ToString("dd/MM/yyyy")</td>
                                 <td>
-                                    @if (loan.Status == "Returned")
+                                    @if (loan.Status == "Pending")
+                                    {
+                                        <span class="text-muted small">Chờ thủ thư xác nhận</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge loan-barcode-badge">@loan.Barcode</span>
+                                    }
+                                </td>
+                                <td>@loan.BorrowedAt.ToString("dd/MM/yyyy")</td>
+                                <td class="@(loan.IsOverdue ? "text-danger fw-semibold" : "")">
+                                    @(loan.Status == "Pending" ? "Chờ xác nhận" : loan.DueAt.ToString("dd/MM/yyyy"))
+                                </td>
+                                <td>
+                                    @if (loan.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning">Chờ xác nhận</span>
+                                    }
+                                    else if (loan.Status == "Returned")
                                     {
                                         <span class="badge bg-success-subtle text-success">Đã trả</span>
                                     }
@@ -64,20 +78,6 @@
                                     else
                                     {
                                         <span class="badge bg-primary-subtle text-primary">Đang mượn</span>
-                                    }
-                                </td>
-                                <td class="text-end">
-                                    @if (loan.Status != "Returned")
-                                    {
-                                        <form asp-controller="Loans" asp-action="Return" method="post" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="loanDetailId" value="@loan.LoanDetailId" />
-                                            <button type="submit" class="btn btn-sm btn-outline-success">Trả sách</button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted small">@loan.ReturnedAt?.ToString("dd/MM/yyyy")</span>
                                     }
                                 </td>
                             </tr>

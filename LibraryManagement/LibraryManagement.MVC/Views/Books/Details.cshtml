@@ -45,12 +45,12 @@
                                 <form asp-controller="Loans" asp-action="Borrow" method="post" class="mt-3">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="bookId" value="@Model.BookId" />
-                                    <button type="submit" class="btn btn-brand w-100">Mượn sách</button>
+                                    <button type="submit" class="btn btn-brand w-100">Gửi yêu cầu mượn</button>
                                 </form>
                             }
                             else if (User.Identity?.IsAuthenticated != true)
                             {
-                                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-brand w-100 mt-3">Đăng nhập để mượn</a>
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-brand w-100 mt-3">Đăng nhập để yêu cầu mượn</a>
                             }
                             else if (Model.AvailableCopies <= 0)
                             {
@@ -126,37 +126,26 @@
 
     <div class="card border-0 shadow-sm rounded-4 mt-4">
         <div class="card-header public-card-header border-0 p-4">
-            <h2 class="h5 fw-bold mb-1">Bản sao trong thư viện</h2>
-            <p class="text-muted small mb-0">Theo dõi mã bản sao, vị trí và tình trạng hiện tại.</p>
+            <h2 class="h5 fw-bold mb-1">Vị trí trong thư viện</h2>
+            <p class="text-muted small mb-0">Hiển thị số lượng bản có sẵn theo kệ, không bao gồm mã quản lý nội bộ.</p>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Mã bản sao</th>
                             <th>Vị trí</th>
-                            <th>Ngày nhập</th>
-                            <th>Trạng thái</th>
+                            <th>Có sẵn</th>
+                            <th>Tổng bản</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var copy in Model.Copies)
+                        @foreach (var location in Model.LocationAvailability)
                         {
                             <tr>
-                                <td class="fw-semibold">@copy.Barcode</td>
-                                <td>@(copy.Location ?? "N/A")</td>
-                                <td>@copy.AddedDate.ToString("dd/MM/yyyy")</td>
-                                <td>
-                                    @if (copy.Status == "Available")
-                                    {
-                                        <span class="badge bg-success-subtle text-success">Có sẵn</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary-subtle text-secondary">@copy.Status</span>
-                                    }
-                                </td>
+                                <td class="fw-semibold">@location.Location</td>
+                                <td><span class="badge bg-success-subtle text-success">@location.AvailableCopies</span></td>
+                                <td>@location.TotalCopies</td>
                             </tr>
                         }
                     </tbody>
@@ -164,4 +153,48 @@
             </div>
         </div>
     </div>
+
+    @if (User.IsInRole("Librarian") || User.IsInRole("Admin"))
+    {
+        <div class="card border-0 shadow-sm rounded-4 mt-4">
+            <div class="card-header public-card-header border-0 p-4">
+                <h2 class="h5 fw-bold mb-1">Bản sao nội bộ</h2>
+                <p class="text-muted small mb-0">Thông tin mã bản sao chỉ dành cho thủ thư và quản trị viên.</p>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã bản sao</th>
+                                <th>Vị trí</th>
+                                <th>Ngày nhập</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var copy in Model.Copies)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@copy.Barcode</td>
+                                    <td>@(copy.Location ?? "N/A")</td>
+                                    <td>@copy.AddedDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (copy.Status == "Available")
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Có sẵn</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary">@copy.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
 </div>

@@ -27,6 +27,22 @@ public class LoanManagementController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Confirm(Guid loanDetailId, Guid copyId, LoanSearchViewModel criteria)
+    {
+        var error = await _loanService.ConfirmBorrowRequestAsync(loanDetailId, copyId);
+        TempData[error == null ? "Success" : "Error"] = error ?? "Đã xác nhận yêu cầu mượn sách.";
+
+        return RedirectToAction(nameof(Index), new
+        {
+            criteria.Status,
+            criteria.Search,
+            criteria.Page,
+            criteria.PageSize
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Return(Guid loanDetailId, LoanSearchViewModel criteria)
     {
         var error = await _loanService.ReturnBookAsync(loanDetailId);

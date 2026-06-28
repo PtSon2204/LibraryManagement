@@ -36,16 +36,7 @@ public class LoansController : Controller
             return RedirectToAction("Index", "Books");
         }
 
-        TempData["Success"] = $"Đã mượn {result.BookTitle}. Hạn trả: {result.DueAt:dd/MM/yyyy}.";
-        return RedirectToAction(nameof(Index));
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Return(Guid loanDetailId)
-    {
-        var error = await _loanService.ReturnBookAsync(loanDetailId);
-        TempData[error == null ? "Success" : "Error"] = error ?? "Đã ghi nhận trả sách.";
+        TempData["Success"] = $"Đã gửi yêu cầu mượn {result.BookTitle}. Vui lòng chờ thủ thư xác nhận.";
         return RedirectToAction(nameof(Index));
     }
 }

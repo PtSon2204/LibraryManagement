@@ -12,6 +12,8 @@ public interface ILoanService
 
     Task<BorrowBookResultDto> BorrowBookAsync(Guid readerId, Guid bookId);
 
+    Task ConfirmLoanDetailAsync(Guid actorId, Guid loanDetailId, Guid copyId);
+
     Task ReturnLoanDetailAsync(Guid actorId, string role, Guid loanDetailId);
 
     Task<PagedResult<LoanHistoryDto>> GetReaderLoanHistoryAsync(Guid readerId, LoanQuery query);

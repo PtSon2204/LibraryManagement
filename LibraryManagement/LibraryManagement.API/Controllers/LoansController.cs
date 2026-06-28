@@ -53,7 +53,23 @@ public class LoansController : ControllerBase
         }
     }
 
+    [HttpPost("{loanDetailId:guid}/confirm")]
+    [Authorize(Roles = "Librarian,Admin")]
+    public async Task<IActionResult> ConfirmBorrowRequest(Guid loanDetailId, ConfirmBorrowRequestDto request)
+    {
+        try
+        {
+            await _loanService.ConfirmLoanDetailAsync(GetCurrentUserId(), loanDetailId, request.CopyId);
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpPost("{loanDetailId:guid}/return")]
+    [Authorize(Roles = "Librarian,Admin")]
     public async Task<IActionResult> ReturnBook(Guid loanDetailId)
     {
         try

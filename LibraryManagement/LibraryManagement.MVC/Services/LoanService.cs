@@ -55,6 +55,16 @@ public class LoanService : ILoanService
         return await response.Content.ReadFromJsonAsync<BorrowBookResultViewModel>(_jsonOptions);
     }
 
+    public async Task<string?> ConfirmBorrowRequestAsync(Guid loanDetailId, Guid copyId)
+    {
+        AddJwt();
+        var response = await _httpClient.PostAsJsonAsync($"api/loans/{loanDetailId}/confirm", new { CopyId = copyId });
+        if (response.IsSuccessStatusCode) return null;
+
+        var error = await response.Content.ReadAsStringAsync();
+        return string.IsNullOrWhiteSpace(error) ? "Không thể xác nhận yêu cầu mượn. Vui lòng thử lại." : error;
+    }
+
     public async Task<string?> ReturnBookAsync(Guid loanDetailId)
     {
         AddJwt();
