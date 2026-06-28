@@ -16,6 +16,20 @@ namespace LibraryManagement.Business.Services
             _unitOfWork = unitOfWork;
         }
 
+        public async Task<List<CategoryDto>> GetAllCategoriesAsync()
+        {
+            var categories = await _unitOfWork.Categories.Query().AsNoTracking()
+                .OrderBy(c => c.CategoryName)
+                .Select(c => new CategoryDto
+                {
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.CategoryName
+                })
+                .ToListAsync();
+
+            return categories;
+        }
+
         public async Task<PagedResult<CategoryDto>> GetCategoriesAsync(string? search, int pageNumber, int pageSize)
         {
             var query = _unitOfWork.Categories.Query();

@@ -18,6 +18,13 @@ namespace LibraryManagement.API.Controllers
             _categoryService = categoryService;
         }
 
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllCategories()
+        {
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            return Ok(categories);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {

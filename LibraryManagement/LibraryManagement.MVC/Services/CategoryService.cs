@@ -1,7 +1,12 @@
-using LibraryManagement.MVC.Interface;
-using LibraryManagement.MVC.ViewModels.Category;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading.Tasks;
+using LibraryManagement.MVC.Interface;
+using LibraryManagement.MVC.ViewModels.Books;
+using LibraryManagement.MVC.ViewModels.Category;
 
 namespace LibraryManagement.MVC.Services
 {
@@ -12,6 +17,16 @@ namespace LibraryManagement.MVC.Services
         public CategoryService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+        }
+
+        public async Task<List<CategoryOption>?> GetAllCategoriesAsync()
+        {
+            var response = await _httpClient.GetAsync("api/categories/all");
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<List<CategoryOption>>();
+            }
+            return new List<CategoryOption>();
         }
 
         public async Task<CategoryListViewModel?> GetCategoriesAsync(string? search, int pageNumber, int pageSize)

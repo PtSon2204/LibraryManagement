@@ -21,8 +21,10 @@ public class BookDetailDto
     public string? Edition { get; set; }
 
     public List<string> Authors { get; set; } = new();
+    public List<int> AuthorIds { get; set; } = new();
 
     public List<string> Categories { get; set; } = new();
+    public List<int> CategoryIds { get; set; } = new();
 
     public int TotalCopies { get; set; }
 

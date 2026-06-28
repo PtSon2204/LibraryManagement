@@ -25,9 +25,9 @@ namespace LibraryManagement.Data.UnitOfWorks
         public IRepository<Payment> Payments { get; }
 
         public IRepository<Author> Authors { get; }
+        public IRepository<Category> Categories { get; }
 
         public IRepository<Publisher> Publishers { get; }
-        public IRepository<Category> Categories { get; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -39,6 +39,7 @@ namespace LibraryManagement.Data.UnitOfWorks
             AccountRepository = new AccountRepository(context);
 
             Authors = new Repository<Author>(context);
+            Categories = new Repository<Category>(context);
 
             Books = new Repository<Book>(context);
             BookCopies = new Repository<BookCopy>(context);

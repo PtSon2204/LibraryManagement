@@ -1,7 +1,6 @@
-
-namespace LibraryManagement.Business.DTOs.CategoryDTOs
+namespace LibraryManagement.MVC.ViewModels.Books
 {
-    public class CategoryDto
+    public class CategoryOption
     {
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = null!;

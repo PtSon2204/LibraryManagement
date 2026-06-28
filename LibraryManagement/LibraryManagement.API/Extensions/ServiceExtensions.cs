@@ -19,14 +19,14 @@ namespace LibraryManagement.API.Extensions
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IStaffDashboardService, StaffDashboardService>();
+            services.AddScoped<ILoanService, LoanService>();
+            services.AddScoped<IAuthorService, AuthorService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IRoomService, RoomService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserProfileService, UserProfileService>();
-            services.AddScoped<IBookService, BookService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IBookCopyService, BookCopyService>();
-            services.AddScoped<ILoanService, LoanService>();
             services.AddScoped<IReportService, ReportService>();
 
             //Đăng kí fluentValidation

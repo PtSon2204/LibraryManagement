@@ -42,6 +42,40 @@
                     }
                 </select>
             </div>
+            
+            <div class="col-md-6">
+                <label class="form-label fw-medium">Tác giả</label>
+                <select name="AuthorIds" class="form-select select2-multiple" multiple="multiple">
+                    @foreach (var a in Model.Authors)
+                    {
+                        if (Model.AuthorIds.Contains(a.AuthorId))
+                        {
+                            <option value="@a.AuthorId" selected>@a.FullName</option>
+                        }
+                        else
+                        {
+                            <option value="@a.AuthorId">@a.FullName</option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label fw-medium">Thể loại</label>
+                <select name="CategoryIds" class="form-select select2-multiple" multiple="multiple">
+                    @foreach (var c in Model.Categories)
+                    {
+                        if (Model.CategoryIds.Contains(c.CategoryId))
+                        {
+                            <option value="@c.CategoryId" selected>@c.CategoryName</option>
+                        }
+                        else
+                        {
+                            <option value="@c.CategoryId">@c.CategoryName</option>
+                        }
+                    }
+                </select>
+            </div>
             <div class="col-md-3">
                 <label class="form-label fw-medium">Năm xuất bản</label>
                 <input type="number" name="PublicationYear" class="form-control"
@@ -119,4 +153,10 @@
             reader.readAsDataURL(file);
         }
     }
+    
+    $(document).ready(function() {
+        $('.select2-multiple').select2({
+            dropdownParent: $('#editBookModal') // Thay đổi theo ID modal tương ứng nếu cần
+        });
+    });
 </script>
