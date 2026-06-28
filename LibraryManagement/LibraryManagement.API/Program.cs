@@ -1,5 +1,6 @@
 using LibraryManagement.API.Extensions;
 using LibraryManagement.API.Middleware;
+using LibraryManagement.Business.DTOs.BookDTOs;
 using LibraryManagement.Data;
 using LibraryManagement.Models.Context;
 using Microsoft.AspNetCore.OData;
@@ -74,9 +75,9 @@ namespace LibraryManagement.API
         {
             var builder = new ODataConventionModelBuilder();
 
-            //builder.EntitySet<BookOdataDto>("Books")
-            //   .EntityType
-            //   .HasKey(b => b.BookId);
+            builder.EntitySet<BookListItemDto>("Books")
+               .EntityType
+               .HasKey(b => b.BookId);
 
             return builder.GetEdmModel();
         }

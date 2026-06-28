@@ -1,0 +1,161 @@
+@model LibraryManagement.MVC.ViewModels.Books.BookDetailViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+    const string fallbackCover = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='420' viewBox='0 0 300 420'%3E%3Crect width='300' height='420' fill='%23e2e8f0'/%3E%3Ctext x='150' y='210' text-anchor='middle' fill='%2364748b' font-family='Arial' font-size='28'%3EBook%3C/text%3E%3C/svg%3E";
+}
+
+<section class="py-5" style="background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 60%, #eff6ff 100%);">
+    <div class="container">
+        <a asp-controller="Books" asp-action="Index" class="text-success text-decoration-none fw-semibold d-inline-flex align-items-center mb-4">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách sách
+        </a>
+
+        <div class="row g-5 align-items-start">
+            <div class="col-md-4 col-lg-3">
+                <div class="book-card shadow-sm">
+                    <div class="book-cover">
+                        <span class="book-badge">@(Model.Language ?? "N/A")</span>
+                        <img src="@(Model.CoverImageUrl ?? fallbackCover)" alt="@Model.Title" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8 col-lg-9">
+                <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
+                    <div>
+                        <h1 class="display-5 fw-bold mb-3">@Model.Title</h1>
+                        <p class="lead text-muted mb-4">@(Model.Description ?? "Chưa có mô tả cho sách này.")</p>
+                    </div>
+
+                    <div class="card border-0 shadow-sm rounded-4 flex-shrink-0" style="min-width: 260px;">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Có sẵn</span>
+                                <strong>@Model.AvailableCopies / @Model.TotalCopies</strong>
+                            </div>
+                            @if (User.IsInRole("Reader") && Model.AvailableCopies > 0)
+                            {
+                                <form asp-controller="Loans" asp-action="Borrow" method="post" class="mt-3">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookId" value="@Model.BookId" />
+                                    <button type="submit" class="btn btn-brand w-100">Mượn sách</button>
+                                </form>
+                            }
+                            else if (User.Identity?.IsAuthenticated != true)
+                            {
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-brand w-100 mt-3">Đăng nhập để mượn</a>
+                            }
+                            else if (Model.AvailableCopies <= 0)
+                            {
+                                <button class="btn btn-outline-secondary w-100 mt-3" disabled>Hết bản có sẵn</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-4">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><div class="text-muted small">ISBN</div><div class="fw-semibold">@(Model.ISBN ?? "N/A")</div></div></div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><div class="text-muted small">Nhà xuất bản</div><div class="fw-semibold">@(Model.PublisherName ?? "Chưa có")</div></div></div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><div class="text-muted small">Năm xuất bản</div><div class="fw-semibold">@(Model.PublicationYear?.ToString() ?? "N/A")</div></div></div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><div class="text-muted small">Phiên bản</div><div class="fw-semibold">@(Model.Edition ?? "N/A")</div></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h2 class="h5 fw-bold mb-3">Tác giả</h2>
+                    @if (Model.Authors.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var author in Model.Authors)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">@author</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Chưa có thông tin tác giả.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h2 class="h5 fw-bold mb-3">Thể loại</h2>
+                    @if (Model.Categories.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var category in Model.Categories)
+                            {
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">@category</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Chưa có thông tin thể loại.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mt-4">
+        <div class="card-header bg-white border-0 p-4">
+            <h2 class="h5 fw-bold mb-1">Bản sao trong thư viện</h2>
+            <p class="text-muted small mb-0">Theo dõi mã bản sao, vị trí và tình trạng hiện tại.</p>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã bản sao</th>
+                            <th>Vị trí</th>
+                            <th>Ngày nhập</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var copy in Model.Copies)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@copy.Barcode</td>
+                                <td>@(copy.Location ?? "N/A")</td>
+                                <td>@copy.AddedDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (copy.Status == "Available")
+                                    {
+                                        <span class="badge bg-success-subtle text-success">Có sẵn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary">@copy.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

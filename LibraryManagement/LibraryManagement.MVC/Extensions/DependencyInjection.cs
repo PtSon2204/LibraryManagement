@@ -9,14 +9,30 @@ namespace LibraryManagement.MVC.Extensions
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var apiUrl = configuration["ApiSettings:BaseUrl"];
+            var apiUrl = configuration["ApiSettings:BaseUrl"]
+                         ?? throw new InvalidOperationException("ApiSettings:BaseUrl is not configured.");
 
             services.AddHttpClient<IAccountService, AccountService>(x =>
             {
                 x.BaseAddress = new Uri(apiUrl);
             });
 
+            services.AddHttpClient<IBookService, BookService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            });
+
             services.AddHttpClient<IUserProfileService, UserProfileService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            });
+
+            services.AddHttpClient<IStaffDashboardService, StaffDashboardService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            });
+
+            services.AddHttpClient<ILoanService, LoanService>(x =>
             {
                 x.BaseAddress = new Uri(apiUrl);
             });

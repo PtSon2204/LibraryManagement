@@ -1,0 +1,104 @@
+@model LibraryManagement.MVC.ViewModels.Loans.LoanListPageViewModel
+
+@{
+    ViewData["Title"] = "Sách đang mượn";
+    var search = Model.Search;
+}
+
+<section class="py-5" style="background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 60%, #eff6ff 100%);">
+    <div class="container">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <h1 class="display-6 fw-bold mb-2">Sách đang mượn</h1>
+                <p class="text-muted mb-0">Theo dõi sách đã mượn, hạn trả và thực hiện trả sách khi hoàn tất.</p>
+            </div>
+            <a asp-controller="Books" asp-action="Index" class="btn btn-brand">
+                <i class="bi bi-search me-2"></i>Tìm sách để mượn
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    @if (!Model.Loans.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body text-center text-muted py-5">
+                <i class="bi bi-journal-bookmark fs-1 d-block mb-3"></i>
+                Bạn chưa có lượt mượn sách nào.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sách</th>
+                            <th>Mã bản sao</th>
+                            <th>Ngày mượn</th>
+                            <th>Hạn trả</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var loan in Model.Loans)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@loan.BookTitle</td>
+                                <td><span class="badge text-bg-light">@loan.Barcode</span></td>
+                                <td>@loan.BorrowedAt.ToString("dd/MM/yyyy")</td>
+                                <td class="@(loan.IsOverdue ? "text-danger fw-semibold" : "")">@loan.DueAt.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (loan.Status == "Returned")
+                                    {
+                                        <span class="badge bg-success-subtle text-success">Đã trả</span>
+                                    }
+                                    else if (loan.IsOverdue)
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger">Quá hạn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary">Đang mượn</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (loan.Status != "Returned")
+                                    {
+                                        <form asp-controller="Loans" asp-action="Return" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="loanDetailId" value="@loan.LoanDetailId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-success">Trả sách</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">@loan.ReturnedAt?.ToString("dd/MM/yyyy")</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4" aria-label="Loan pages">
+            <ul class="pagination justify-content-center">
+                @for (var currentPage = 1; currentPage <= Model.TotalPages; currentPage++)
+                {
+                    <li class="page-item @(currentPage == search.Page ? "active" : "")">
+                        <a class="page-link" asp-controller="Loans" asp-action="Index" asp-route-Page="@currentPage" asp-route-PageSize="@search.PageSize">@currentPage</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>

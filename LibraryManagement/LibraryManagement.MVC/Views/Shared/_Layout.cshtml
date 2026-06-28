@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -32,8 +32,8 @@
                         </li>
                         @if (User.IsInRole("Reader"))
                         {
-                            <li>
-                                <a class="dropdown-item py-2" href="#"><i class="bi bi-journal-bookmark me-2 text-muted"></i>Sách đang mượn</a>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Loans" asp-action="Index">Sách đang mượn</a>
                             </li>
                         }
                         @if (User.IsInRole("Librarian"))
@@ -63,7 +63,7 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-3" aria-labelledby="userDropdown" style="border-radius: 0.75rem;">
                                     <li><a class="dropdown-item py-2" asp-controller="UserProfile" asp-action="Index"><i class="bi bi-person me-2 text-muted"></i>Hồ sơ cá nhân</a></li>
-                                    <li><a class="dropdown-item py-2" href="#"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Lịch sử mượn sách </a></li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Loans" asp-action="Index"><i class="bi bi-journal-bookmark me-2 text-muted"></i> Sách đang mượn </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
@@ -85,6 +85,22 @@
     </header>
 
     <main role="main">
+        <div class="container mt-4">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+        </div>
         @RenderBody()
     </main>
 

@@ -137,6 +137,34 @@ body {
   background: var(--brand-green-hover);
 }
 
+@media (max-width: 576px) {
+  .hero-section {
+    padding: 4rem 0;
+    background-size: 2.5rem 2.5rem;
+  }
+
+  .hero-title {
+    font-size: 2.25rem;
+  }
+
+  .search-box {
+    border-radius: 1.25rem;
+    padding: 0.75rem;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+  }
+
+  .search-box .btn-search {
+    position: static;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
 /* Book Cards */
 .book-card {
   border: 1px solid #e5e7eb;
