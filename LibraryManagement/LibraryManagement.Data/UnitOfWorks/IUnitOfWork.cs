@@ -24,6 +24,7 @@ namespace LibraryManagement.Data.UnitOfWorks
         IRepository<Fine> Fines { get; }
         IRepository<Payment> Payments { get; }
         IRepository<Publisher> Publishers { get; }
+        IRepository<Category> Categories { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

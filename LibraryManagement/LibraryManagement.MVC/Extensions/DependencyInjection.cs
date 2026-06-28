@@ -48,6 +48,12 @@ namespace LibraryManagement.MVC.Extensions
             })
             .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
 
+            services.AddHttpClient<ICategoryService, CategoryService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            })
+            .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
+
             services.AddHttpClient<IBookService, BookService>(x =>
             {
                 x.BaseAddress = new Uri(apiUrl);
