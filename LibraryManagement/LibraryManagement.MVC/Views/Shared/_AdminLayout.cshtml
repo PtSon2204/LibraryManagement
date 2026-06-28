@@ -95,6 +95,9 @@
             <a href="/Book/Index" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Book" ? "active" : "")">
                 <i class="bi bi-book"></i> Quản lý sách
             </a>
+            <a href="/Publisher/Index" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Publisher" ? "active" : "")">
+                <i class="bi bi-building"></i> Quản lý nhà xuất bản
+            </a>
             <a href="/Admin/Authors" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Authors" ? "active" : "")">
                 <i class="bi bi-journal-text"></i> Quản lý tác giả
             </a>
