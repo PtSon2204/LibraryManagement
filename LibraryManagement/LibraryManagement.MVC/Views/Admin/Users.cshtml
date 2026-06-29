@@ -1,0 +1,464 @@
+@model LibraryManagement.MVC.ViewModels.Admin.AdminUsersViewModel
+
+@{
+    ViewData["Title"] = "Quản lý thành viên";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    
+    // Determine active tab from URL query params
+    var activeTab = Context.Request.Query["tab"].ToString();
+    if (string.IsNullOrEmpty(activeTab)) {
+        activeTab = "librarians";
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold text-dark">Quản lý người dùng</h4>
+        <p class="text-muted mb-0">Quản trị viên có thể quản lý các tài khoản Thủ thư (Librarian) và Độc giả (Reader).</p>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-pills mb-4 gap-2 bg-white p-2 rounded-3 shadow-sm" id="usersTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link px-4 py-2 fw-semibold @(activeTab == "librarians" ? "active" : "")" 
+                id="librarians-tab" 
+                data-bs-toggle="pill" 
+                data-bs-target="#librarians" 
+                type="button" 
+                role="tab" 
+                aria-controls="librarians" 
+                aria-selected="@(activeTab == "librarians" ? "true" : "false")"
+                onclick="updateTabUrl('librarians')">
+            <i class="bi bi-person-badge me-2"></i>Thủ thư (Librarians)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link px-4 py-2 fw-semibold @(activeTab == "readers" ? "active" : "")" 
+                id="readers-tab" 
+                data-bs-toggle="pill" 
+                data-bs-target="#readers" 
+                type="button" 
+                role="tab" 
+                aria-controls="readers" 
+                aria-selected="@(activeTab == "readers" ? "true" : "false")"
+                onclick="updateTabUrl('readers')">
+            <i class="bi bi-people me-2"></i>Độc giả (Readers)
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="usersTabsContent">
+    <!-- TAB 1: LIBRARIANS -->
+    <div class="tab-pane fade @(activeTab == "librarians" ? "show active" : "")" id="librarians" role="tabpanel" aria-labelledby="librarians-tab">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-bold text-secondary">Danh sách thủ thư</h5>
+            <button class="btn btn-success px-3" onclick="openCreateLibrarianModal()">
+                <i class="bi bi-plus-lg me-1"></i> Thêm Thủ thư
+            </button>
+        </div>
+
+        <!-- Search Librarians -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-body p-3">
+                <form method="get" asp-action="Users" class="d-flex gap-2">
+                    <input type="hidden" name="tab" value="librarians" />
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text"
+                               name="searchLibrarians"
+                               class="form-control border-start-0 ps-0"
+                               placeholder="Tìm thủ thư theo Email, Họ tên, SĐT..."
+                               value="@Model.SearchLibrarians" />
+                    </div>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-search me-1"></i> Tìm
+                    </button>
+                    @if (!string.IsNullOrWhiteSpace(Model.SearchLibrarians))
+                    {
+                        <a href="/Admin/Users?tab=librarians" class="btn btn-outline-secondary px-3">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    }
+                </form>
+            </div>
+        </div>
+
+        <!-- Librarians Table -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-0">
+                @if (!Model.Librarians.Data.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-person-badge fs-1 text-muted opacity-50"></i>
+                        <p class="text-muted mt-3">Không tìm thấy thủ thư nào.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Họ và tên</th>
+                                    <th>Email</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Địa chỉ</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-center pe-4" style="width: 150px;">Khóa / Mở</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Librarians.Data)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-medium text-dark">@item.FullName</td>
+                                        <td>@item.Email</td>
+                                        <td>@(item.Phone ?? "-")</td>
+                                        <td>@(item.Address ?? "-")</td>
+                                        <td class="text-muted">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (item.Status == "Active")
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-2 px-2 py-1">Hoạt động</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-2 px-2 py-1">Bị khóa</span>
+                                            }
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <button class="btn btn-sm @(item.Status == "Active" ? "btn-outline-danger" : "btn-outline-success")" 
+                                                    onclick="toggleLibrarianStatus('@item.AccountId', '@item.FullName', '@item.Status')">
+                                                @if (item.Status == "Active")
+                                                {
+                                                    <i class="bi bi-lock-fill me-1"></i> <text>Khóa</text>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-unlock-fill me-1"></i> <text>Mở khóa</text>
+                                                }
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Librarians Pagination -->
+                    @if (Model.Librarians.TotalPages > 1)
+                    {
+                        <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+                            <small class="text-muted">
+                                Trang @Model.Librarians.PageNumber / @Model.Librarians.TotalPages
+                                &nbsp;•&nbsp; @Model.Librarians.TotalRecords thủ thư
+                            </small>
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item @(Model.Librarians.PageNumber <= 1 ? "disabled" : "")">
+                                        <a class="page-link" href="/Admin/Users?tab=librarians&searchLibrarians=@Model.SearchLibrarians&pageLibrarians=@(Model.Librarians.PageNumber - 1)">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    @for (int i = 1; i <= Model.Librarians.TotalPages; i++)
+                                    {
+                                        <li class="page-item @(i == Model.Librarians.PageNumber ? "active" : "")">
+                                            <a class="page-link" href="/Admin/Users?tab=librarians&searchLibrarians=@Model.SearchLibrarians&pageLibrarians=@i">@i</a>
+                                        </li>
+                                    }
+                                    <li class="page-item @(Model.Librarians.PageNumber >= Model.Librarians.TotalPages ? "disabled" : "")">
+                                        <a class="page-link" href="/Admin/Users?tab=librarians&searchLibrarians=@Model.SearchLibrarians&pageLibrarians=@(Model.Librarians.PageNumber + 1)">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: READERS -->
+    <div class="tab-pane fade @(activeTab == "readers" ? "show active" : "")" id="readers" role="tabpanel" aria-labelledby="readers-tab">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-bold text-secondary">Danh sách độc giả</h5>
+            <button class="btn btn-primary px-3" onclick="openCreateReaderModal()">
+                <i class="bi bi-plus-lg me-1"></i> Thêm Độc giả
+            </button>
+        </div>
+
+        <!-- Search Readers -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-body p-3">
+                <form method="get" asp-action="Users" class="d-flex gap-2">
+                    <input type="hidden" name="tab" value="readers" />
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text"
+                               name="searchReaders"
+                               class="form-control border-start-0 ps-0"
+                               placeholder="Tìm độc giả theo Email, Họ tên, SĐT..."
+                               value="@Model.SearchReaders" />
+                    </div>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-search me-1"></i> Tìm
+                    </button>
+                    @if (!string.IsNullOrWhiteSpace(Model.SearchReaders))
+                    {
+                        <a href="/Admin/Users?tab=readers" class="btn btn-outline-secondary px-3">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    }
+                </form>
+            </div>
+        </div>
+
+        <!-- Readers Table -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-0">
+                @if (!Model.Readers.Data.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-people fs-1 text-muted opacity-50"></i>
+                        <p class="text-muted mt-3">Không tìm thấy độc giả nào.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Họ và tên</th>
+                                    <th>Email</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Địa chỉ</th>
+                                    <th>Ngày đăng ký</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-center pe-4" style="width: 150px;">Khóa / Mở</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Readers.Data)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-medium text-dark">@item.FullName</td>
+                                        <td>@item.Email</td>
+                                        <td>@(item.Phone ?? "-")</td>
+                                        <td>@(item.Address ?? "-")</td>
+                                        <td class="text-muted">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (item.Status == "Active")
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-2 px-2 py-1">Hoạt động</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-2 px-2 py-1">Tạm khóa (Suspended)</span>
+                                            }
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <button class="btn btn-sm @(item.Status == "Active" ? "btn-outline-danger" : "btn-outline-success")" 
+                                                    onclick="toggleReaderStatus('@item.ReaderId', '@item.FullName', '@item.Status')">
+                                                @if (item.Status == "Active")
+                                                {
+                                                    <i class="bi bi-lock-fill me-1"></i> <text>Khóa</text>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-unlock-fill me-1"></i> <text>Mở khóa</text>
+                                                }
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Readers Pagination -->
+                    @if (Model.Readers.TotalPages > 1)
+                    {
+                        <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+                            <small class="text-muted">
+                                Trang @Model.Readers.PageNumber / @Model.Readers.TotalPages
+                                &nbsp;•&nbsp; @Model.Readers.TotalRecords độc giả
+                            </small>
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item @(Model.Readers.PageNumber <= 1 ? "disabled" : "")">
+                                        <a class="page-link" href="/Admin/Users?tab=readers&searchReaders=@Model.SearchReaders&pageReaders=@(Model.Readers.PageNumber - 1)">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    @for (int i = 1; i <= Model.Readers.TotalPages; i++)
+                                    {
+                                        <li class="page-item @(i == Model.Readers.PageNumber ? "active" : "")">
+                                            <a class="page-link" href="/Admin/Users?tab=readers&searchReaders=@Model.SearchReaders&pageReaders=@i">@i</a>
+                                        </li>
+                                    }
+                                    <li class="page-item @(Model.Readers.PageNumber >= Model.Readers.TotalPages ? "disabled" : "")">
+                                        <a class="page-link" href="/Admin/Users?tab=readers&searchReaders=@Model.SearchReaders&pageReaders=@(Model.Readers.PageNumber + 1)">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal dùng chung -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div id="userModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast thông báo -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000">
+    <div id="toastMsg" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-medium" id="toastText"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const userModal = new bootstrap.Modal(document.getElementById('userModal'));
+        const toast = new bootstrap.Toast(document.getElementById('toastMsg'), { delay: 4000 });
+
+        function showToast(message, isSuccess) {
+            const toastEl = document.getElementById('toastMsg');
+            toastEl.classList.remove('bg-success', 'bg-danger', 'text-white');
+            toastEl.classList.add(isSuccess ? 'bg-success' : 'bg-danger', 'text-white');
+            document.getElementById('toastText').innerHTML = message;
+            toast.show();
+        }
+
+        function updateTabUrl(tabName) {
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabName);
+            window.history.pushState({}, '', url);
+        }
+
+        function openCreateLibrarianModal() {
+            fetch('@Url.Action("GetCreateLibrarianForm", "Admin")')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('userModalBody').innerHTML = html;
+                    userModal.show();
+                    attachFormSubmit('#createLibrarianForm', '@Url.Action("CreateLibrarian", "Admin")', 'librarians');
+                });
+        }
+
+        function openCreateReaderModal() {
+            fetch('@Url.Action("GetCreateReaderForm", "Admin")')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('userModalBody').innerHTML = html;
+                    userModal.show();
+                    attachFormSubmit('#createReaderForm', '@Url.Action("CreateReader", "Admin")', 'readers');
+                });
+        }
+
+        function attachFormSubmit(formSelector, actionUrl, tabToActivate) {
+            const form = document.querySelector(formSelector);
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                
+                // Show loading spinner on button
+                const btn = form.querySelector('button[type="submit"]');
+                const origText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang xử lý...';
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => {
+                    const contentType = r.headers.get('Content-Type') || '';
+                    if (contentType.includes('application/json')) {
+                        return r.json().then(result => {
+                            btn.disabled = false;
+                            btn.innerHTML = origText;
+                            if (result.success) {
+                                userModal.hide();
+                                showToast(result.message, true);
+                                setTimeout(() => {
+                                    window.location.href = `/Admin/Users?tab=${tabToActivate}`;
+                                }, 3000);
+                            } else {
+                                showToast(result.message, false);
+                            }
+                        });
+                    } else {
+                        return r.text().then(html => {
+                            btn.disabled = false;
+                            btn.innerHTML = origText;
+                            document.getElementById('userModalBody').innerHTML = html;
+                            // Re-attach submit after validation failure
+                            attachFormSubmit(formSelector, actionUrl, tabToActivate);
+                        });
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                    showToast("Đã xảy ra lỗi không mong muốn.", false);
+                });
+            });
+        }
+
+        function toggleLibrarianStatus(id, name, currentStatus) {
+            const actionText = currentStatus === "Active" ? "Khóa" : "Mở khóa";
+            if (confirm(`Bạn có chắc chắn muốn ${actionText.toLowerCase()} tài khoản thủ thư "${name}"?`)) {
+                fetch('@Url.Action("ToggleLibrarianStatus", "Admin")/' + id, {
+                    method: 'POST'
+                })
+                .then(r => r.json())
+                .then(result => {
+                    showToast(result.message, result.success);
+                    if (result.success) {
+                        setTimeout(() => window.location.href = "/Admin/Users?tab=librarians", 1500);
+                    }
+                });
+            }
+        }
+
+        function toggleReaderStatus(id, name, currentStatus) {
+            const actionText = currentStatus === "Active" ? "Khóa" : "Mở khóa";
+            if (confirm(`Bạn có chắc chắn muốn ${actionText.toLowerCase()} tài khoản độc giả "${name}"?`)) {
+                fetch('@Url.Action("ToggleReaderStatus", "Admin")/' + id, {
+                    method: 'POST'
+                })
+                .then(r => r.json())
+                .then(result => {
+                    showToast(result.message, result.success);
+                    if (result.success) {
+                        setTimeout(() => window.location.href = "/Admin/Users?tab=readers", 1500);
+                    }
+                });
+            }
+        }
+    </script>
+}
