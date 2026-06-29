@@ -1,0 +1,54 @@
+@model LibraryManagement.Business.DTOs.UserManagementDTOs.CreateLibrarianDto
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold text-dark">
+        <i class="bi bi-person-plus-fill text-success me-2"></i>Thêm Thủ thư mới
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="createLibrarianForm" novalidate>
+    <div class="modal-body">
+        <div class="alert alert-info border-0 shadow-sm rounded-3 small mb-3">
+            <i class="bi bi-info-circle-fill me-2"></i>Mật khẩu ngẫu nhiên sẽ tự động khởi tạo và gửi tới email của thủ thư mới.
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label asp-for="Email" class="form-label fw-medium">Email đăng nhập <span class="text-danger">*</span></label>
+                <input asp-for="Email" type="email" class="form-control" placeholder="example@library.com" required />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="FullName" class="form-label fw-medium">Họ và tên <span class="text-danger">*</span></label>
+                <input asp-for="FullName" type="text" class="form-control" placeholder="Nhập họ và tên..." required />
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Phone" class="form-label fw-medium">Số điện thoại</label>
+                <input asp-for="Phone" type="text" class="form-control" placeholder="09xxxxxxx" />
+                <span asp-validation-for="Phone" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="DateOfBirth" class="form-label fw-medium">Ngày sinh</label>
+                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Address" class="form-label fw-medium">Địa chỉ</label>
+                <textarea asp-for="Address" rows="2" class="form-control" placeholder="Nhập địa chỉ cư trú..."></textarea>
+                <span asp-validation-for="Address" class="text-danger small"></span>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn btn-success px-4">
+            <i class="bi bi-check-circle me-1"></i>Tạo tài khoản
+        </button>
+    </div>
+</form>
