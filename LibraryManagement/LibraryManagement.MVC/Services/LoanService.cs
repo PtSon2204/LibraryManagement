@@ -89,7 +89,7 @@ public class LoanService : ILoanService
         if (fromDate.HasValue) query.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
         if (toDate.HasValue) query.Add($"toDate={toDate.Value:yyyy-MM-dd}");
 
-        var response = await _httpClient.GetAsync($"api/Loan/history?{string.Join('&', query)}");
+        var response = await _httpClient.GetAsync($"api/loans/history?{string.Join('&', query)}");
         if (!response.IsSuccessStatusCode) return null;
 
         var json = await response.Content.ReadAsStringAsync();
@@ -109,7 +109,7 @@ public class LoanService : ILoanService
     public async Task<LoanViewModel?> GetLoanDetailAsync(Guid loanId)
     {
         AddJwt();
-        var response = await _httpClient.GetAsync($"api/Loan/{loanId}");
+        var response = await _httpClient.GetAsync($"api/loans/{loanId}");
         if (!response.IsSuccessStatusCode) return null;
 
         var json = await response.Content.ReadAsStringAsync();

@@ -87,6 +87,24 @@ public class LoansController : ControllerBase
         }
     }
 
+    [HttpGet("history")]
+    [Authorize(Roles = "Reader")]
+    public async Task<IActionResult> GetHistory([FromQuery] Models.Queries.LoanQuery query)
+    {
+        var result = await _loanService.GetReaderLoanHistoryAsync(GetCurrentUserId(), query);
+        return Ok(result);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetDetail(Guid id)
+    {
+        var result = await _loanService.GetLoanDetailByIdAsync(id);
+        if (result == null)
+            return NotFound("Không tìm thấy phiếu mượn.");
+
+        return Ok(result);
+    }
+
     private Guid GetCurrentUserId()
     {
         var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
