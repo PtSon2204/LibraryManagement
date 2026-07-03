@@ -31,8 +31,8 @@ namespace LibraryManagement.Business.DTOs.BookCopyDTOs
             ErrorMessage = "Trạng thái phải là Available, Borrowed, Lost hoặc Damaged.")]
         public string Status { get; set; } = "Available";
 
-        [StringLength(200, ErrorMessage = "Vị trí không được vượt quá 200 ký tự.")]
-        public string? Location { get; set; }
+        /// <summary>Ô kệ chứa bản sao (nullable)</summary>
+        public Guid? ShelfSlotId { get; set; }
 
         public DateOnly? AddedDate { get; set; }
     }

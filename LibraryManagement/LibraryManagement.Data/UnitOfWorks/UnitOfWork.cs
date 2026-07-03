@@ -29,6 +29,13 @@ namespace LibraryManagement.Data.UnitOfWorks
 
         public IRepository<Publisher> Publishers { get; }
 
+        // Shelf management
+        public IRepository<Floor> Floors { get; }
+        public IRepository<Bookshelf> Bookshelves { get; }
+        public IRepository<BookshelfCategory> BookshelfCategories { get; }
+        public IRepository<Shelf> Shelves { get; }
+        public IRepository<ShelfSlot> ShelfSlots { get; }
+
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -52,6 +59,13 @@ namespace LibraryManagement.Data.UnitOfWorks
             Rooms = new Repository<Room>(context);
             Fines = new Repository<Fine>(context);
             Payments = new Repository<Payment>(context);
+
+            // Shelf management
+            Floors = new Repository<Floor>(context);
+            Bookshelves = new Repository<Bookshelf>(context);
+            BookshelfCategories = new Repository<BookshelfCategory>(context);
+            Shelves = new Repository<Shelf>(context);
+            ShelfSlots = new Repository<ShelfSlot>(context);
         }
 
         public void Dispose() => _context.Dispose();

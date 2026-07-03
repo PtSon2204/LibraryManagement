@@ -8,7 +8,7 @@ public class BookCopyDto
 
     public string Status { get; set; } = string.Empty;
 
-    public string? Location { get; set; }
+    public string? SlotLocation { get; set; }
 
     public DateOnly AddedDate { get; set; }
 }

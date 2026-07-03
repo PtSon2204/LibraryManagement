@@ -66,6 +66,10 @@ namespace LibraryManagement.API.Controllers
             {
                 return Conflict(new { message = "Barcode đã tồn tại trong hệ thống. Vui lòng kiểm tra lại." });
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception)
             {
                 return StatusCode(500, new { message = "Đã xảy ra lỗi khi thêm bản sao sách. Vui lòng thử lại." });
@@ -95,6 +99,10 @@ namespace LibraryManagement.API.Controllers
             {
                 return Conflict(new { message = "Một hoặc nhiều Barcode đã tồn tại. Vui lòng kiểm tra lại danh sách." });
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception)
             {
                 return StatusCode(500, new { message = "Đã xảy ra lỗi khi thêm bản sao sách. Vui lòng thử lại." });
@@ -121,6 +129,10 @@ namespace LibraryManagement.API.Controllers
                 ex.InnerException?.Message.Contains("Violation of UNIQUE KEY") == true)
             {
                 return Conflict(new { message = "Barcode đã tồn tại trong hệ thống. Vui lòng kiểm tra lại." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception)
             {

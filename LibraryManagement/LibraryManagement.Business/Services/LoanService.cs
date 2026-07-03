@@ -286,13 +286,13 @@ public class LoanService : ILoanService
                 CopyOptions = d.Status == PendingStatus
                     ? d.Copy.Book.BookCopies
                         .Where(c => c.Status == AvailableStatus || c.CopyId == d.CopyId)
-                        .OrderBy(c => c.Location)
+                        .OrderBy(c => c.ShelfSlot != null ? c.ShelfSlot.SlotCode : string.Empty)
                         .ThenBy(c => c.Barcode)
                         .Select(c => new LoanCopyOptionDto
                         {
                             CopyId = c.CopyId,
                             Barcode = c.Barcode,
-                            Location = c.Location,
+                            SlotLocation = c.ShelfSlot != null ? c.ShelfSlot.SlotCode : null,
                             Status = c.Status
                         })
                         .ToList()

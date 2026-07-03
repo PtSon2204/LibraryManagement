@@ -1,0 +1,84 @@
+@model LibraryManagement.MVC.ViewModels.Shelf.BookshelfFormViewModel
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-plus-circle-fill text-primary me-2"></i>Thêm giá sách mới
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="createBookshelfForm" novalidate>
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <div class="row g-3">
+
+            <!-- Tầng -->
+            <div class="col-12">
+                <label class="form-label fw-medium">Tầng <span class="text-danger">*</span></label>
+                <select name="FloorId" class="form-select" required>
+                    <option value="">-- Chọn tầng --</option>
+                    @foreach (var f in Model.Floors.OrderBy(x => x.FloorNumber))
+                    {
+                        <option value="@f.FloorId">@f.FloorName</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Mã giá -->
+            <div class="col-md-4">
+                <label class="form-label fw-medium">Mã giá <span class="text-danger">*</span></label>
+                <input name="ShelfCode" class="form-control" placeholder="VD: A, B, C..." maxlength="50" required />
+                <div class="form-text">Mã duy nhất trong tầng</div>
+            </div>
+
+            <!-- Tên giá -->
+            <div class="col-md-8">
+                <label class="form-label fw-medium">Tên giá sách <span class="text-danger">*</span></label>
+                <input name="Name" class="form-control" placeholder="VD: Giá A - Khoa học..." maxlength="100" required />
+            </div>
+
+            <!-- Mô tả -->
+            <div class="col-12">
+                <label class="form-label fw-medium">Mô tả</label>
+                <textarea name="Description" class="form-control" rows="2"
+                          placeholder="Ghi chú thêm về giá sách này..."></textarea>
+            </div>
+
+            <!-- Thể loại sách -->
+            <div class="col-12">
+                <label class="form-label fw-medium">Thể loại sách chứa trong giá</label>
+                @if (!Model.AllCategories.Any())
+                {
+                    <p class="text-muted small fst-italic mb-0">Chưa có thể loại nào trong hệ thống.</p>
+                }
+                else
+                {
+                    <div class="border rounded-3 p-3" style="max-height:180px; overflow-y:auto">
+                        <div class="row g-2">
+                            @foreach (var cat in Model.AllCategories)
+                            {
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="CategoryIds" value="@cat.CategoryId"
+                                               id="cat_new_@cat.CategoryId" />
+                                        <label class="form-check-label small" for="cat_new_@cat.CategoryId">
+                                            @cat.CategoryName
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-save me-1"></i>Lưu
+        </button>
+    </div>
+</form>

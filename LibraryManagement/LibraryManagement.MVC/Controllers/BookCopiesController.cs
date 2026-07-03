@@ -10,11 +10,13 @@ namespace LibraryManagement.MVC.Controllers
     {
         private readonly IBookCopyService _bookCopyService;
         private readonly IBookService _bookService;
+        private readonly IShelfService _shelfService;
 
-        public BookCopiesController(IBookCopyService bookCopyService, IBookService bookService)
+        public BookCopiesController(IBookCopyService bookCopyService, IBookService bookService, IShelfService shelfService)
         {
             _bookCopyService = bookCopyService;
             _bookService     = bookService;
+            _shelfService    = shelfService;
         }
 
         // ── INDEX ──────────────────────────────────────────────────────────────────
@@ -55,6 +57,8 @@ namespace LibraryManagement.MVC.Controllers
                 BookTitle = book?.Title ?? string.Empty,
                 Status    = "Available"
             };
+            
+            ViewBag.Slots = await _shelfService.GetAllSlotsAsync();
             return PartialView("_Create", model);
         }
 
@@ -84,6 +88,8 @@ namespace LibraryManagement.MVC.Controllers
                 Quantity  = 5,
                 Status    = "Available"
             };
+            
+            ViewBag.Slots = await _shelfService.GetAllSlotsAsync();
             return PartialView("_Generate", model);
         }
 
@@ -115,8 +121,10 @@ namespace LibraryManagement.MVC.Controllers
                 BookTitle = copy.BookTitle,
                 Barcode   = copy.Barcode,
                 Status    = copy.Status,
-                Location  = copy.Location
+                ShelfSlotId = copy.ShelfSlotId
             };
+            
+            ViewBag.Slots = await _shelfService.GetAllSlotsAsync();
             return PartialView("_Edit", model);
         }
 
