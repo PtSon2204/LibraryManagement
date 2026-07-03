@@ -13,11 +13,14 @@ public partial class BookCopy
 
     public string Status { get; set; } = null!;
 
-    public string? Location { get; set; }
+    /// <summary>FK đến ShelfSlot — ô kệ vật lý chứa bản sao này (nullable)</summary>
+    public Guid? ShelfSlotId { get; set; }
 
     public DateOnly AddedDate { get; set; }
 
     public virtual Book Book { get; set; } = null!;
+
+    public virtual ShelfSlot? ShelfSlot { get; set; }
 
     public virtual LoanDetail? LoanDetail { get; set; }
 }

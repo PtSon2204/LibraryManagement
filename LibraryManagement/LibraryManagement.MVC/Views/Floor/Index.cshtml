@@ -1,0 +1,251 @@
+@model List<LibraryManagement.MVC.ViewModels.Shelf.FloorViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý Tầng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .floor-hero {
+        background: linear-gradient(135deg, #2d5282 0%, #1e3a5f 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        color: white;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+    .floor-card {
+        border: none;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        transition: transform .2s, box-shadow .2s;
+        height: 100%;
+    }
+    .floor-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 28px rgba(0,0,0,0.14);
+    }
+    .floor-card-header {
+        background: #f8f9fa;
+        padding: 16px;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 14px 14px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .floor-number-badge {
+        background: #1e3a5f;
+        color: white;
+        font-weight: 800;
+        font-size: 1.2rem;
+        padding: 6px 14px;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="floor-hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h4 class="fw-bold mb-1">
+                <i class="bi bi-layers me-2"></i>Quản lý Tầng Thư Viện
+            </h4>
+            <small class="opacity-75">
+                Tổng cộng @Model.Count tầng
+            </small>
+        </div>
+        <button class="btn btn-light fw-semibold px-4" onclick="openCreateModal()">
+            <i class="bi bi-plus-lg me-1"></i> Thêm tầng mới
+        </button>
+    </div>
+</div>
+
+<!-- TempData alerts -->
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="text-center p-5 bg-white rounded-4 shadow-sm text-muted">
+        <i class="bi bi-layers" style="font-size: 3rem; opacity: 0.3;"></i>
+        <p class="mt-3 fw-medium">Chưa có dữ liệu tầng nào.</p>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var floor in Model.OrderBy(f => f.FloorNumber))
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card floor-card">
+                    <div class="floor-card-header">
+                        <span class="floor-number-badge">Số @floor.FloorNumber</span>
+                        <span class="badge bg-primary">@floor.TotalBookshelves Giá sách</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="fw-bold text-dark">@floor.FloorName</h5>
+                        <p class="text-muted small mb-4" style="min-height:40px;">
+                            @(string.IsNullOrEmpty(floor.Description) ? "Không có mô tả" : floor.Description)
+                        </p>
+                        
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm flex-fill"
+                                    onclick="openEditModal('@floor.FloorId')">
+                                <i class="bi bi-pencil me-1"></i>Sửa
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm"
+                                    onclick="confirmDelete('@floor.FloorId', '@floor.FloorName')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- ════════════════ MODALS ════════════════ -->
+<div class="modal fade" id="floorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg" id="floorModalContent">
+            <div class="d-flex justify-content-center py-5">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <span style="font-size:3rem">🗑️</span>
+                </div>
+                <h5 class="fw-bold mb-1">Xóa tầng?</h5>
+                <p class="text-muted mb-4">
+                    Bạn có chắc muốn xóa tầng <strong id="deleteFloorName"></strong>?
+                    <br><small class="text-danger">Lưu ý: Không thể xóa nếu tầng đang chứa giá sách.</small>
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-danger px-4" id="btnConfirmDelete" onclick="executeDelete()">
+                        <i class="bi bi-trash me-1"></i>Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+    <div id="floorToast" class="toast align-items-center border-0" role="alert" aria-live="assertive">
+        <div class="d-flex">
+            <div class="toast-body fw-medium" id="floorToastBody"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    var _deleteId = null;
+    var floorModal  = new bootstrap.Modal(document.getElementById('floorModal'));
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    var floorToastEl = document.getElementById('floorToast');
+    var floorToast   = new bootstrap.Toast(floorToastEl, { delay: 3500 });
+
+    function showToast(msg, ok) {
+        floorToastEl.classList.remove('bg-success', 'bg-danger', 'text-white');
+        floorToastEl.classList.add(ok ? 'bg-success' : 'bg-danger', 'text-white');
+        document.getElementById('floorToastBody').textContent = msg;
+        floorToast.show();
+    }
+
+    function openCreateModal() {
+        var el = document.getElementById('floorModalContent');
+        el.innerHTML = '<div class="d-flex justify-content-center py-5"><div class="spinner-border text-primary"></div></div>';
+        floorModal.show();
+        fetch('@Url.Action("GetCreateForm", "Floor")')
+            .then(r => r.text())
+            .then(html => { el.innerHTML = html; bindForm('createFloorForm', '@Url.Action("Create","Floor")'); });
+    }
+
+    function openEditModal(id) {
+        var el = document.getElementById('floorModalContent');
+        el.innerHTML = '<div class="d-flex justify-content-center py-5"><div class="spinner-border text-primary"></div></div>';
+        floorModal.show();
+        fetch('@Url.Action("GetEditForm", "Floor")?id=' + id)
+            .then(r => r.text())
+            .then(html => { el.innerHTML = html; bindForm('editFloorForm', '@Url.Action("Edit","Floor")'); });
+    }
+
+    function bindForm(formId, action) {
+        var form = document.getElementById(formId);
+        if (!form) return;
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var btn = form.querySelector('button[type=submit]');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...'; }
+
+            var data = new FormData(form);
+            var token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            var resp = await fetch(action, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token ?? '' },
+                body: data
+            });
+            var result = await resp.json();
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-save me-1"></i>Lưu'; }
+
+            if (result.success) {
+                floorModal.hide();
+                showToast(result.message, true);
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast(result.message, false);
+            }
+        });
+    }
+
+    function confirmDelete(id, name) {
+        _deleteId = id;
+        document.getElementById('deleteFloorName').textContent = name;
+        deleteModal.show();
+    }
+
+    async function executeDelete() {
+        if (!_deleteId) return;
+        var btn = document.getElementById('btnConfirmDelete');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xóa...';
+
+        var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+        var resp  = await fetch('@Url.Action("Delete","Floor")?id=' + _deleteId, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token }
+        });
+        var result = await resp.json();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-trash me-1"></i>Xóa';
+        deleteModal.hide();
+
+        if (result.success) {
+            showToast(result.message, true);
+            setTimeout(() => location.reload(), 1200);
+        } else {
+            showToast(result.message, false);
+        }
+    }
+</script>
+@Html.AntiForgeryToken()
+}

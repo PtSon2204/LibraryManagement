@@ -41,6 +41,16 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<Reservation> Reservations { get; set; }
     public virtual DbSet<Room> Rooms { get; set; }
 
+    public virtual DbSet<Floor> Floors { get; set; }
+
+    public virtual DbSet<Bookshelf> Bookshelves { get; set; }
+
+    public virtual DbSet<BookshelfCategory> BookshelfCategories { get; set; }
+
+    public virtual DbSet<Shelf> Shelves { get; set; }
+
+    public virtual DbSet<ShelfSlot> ShelfSlots { get; set; }
+
     // --- Bảng mới thay thế Users + Roles ---
     public virtual DbSet<Reader> Readers { get; set; }
 
@@ -120,6 +130,7 @@ public partial class ApplicationDbContext : DbContext
 
             entity.HasIndex(e => e.BookId, "IX_BookCopies_BookId");
             entity.HasIndex(e => e.Status, "IX_BookCopies_Status");
+            entity.HasIndex(e => e.ShelfSlotId, "IX_BookCopies_ShelfSlotId");
             entity.HasIndex(e => e.Barcode, "UQ__BookCopi__177800D33A29574E").IsUnique();
 
             entity.Property(e => e.CopyId).HasDefaultValueSql("(newsequentialid())");
@@ -127,7 +138,6 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Barcode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.Location).HasMaxLength(100);
             entity.Property(e => e.Status)
                 .HasMaxLength(30)
                 .HasDefaultValue("Available");
@@ -136,6 +146,12 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_BookCopies_Books");
+
+            // FK → ShelfSlot (nullable — bản sao chưa xếp kệ thì null)
+            entity.HasOne(d => d.ShelfSlot).WithMany(p => p.BookCopies)
+                .HasForeignKey(d => d.ShelfSlotId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_BookCopies_ShelfSlots");
         });
 
         // ── Categories ────────────────────────────────────────────────────────
@@ -416,6 +432,90 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.RoomId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Reservations_Rooms");
+        });
+
+        // ── Floors ───────────────────────────────────────────────────────────
+        modelBuilder.Entity<Floor>(entity =>
+        {
+            entity.HasKey(e => e.FloorId);
+
+            entity.HasIndex(e => e.FloorNumber, "UQ_Floors_FloorNumber").IsUnique();
+
+            entity.Property(e => e.FloorId).HasDefaultValueSql("(newsequentialid())");
+            entity.Property(e => e.FloorName).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+        });
+
+        // ── Bookshelves ──────────────────────────────────────────────────────
+        modelBuilder.Entity<Bookshelf>(entity =>
+        {
+            entity.HasKey(e => e.BookshelfId);
+
+            entity.HasIndex(e => new { e.FloorId, e.ShelfCode }, "UQ_Bookshelves_FloorShelfCode").IsUnique();
+
+            entity.Property(e => e.BookshelfId).HasDefaultValueSql("(newsequentialid())");
+            entity.Property(e => e.ShelfCode).HasMaxLength(50);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+
+            entity.HasOne(d => d.Floor).WithMany(p => p.Bookshelves)
+                .HasForeignKey(d => d.FloorId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Bookshelves_Floors");
+        });
+
+        // ── BookshelfCategories ──────────────────────────────────────────────
+        modelBuilder.Entity<BookshelfCategory>(entity =>
+        {
+            entity.HasKey(e => new { e.BookshelfId, e.CategoryId });
+
+            entity.HasOne(e => e.Bookshelf)
+                .WithMany(b => b.BookshelfCategories)
+                .HasForeignKey(e => e.BookshelfId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_BookshelfCategories_Bookshelves");
+
+            entity.HasOne(e => e.Category)
+                .WithMany(c => c.BookshelfCategories)
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_BookshelfCategories_Categories");
+        });
+
+        // ── Shelves ──────────────────────────────────────────────────────────
+        modelBuilder.Entity<Shelf>(entity =>
+        {
+            entity.HasKey(e => e.ShelfId);
+
+            entity.HasIndex(e => new { e.BookshelfId, e.ShelfNumber }, "UQ_Shelves_BookshelfShelfNumber").IsUnique();
+
+            entity.Property(e => e.ShelfId).HasDefaultValueSql("(newsequentialid())");
+            entity.Property(e => e.Name).HasMaxLength(100);
+
+            entity.HasOne(d => d.Bookshelf).WithMany(p => p.Shelves)
+                .HasForeignKey(d => d.BookshelfId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Shelves_Bookshelves");
+        });
+
+        // ── ShelfSlots ───────────────────────────────────────────────────────
+        modelBuilder.Entity<ShelfSlot>(entity =>
+        {
+            entity.HasKey(e => e.SlotId);
+
+            entity.HasIndex(e => new { e.ShelfId, e.SlotCode }, "UQ_ShelfSlots_ShelfSlotCode").IsUnique();
+
+            entity.Property(e => e.SlotId).HasDefaultValueSql("(newsequentialid())");
+            entity.Property(e => e.SlotCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Capacity).HasDefaultValue(10);
+            entity.Property(e => e.Description).HasMaxLength(500);
+
+            entity.HasOne(d => d.Shelf).WithMany(p => p.ShelfSlots)
+                .HasForeignKey(d => d.ShelfId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_ShelfSlots_Shelves");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -107,6 +107,12 @@ namespace LibraryManagement.MVC.Extensions
                 x.BaseAddress = new Uri(apiUrl);
             });
 
+            services.AddHttpClient<IShelfService, ShelfService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            })
+            .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
+
             return services;
         }
     }

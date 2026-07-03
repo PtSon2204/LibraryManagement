@@ -8,7 +8,7 @@ namespace LibraryManagement.Data.Repositories
     {
         private readonly DbSet<T> _dbSet;
 
-        public Repository(ApplicationDbContext context)
+        public Repository(ApplicationDbContext context)     
         {
             _dbSet = context.Set<T>();
         }

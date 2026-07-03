@@ -26,6 +26,13 @@ namespace LibraryManagement.Data.UnitOfWorks
         IRepository<Publisher> Publishers { get; }
         IRepository<Category> Categories { get; }
 
+        // Shelf management
+        IRepository<Floor> Floors { get; }
+        IRepository<Bookshelf> Bookshelves { get; }
+        IRepository<BookshelfCategory> BookshelfCategories { get; }
+        IRepository<Shelf> Shelves { get; }
+        IRepository<ShelfSlot> ShelfSlots { get; }
+
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -13,6 +13,15 @@ namespace LibraryManagement.Data
 
             await context.Database.MigrateAsync();
 
+            if (!await context.Floors.AnyAsync())
+            {
+                context.Floors.AddRange(
+                    new Floor { FloorId = Guid.NewGuid(), FloorNumber = 1, FloorName = "Tầng 1", Description = "Khu vực đọc sách và mượn trả" },
+                    new Floor { FloorId = Guid.NewGuid(), FloorNumber = 2, FloorName = "Tầng 2", Description = "Khu vực sách chuyên ngành và tự học" }
+                );
+                await context.SaveChangesAsync();
+            }
+
             await EnsureOperationalSeedDataAsync(context);
 
             // Chỉ seed nếu chưa có dữ liệu
@@ -192,7 +201,6 @@ namespace LibraryManagement.Data
                     BookId = book.BookId,
                     Barcode = $"BC-{book.ISBN ?? book.BookId.ToString()[..8]}-01",
                     Status = "Available",
-                    Location = "Kệ A1",
                     AddedDate = DateOnly.FromDateTime(DateTime.Today)
                 });
                 copies.Add(new BookCopy
@@ -200,7 +208,6 @@ namespace LibraryManagement.Data
                     BookId = book.BookId,
                     Barcode = $"BC-{book.ISBN ?? book.BookId.ToString()[..8]}-02",
                     Status = "Available",
-                    Location = "Kệ A2",
                     AddedDate = DateOnly.FromDateTime(DateTime.Today)
                 });
             }

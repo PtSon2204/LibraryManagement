@@ -83,7 +83,7 @@ namespace LibraryManagement.MVC.Services
                 model.BookId,
                 model.Barcode,
                 model.Status,
-                model.Location,
+                model.ShelfSlotId,
                 model.AddedDate
             };
 
@@ -109,7 +109,7 @@ namespace LibraryManagement.MVC.Services
                 {
                     Barcode   = $"{model.BarcodePrefix}{n.ToString().PadLeft(padWidth, '0')}",
                     Status    = model.Status,
-                    Location  = model.Location,
+                    ShelfSlotId = model.ShelfSlotId,
                     AddedDate = (DateOnly?)null
                 }).ToList();
 
@@ -130,7 +130,7 @@ namespace LibraryManagement.MVC.Services
                 model.CopyId,
                 model.Barcode,
                 model.Status,
-                model.Location
+                model.ShelfSlotId
             };
 
             var content  = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
@@ -165,7 +165,8 @@ namespace LibraryManagement.MVC.Services
             BookTitle = dto.BookTitle,
             Barcode   = dto.Barcode,
             Status    = dto.Status,
-            Location  = dto.Location,
+            Location  = dto.SlotLocation,
+            ShelfSlotId = dto.ShelfSlotId,
             AddedDate = dto.AddedDate
         };
 
@@ -189,7 +190,8 @@ namespace LibraryManagement.MVC.Services
             public string BookTitle { get; set; } = null!;
             public string Barcode { get; set; } = null!;
             public string Status { get; set; } = null!;
-            public string? Location { get; set; }
+            public Guid? ShelfSlotId { get; set; }
+            public string? SlotLocation { get; set; }
             public DateOnly AddedDate { get; set; }
         }
 

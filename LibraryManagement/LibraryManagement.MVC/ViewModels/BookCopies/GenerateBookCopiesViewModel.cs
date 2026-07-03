@@ -23,8 +23,7 @@ namespace LibraryManagement.MVC.ViewModels.BookCopies
         [StringLength(10)]
         public string StartNumber { get; set; } = "0001";
 
-        [StringLength(200)]
-        public string? Location { get; set; }
+        public Guid? ShelfSlotId { get; set; }
 
         public string Status { get; set; } = "Available";
     }

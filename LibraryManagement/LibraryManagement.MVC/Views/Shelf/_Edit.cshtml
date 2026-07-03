@@ -1,0 +1,97 @@
+@model LibraryManagement.MVC.ViewModels.Shelf.BookshelfFormViewModel
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-pencil-square text-warning me-2"></i>Chỉnh sửa giá sách
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="editBookshelfForm" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="BookshelfId" value="@Model.BookshelfId" />
+
+    <div class="modal-body">
+        <div class="row g-3">
+
+            <!-- Tầng (readonly khi edit) -->
+            <div class="col-12">
+                <label class="form-label fw-medium">Tầng</label>
+                <select name="FloorId" class="form-select" disabled>
+                    @foreach (var f in Model.Floors.OrderBy(x => x.FloorNumber))
+                    {
+                        if (f.FloorId == Model.FloorId)
+                        {
+                            <option value="@f.FloorId" selected>@f.FloorName</option>
+                        }
+                        else
+                        {
+                            <option value="@f.FloorId">@f.FloorName</option>
+                        }
+                    }
+                </select>
+                <!-- Hidden để vẫn submit -->
+                <input type="hidden" name="FloorId" value="@Model.FloorId" />
+                <div class="form-text">Không thể thay đổi tầng sau khi tạo.</div>
+            </div>
+
+            <!-- Mã giá -->
+            <div class="col-md-4">
+                <label class="form-label fw-medium">Mã giá <span class="text-danger">*</span></label>
+                <input name="ShelfCode" class="form-control" value="@Model.ShelfCode"
+                       maxlength="50" required />
+            </div>
+
+            <!-- Tên giá -->
+            <div class="col-md-8">
+                <label class="form-label fw-medium">Tên giá sách <span class="text-danger">*</span></label>
+                <input name="Name" class="form-control" value="@Model.Name"
+                       maxlength="100" required />
+            </div>
+
+            <!-- Mô tả -->
+            <div class="col-12">
+                <label class="form-label fw-medium">Mô tả</label>
+                <textarea name="Description" class="form-control" rows="2">@Model.Description</textarea>
+            </div>
+
+            <!-- Thể loại -->
+            <div class="col-12">
+                <label class="form-label fw-medium">Thể loại sách chứa trong giá</label>
+                @if (!Model.AllCategories.Any())
+                {
+                    <p class="text-muted small fst-italic mb-0">Chưa có thể loại nào.</p>
+                }
+                else
+                {
+                    <div class="border rounded-3 p-3" style="max-height:180px; overflow-y:auto">
+                        <div class="row g-2">
+                            @foreach (var cat in Model.AllCategories)
+                            {
+                                bool isChecked = Model.CategoryIds.Contains(cat.CategoryId);
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="CategoryIds" value="@cat.CategoryId"
+                                               id="cat_edit_@cat.CategoryId"
+                                               @(isChecked ? "checked" : "") />
+                                        <label class="form-check-label small" for="cat_edit_@cat.CategoryId">
+                                            @cat.CategoryName
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn btn-warning px-4 text-white fw-semibold">
+            <i class="bi bi-save me-1"></i>Cập nhật
+        </button>
+    </div>
+</form>

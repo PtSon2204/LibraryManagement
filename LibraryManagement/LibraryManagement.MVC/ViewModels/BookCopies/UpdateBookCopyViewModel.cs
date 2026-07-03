@@ -16,7 +16,6 @@ namespace LibraryManagement.MVC.ViewModels.BookCopies
         [Required]
         public string Status { get; set; } = null!;
 
-        [StringLength(200)]
-        public string? Location { get; set; }
+        public Guid? ShelfSlotId { get; set; }
     }
 }

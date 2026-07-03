@@ -1,0 +1,35 @@
+@model LibraryManagement.MVC.ViewModels.Shelf.FloorFormViewModel
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-plus-circle-fill text-primary me-2"></i>Thêm tầng mới
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="createFloorForm" novalidate>
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-medium">Số tầng <span class="text-danger">*</span></label>
+                <input type="number" name="FloorNumber" class="form-control" required />
+            </div>
+            <div class="col-md-8">
+                <label class="form-label fw-medium">Tên tầng <span class="text-danger">*</span></label>
+                <input name="FloorName" class="form-control" placeholder="VD: Tầng 1..." maxlength="100" required />
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-medium">Mô tả</label>
+                <textarea name="Description" class="form-control" rows="3"
+                          placeholder="Mô tả khu vực..."></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-save me-1"></i>Lưu
+        </button>
+    </div>
+</form>

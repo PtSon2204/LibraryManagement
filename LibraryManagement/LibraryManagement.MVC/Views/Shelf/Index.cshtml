@@ -1,0 +1,506 @@
+@model LibraryManagement.MVC.ViewModels.Shelf.ShelfIndexViewModel
+
+@{
+    ViewData["Title"] = "Quản lý Giá Sách";
+    Layout = User.IsInRole("Admin") ? "~/Views/Shared/_AdminLayout.cshtml" : "~/Views/Shared/_LibrarianLayout.cshtml";
+    bool isAdmin = User.IsInRole("Admin");
+}
+
+<style>
+    .shelf-hero {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d6a4f 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        color: white;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+    .shelf-hero::before {
+        content: '';
+        position: absolute;
+        top: -40px; right: -40px;
+        width: 200px; height: 200px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+    .floor-section {
+        margin-bottom: 36px;
+    }
+    .floor-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    .floor-badge {
+        background: linear-gradient(135deg, #1e3a5f, #2d6a4f);
+        color: white;
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+    /* ── Bookshelf Card ─────────────────── */
+    .bookshelf-card {
+        border: none;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        transition: transform .2s, box-shadow .2s;
+        height: 100%;
+        overflow: hidden;
+    }
+    .bookshelf-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 28px rgba(0,0,0,0.14);
+    }
+    .bookshelf-card .card-header {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d6a4f 100%);
+        color: white;
+        padding: 16px 18px 12px;
+        border-bottom: none;
+    }
+    .shelf-code-badge {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        font-weight: 800;
+        font-size: 1.1rem;
+        padding: 4px 12px;
+        border-radius: 8px;
+        display: inline-block;
+    }
+    .availability-bar {
+        height: 6px;
+        border-radius: 3px;
+        background: #e9ecef;
+        overflow: hidden;
+        margin-top: 6px;
+    }
+    .availability-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width .5s;
+    }
+    .stat-pill {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 8px 12px;
+        text-align: center;
+        flex: 1;
+    }
+    .stat-pill .num {
+        font-size: 1.25rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+    .stat-pill .lbl {
+        font-size: 0.7rem;
+        color: #6c757d;
+        margin-top: 2px;
+    }
+    .cat-tag {
+        background: #eef2ff;
+        color: #4361ee;
+        border-radius: 20px;
+        padding: 2px 10px;
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+    /* Availability status badge */
+    .avail-badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+    }
+    .avail-badge.success { background:#d1fae5; color:#065f46; }
+    .avail-badge.warning { background:#fef9c3; color:#92400e; }
+    .avail-badge.danger  { background:#fee2e2; color:#991b1b; }
+
+    /* Filter bar */
+    .filter-card { border: none; box-shadow: 0 1px 8px rgba(0,0,0,.07); border-radius: 12px; }
+
+    /* Empty state */
+    .empty-floor {
+        padding: 32px;
+        text-align: center;
+        background: #f8f9fa;
+        border-radius: 12px;
+        color: #6c757d;
+    }
+
+    /* Action buttons on card */
+    .card-actions { opacity: 0; transition: opacity .2s; }
+    .bookshelf-card:hover .card-actions { opacity: 1; }
+    @@media (max-width: 576px) { .card-actions { opacity: 1; } }
+</style>
+
+<!-- ── Hero Header ──────────────────────────────────────────────────────────── -->
+<div class="shelf-hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h4 class="fw-bold mb-1">
+                <i class="bi bi-bookshelf me-2"></i>Quản lý Giá Sách
+            </h4>
+            <small class="opacity-75">
+                @{
+                    int totalBookshelves = Model.Floors.Sum(f => f.Bookshelves.Count);
+                    int totalAvail = Model.Floors.Sum(f => f.Bookshelves.Count(b => b.HasAvailableSpace));
+                }
+                @totalBookshelves giá sách — @totalAvail còn trống
+            </small>
+        </div>
+        @if (isAdmin)
+        {
+            <button id="btnAddBookshelf" class="btn btn-light fw-semibold px-4" onclick="openCreateModal()">
+                <i class="bi bi-plus-lg me-1"></i> Thêm giá sách
+            </button>
+        }
+    </div>
+</div>
+
+<!-- ── TempData alerts ──────────────────────────────────────────────────────── -->
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- ── Filter Bar ───────────────────────────────────────────────────────────── -->
+<div class="card filter-card mb-4">
+    <div class="card-body p-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            <div class="col-md-4 col-lg-3">
+                <select name="floorId" class="form-select form-select-sm" id="filterFloor">
+                    <option value="">-- Tất cả tầng --</option>
+                    @foreach (var floor in Model.AllFloors.OrderBy(f => f.FloorNumber))
+                    {
+                        if (Model.FilterFloorId == floor.FloorId)
+                        {
+                            <option value="@floor.FloorId" selected>@floor.FloorName</option>
+                        }
+                        else
+                        {
+                            <option value="@floor.FloorId">@floor.FloorName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <select name="availability" class="form-select form-select-sm" id="filterAvail">
+                    <option value="">-- Tình trạng chỗ trống --</option>
+                    @if (Model.FilterAvailability == "available")
+                    {
+                        <option value="available" selected>✅ Còn trống</option>
+                    }
+                    else
+                    {
+                        <option value="available">✅ Còn trống</option>
+                    }
+                    
+                    @if (Model.FilterAvailability == "full")
+                    {
+                        <option value="full" selected>🔴 Gần đầy / Đầy</option>
+                    }
+                    else
+                    {
+                        <option value="full">🔴 Gần đầy / Đầy</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm px-3">
+                    <i class="bi bi-funnel me-1"></i>Lọc
+                </button>
+                @if (Model.FilterFloorId.HasValue || !string.IsNullOrEmpty(Model.FilterAvailability))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3">
+                        <i class="bi bi-x-lg"></i> Xóa lọc
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── Content ──────────────────────────────────────────────────────────────── -->
+@if (!Model.Floors.Any())
+{
+    <div class="empty-floor">
+        <i class="bi bi-bookshelf" style="font-size:3rem; opacity:.3"></i>
+        <p class="mt-3 mb-0 fw-medium">Không có giá sách nào khớp với bộ lọc.</p>
+    </div>
+}
+else
+{
+    foreach (var floor in Model.Floors.OrderBy(f => f.FloorNumber))
+    {
+        <div class="floor-section">
+            <div class="floor-header">
+                <span class="floor-badge">
+                    <i class="bi bi-layers me-1"></i>@floor.FloorName
+                </span>
+                <span class="text-muted small">@floor.Bookshelves.Count giá sách</span>
+                @if (!string.IsNullOrEmpty(floor.Description))
+                {
+                    <span class="text-muted small fst-italic">— @floor.Description</span>
+                }
+            </div>
+
+            @if (!floor.Bookshelves.Any())
+            {
+                <div class="empty-floor">
+                    <i class="bi bi-box-seam" style="font-size:2rem; opacity:.3"></i>
+                    <p class="mt-2 mb-0 small">Tầng này chưa có giá sách nào.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var bs in floor.Bookshelves.OrderBy(b => b.ShelfCode))
+                    {
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <div class="card bookshelf-card">
+                                <!-- Card Header -->
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="shelf-code-badge">@bs.ShelfCode</span>
+                                        <span class="avail-badge @bs.StatusColor">@bs.StatusLabel</span>
+                                    </div>
+                                    <div class="fw-bold" style="font-size:1rem">@bs.Name</div>
+                                    <!-- Occupancy bar -->
+                                    <div class="availability-bar mt-2">
+                                        <div class="availability-fill bg-@(bs.StatusColor == "danger" ? "danger" : bs.StatusColor == "warning" ? "warning" : "success")"
+                                             style="width:@(bs.TotalCapacity == 0 ? 0 : bs.OccupancyRate)%">
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1" style="font-size:.72rem; opacity:.8">
+                                        <span>@bs.TotalUsed / @bs.TotalCapacity cuốn</span>
+                                        <span>@bs.OccupancyRate%</span>
+                                    </div>
+                                </div>
+
+                                <!-- Card Body -->
+                                <div class="card-body p-3">
+                                    <!-- Stats -->
+                                    <div class="d-flex gap-2 mb-3">
+                                        <div class="stat-pill">
+                                            <div class="num text-success">@bs.TotalFree</div>
+                                            <div class="lbl">Chỗ trống</div>
+                                        </div>
+                                        <div class="stat-pill">
+                                            <div class="num text-primary">@bs.TotalShelves</div>
+                                            <div class="lbl">Số kệ</div>
+                                        </div>
+                                        <div class="stat-pill">
+                                            <div class="num text-secondary">@bs.TotalCapacity</div>
+                                            <div class="lbl">Tổng chỗ</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Categories -->
+                                    @if (bs.Categories.Any())
+                                    {
+                                        <div class="d-flex flex-wrap gap-1 mb-3">
+                                            @foreach (var cat in bs.Categories.Take(3))
+                                            {
+                                                <span class="cat-tag">@cat.CategoryName</span>
+                                            }
+                                            @if (bs.Categories.Count > 3)
+                                            {
+                                                <span class="cat-tag">+@(bs.Categories.Count - 3)</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted small mb-3 fst-italic">Chưa gán thể loại</p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(bs.Description))
+                                    {
+                                        <p class="text-muted small mb-2" style="font-size:.78rem">
+                                            @bs.Description
+                                        </p>
+                                    }
+
+                                    <!-- Admin actions -->
+                                    <div class="d-flex gap-2 mt-auto pt-3">
+                                        <a href="/Shelf/Details/@bs.BookshelfId" class="btn btn-primary btn-sm flex-fill text-white fw-medium">
+                                            <i class="bi bi-gear me-1"></i> Quản lý
+                                        </a>
+                                        @if (isAdmin)
+                                        {
+                                            <button class="btn btn-outline-secondary btn-sm px-3"
+                                                    onclick="openEditModal('@bs.BookshelfId')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm px-3"
+                                                    onclick="confirmDelete('@bs.BookshelfId', '@bs.Name')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+}
+
+<!-- ════════════════ MODALS (Admin only) ════════════════ -->
+@if (isAdmin)
+{
+    <!-- Create / Edit modal -->
+    <div class="modal fade" id="bookshelfModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg" id="bookshelfModalContent">
+                <div class="d-flex justify-content-center py-5">
+                    <div class="spinner-border text-primary"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete confirm modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <span style="font-size:3rem">🗑️</span>
+                    </div>
+                    <h5 class="fw-bold mb-1">Xóa giá sách?</h5>
+                    <p class="text-muted mb-4">
+                        Bạn có chắc muốn xóa giá sách <strong id="deleteBookshelfName"></strong>?
+                        <br><small class="text-danger">Thao tác này sẽ xóa toàn bộ kệ và ô chứa bên trong.</small>
+                    </p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+                        <button class="btn btn-danger px-4" id="btnConfirmDelete" onclick="executeDelete()">
+                            <i class="bi bi-trash me-1"></i>Xóa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+        <div id="shelfToast" class="toast align-items-center border-0" role="alert" aria-live="assertive">
+            <div class="d-flex">
+                <div class="toast-body fw-medium" id="shelfToastBody"></div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+    var _deleteId = null;
+    var bookshelfModal  = new bootstrap.Modal(document.getElementById('bookshelfModal'));
+    var deleteModal     = document.getElementById('deleteModal') ? new bootstrap.Modal(document.getElementById('deleteModal')) : null;
+    var shelfToastEl    = document.getElementById('shelfToast');
+    var shelfToast      = shelfToastEl ? new bootstrap.Toast(shelfToastEl, { delay: 3500 }) : null;
+
+    function showToast(msg, ok) {
+        if (!shelfToast) return;
+        shelfToastEl.classList.remove('bg-success', 'bg-danger', 'text-white');
+        shelfToastEl.classList.add(ok ? 'bg-success' : 'bg-danger', 'text-white');
+        document.getElementById('shelfToastBody').textContent = msg;
+        shelfToast.show();
+    }
+
+    // ── Create ────────────────────────────────────────────────────────────────
+    function openCreateModal() {
+        var el = document.getElementById('bookshelfModalContent');
+        el.innerHTML = '<div class="d-flex justify-content-center py-5"><div class="spinner-border text-primary"></div></div>';
+        bookshelfModal.show();
+        fetch('@Url.Action("GetCreateForm", "Shelf")')
+            .then(r => r.text())
+            .then(html => { el.innerHTML = html; bindForm('createBookshelfForm', '@Url.Action("Create","Shelf")'); });
+    }
+
+    // ── Edit ──────────────────────────────────────────────────────────────────
+    function openEditModal(id) {
+        var el = document.getElementById('bookshelfModalContent');
+        el.innerHTML = '<div class="d-flex justify-content-center py-5"><div class="spinner-border text-primary"></div></div>';
+        bookshelfModal.show();
+        fetch('@Url.Action("GetEditForm", "Shelf")?id=' + id)
+            .then(r => r.text())
+            .then(html => { el.innerHTML = html; bindForm('editBookshelfForm', '@Url.Action("Edit","Shelf")'); });
+    }
+
+    // ── Bind form submit ──────────────────────────────────────────────────────
+    function bindForm(formId, action) {
+        var form = document.getElementById(formId);
+        if (!form) return;
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var btn = form.querySelector('button[type=submit]');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...'; }
+
+            var data = new FormData(form);
+            var token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            var resp = await fetch(action, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token ?? '' },
+                body: data
+            });
+            var result = await resp.json();
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-save me-1"></i>Lưu'; }
+
+            if (result.success) {
+                bookshelfModal.hide();
+                showToast(result.message, true);
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast(result.message, false);
+            }
+        });
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+    function confirmDelete(id, name) {
+        _deleteId = id;
+        document.getElementById('deleteBookshelfName').textContent = name;
+        deleteModal.show();
+    }
+
+    async function executeDelete() {
+        if (!_deleteId) return;
+        var btn = document.getElementById('btnConfirmDelete');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xóa...';
+
+        var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+        var resp  = await fetch('@Url.Action("Delete","Shelf")?id=' + _deleteId, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token }
+        });
+        var result = await resp.json();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-trash me-1"></i>Xóa';
+        deleteModal.hide();
+
+        if (result.success) {
+            showToast(result.message, true);
+            setTimeout(() => location.reload(), 1200);
+        } else {
+            showToast(result.message, false);
+        }
+    }
+</script>
+@Html.AntiForgeryToken()
+}

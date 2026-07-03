@@ -28,21 +28,43 @@ namespace LibraryManagement.Business.Services
 
         private static BookCopyDto MapToDto(BookCopy copy) => new BookCopyDto
         {
-            CopyId    = copy.CopyId,
-            BookId    = copy.BookId,
-            BookTitle = copy.Book?.Title ?? string.Empty,
-            Barcode   = copy.Barcode,
-            Status    = copy.Status,
-            Location  = copy.Location,
-            AddedDate = copy.AddedDate
+            CopyId       = copy.CopyId,
+            BookId       = copy.BookId,
+            BookTitle    = copy.Book?.Title ?? string.Empty,
+            Barcode      = copy.Barcode,
+            Status       = copy.Status,
+            ShelfSlotId  = copy.ShelfSlotId,
+            SlotLocation = BuildSlotLocation(copy.ShelfSlot),
+            AddedDate    = copy.AddedDate
         };
+
+        /// <summary>
+        /// Tạo chuỗi hiển thị vị trí đầy đủ, VD: "Tầng 1 > Giá A > Kệ 2 > S01"
+        /// </summary>
+        private static string? BuildSlotLocation(ShelfSlot? slot)
+        {
+            if (slot == null) return null;
+            var shelf     = slot.Shelf;
+            var bookshelf = shelf?.Bookshelf;
+            var floor     = bookshelf?.Floor;
+            return $"{floor?.FloorName} > {bookshelf?.Name} > {shelf?.Name} > {slot.SlotCode}";
+        }
+
+        // ── Includes helper ───────────────────────────────────────────────────────
+
+        private IQueryable<BookCopy> BaseQuery() =>
+            _unitOfWork.BookCopies.Query()
+                .Include(c => c.Book)
+                .Include(c => c.ShelfSlot)
+                    .ThenInclude(sl => sl != null ? sl.Shelf : null)
+                        .ThenInclude(s => s != null ? s.Bookshelf : null)
+                            .ThenInclude(b => b != null ? b.Floor : null);
 
         // ── GET paged list ────────────────────────────────────────────────────────
 
         public async Task<PagedResult<BookCopyDto>> GetBookCopiesAsync(BookCopyQuery query)
         {
-            IQueryable<BookCopy> dbQuery = _unitOfWork.BookCopies.Query()
-                .Include(c => c.Book);
+            IQueryable<BookCopy> dbQuery = BaseQuery();
 
             // Mặc định ẩn những bản sao đã bị hide
             if (!query.IncludeHidden.GetValueOrDefault())
@@ -64,16 +86,18 @@ namespace LibraryManagement.Business.Services
                 dbQuery = dbQuery.Where(c => c.BookId == query.BookId.Value);
             }
 
-            // Lọc theo Status (chỉ khi không phải filter ẩn)
+            // Lọc theo Status
             if (!string.IsNullOrWhiteSpace(query.Status))
             {
                 dbQuery = dbQuery.Where(c => c.Status == query.Status);
             }
 
-            // Lọc theo Location
+            // Lọc theo SlotId
             if (!string.IsNullOrWhiteSpace(query.Location))
             {
-                dbQuery = dbQuery.Where(c => c.Location != null && c.Location.Contains(query.Location));
+                // Hỗ trợ tìm theo SlotCode (nếu truyền vào chuỗi)
+                dbQuery = dbQuery.Where(c =>
+                    c.ShelfSlot != null && c.ShelfSlot.SlotCode.Contains(query.Location));
             }
 
             int totalCount = await dbQuery.CountAsync();
@@ -83,21 +107,11 @@ namespace LibraryManagement.Business.Services
                 .ThenBy(c => c.Barcode)
                 .Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize)
-                .Select(c => new BookCopyDto
-                {
-                    CopyId    = c.CopyId,
-                    BookId    = c.BookId,
-                    BookTitle = c.Book != null ? c.Book.Title : string.Empty,
-                    Barcode   = c.Barcode,
-                    Status    = c.Status,
-                    Location  = c.Location,
-                    AddedDate = c.AddedDate
-                })
                 .ToListAsync();
 
             return new PagedResult<BookCopyDto>
             {
-                Data         = copies,
+                Data         = copies.Select(MapToDto).ToList(),
                 TotalRecords = totalCount,
                 PageNumber   = query.PageNumber,
                 PageSize     = query.PageSize,
@@ -109,10 +123,8 @@ namespace LibraryManagement.Business.Services
 
         public async Task<BookCopyDto?> GetBookCopyByIdAsync(Guid id)
         {
-            var copy = await _unitOfWork.BookCopies.Query()
-                .Include(c => c.Book)
+            var copy = await BaseQuery()
                 .FirstOrDefaultAsync(c => c.CopyId == id);
-
             return copy == null ? null : MapToDto(copy);
         }
 
@@ -120,22 +132,39 @@ namespace LibraryManagement.Business.Services
 
         public async Task<BookCopyDto> CreateBookCopyAsync(CreateBookCopyDto dto)
         {
+            if (dto.ShelfSlotId.HasValue)
+            {
+                var slot = await _unitOfWork.ShelfSlots.Query()
+                    .Include(s => s.BookCopies)
+                    .FirstOrDefaultAsync(s => s.SlotId == dto.ShelfSlotId.Value);
+
+                if (slot != null)
+                {
+                    int currentCount = slot.BookCopies.Count(bc => bc.Status != HiddenStatus);
+                    int newStatusCount = (dto.Status != HiddenStatus) ? 1 : 0;
+
+                    if (currentCount + newStatusCount > slot.Capacity)
+                    {
+                        throw new InvalidOperationException($"Vị trí lưu trữ {slot.SlotCode} đã đầy (Sức chứa: {slot.Capacity}).");
+                    }
+                }
+            }
+
             var copy = new BookCopy
             {
-                CopyId    = Guid.NewGuid(),
-                BookId    = dto.BookId,
-                Barcode   = dto.Barcode,
-                Status    = dto.Status,
-                Location  = dto.Location,
-                AddedDate = dto.AddedDate ?? DateOnly.FromDateTime(DateTime.UtcNow)
+                CopyId      = Guid.NewGuid(),
+                BookId      = dto.BookId,
+                Barcode     = dto.Barcode,
+                Status      = dto.Status,
+                ShelfSlotId = dto.ShelfSlotId,
+                AddedDate   = dto.AddedDate ?? DateOnly.FromDateTime(DateTime.UtcNow)
             };
 
             await _unitOfWork.BookCopies.AddAsync(copy);
             await _unitOfWork.SaveChangesAsync();
 
-            // Load book để trả về BookTitle
-            var savedCopy = await _unitOfWork.BookCopies.Query()
-                .Include(c => c.Book)
+            // Reload với đầy đủ include để trả về SlotLocation
+            var savedCopy = await BaseQuery()
                 .FirstOrDefaultAsync(c => c.CopyId == copy.CopyId);
 
             return MapToDto(savedCopy!);
@@ -145,37 +174,47 @@ namespace LibraryManagement.Business.Services
 
         public async Task<IEnumerable<BookCopyDto>> CreateMultipleBookCopiesAsync(CreateMultipleBookCopiesDto dto)
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var slotGroups = dto.Copies.Where(c => c.ShelfSlotId.HasValue).GroupBy(c => c.ShelfSlotId!.Value).ToList();
+            foreach (var group in slotGroups)
+            {
+                var slotId = group.Key;
+                var slot = await _unitOfWork.ShelfSlots.Query()
+                    .Include(s => s.BookCopies)
+                    .FirstOrDefaultAsync(s => s.SlotId == slotId);
+                if (slot != null)
+                {
+                    int currentCount = slot.BookCopies.Count(bc => bc.Status != HiddenStatus);
+                    int copiesToAdd = group.Count(c => c.Status != HiddenStatus);
+                    if (currentCount + copiesToAdd > slot.Capacity)
+                    {
+                        throw new InvalidOperationException($"Vị trí lưu trữ {slot.SlotCode} không đủ sức chứa (Trống: {Math.Max(0, slot.Capacity - currentCount)}, Cần thêm: {copiesToAdd}).");
+                    }
+                }
+            }
+
+            var today  = DateOnly.FromDateTime(DateTime.UtcNow);
             var copies = dto.Copies.Select(item => new BookCopy
             {
-                CopyId    = Guid.NewGuid(),
-                BookId    = dto.BookId,
-                Barcode   = item.Barcode,
-                Status    = item.Status,
-                Location  = item.Location,
-                AddedDate = item.AddedDate ?? today
+                CopyId      = Guid.NewGuid(),
+                BookId      = dto.BookId,
+                Barcode     = item.Barcode,
+                Status      = item.Status,
+                ShelfSlotId = item.ShelfSlotId,
+                AddedDate   = item.AddedDate ?? today
             }).ToList();
 
             foreach (var copy in copies)
-            {
                 await _unitOfWork.BookCopies.AddAsync(copy);
-            }
+
             await _unitOfWork.SaveChangesAsync();
 
-            // Load book title để map
-            var book = await _unitOfWork.Books.GetByIdAsync(dto.BookId);
-            string bookTitle = book?.Title ?? string.Empty;
+            // Reload để map đầy đủ
+            var ids    = copies.Select(c => c.CopyId).ToList();
+            var saved  = await BaseQuery()
+                .Where(c => ids.Contains(c.CopyId))
+                .ToListAsync();
 
-            return copies.Select(c => new BookCopyDto
-            {
-                CopyId    = c.CopyId,
-                BookId    = c.BookId,
-                BookTitle = bookTitle,
-                Barcode   = c.Barcode,
-                Status    = c.Status,
-                Location  = c.Location,
-                AddedDate = c.AddedDate
-            });
+            return saved.Select(MapToDto);
         }
 
         // ── UPDATE ────────────────────────────────────────────────────────────────
@@ -185,13 +224,30 @@ namespace LibraryManagement.Business.Services
             var copy = await _unitOfWork.BookCopies.GetByIdAsync(dto.CopyId);
             if (copy == null) return false;
 
-            copy.Barcode  = dto.Barcode;
-            copy.Status   = dto.Status;
-            copy.Location = dto.Location;
+            if (dto.ShelfSlotId.HasValue)
+            {
+                var slot = await _unitOfWork.ShelfSlots.Query()
+                    .Include(s => s.BookCopies)
+                    .FirstOrDefaultAsync(s => s.SlotId == dto.ShelfSlotId.Value);
+
+                if (slot != null)
+                {
+                    int currentCount = slot.BookCopies.Count(bc => bc.Status != HiddenStatus && bc.CopyId != copy.CopyId);
+                    int newStatusCount = (dto.Status != HiddenStatus) ? 1 : 0;
+                    
+                    if (currentCount + newStatusCount > slot.Capacity)
+                    {
+                        throw new InvalidOperationException($"Vị trí lưu trữ {slot.SlotCode} đã đầy (Sức chứa: {slot.Capacity}).");
+                    }
+                }
+            }
+
+            copy.Barcode     = dto.Barcode;
+            copy.Status      = dto.Status;
+            copy.ShelfSlotId = dto.ShelfSlotId;
 
             _unitOfWork.BookCopies.Update(copy);
             await _unitOfWork.SaveChangesAsync();
-
             return true;
         }
 
@@ -207,7 +263,6 @@ namespace LibraryManagement.Business.Services
 
             _unitOfWork.BookCopies.Update(copy);
             await _unitOfWork.SaveChangesAsync();
-
             return true;
         }
 
@@ -220,7 +275,6 @@ namespace LibraryManagement.Business.Services
 
             _unitOfWork.BookCopies.Delete(copy);
             await _unitOfWork.SaveChangesAsync();
-
             return true;
         }
     }

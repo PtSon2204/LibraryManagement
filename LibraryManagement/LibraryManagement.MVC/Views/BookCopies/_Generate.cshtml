@@ -51,10 +51,19 @@
 
         <div class="row g-3 mt-0">
             <div class="col-md-8">
-                <label asp-for="Location" class="form-label fw-semibold">
+                <label asp-for="ShelfSlotId" class="form-label fw-semibold">
                     <i class="bi bi-geo-alt me-1 text-muted"></i>Vị trí lưu trữ
                 </label>
-                <input asp-for="Location" class="form-control" placeholder="VD: Shelf A01" />
+                <select asp-for="ShelfSlotId" class="form-select">
+                    <option value="">-- Chưa xếp vào kệ --</option>
+                    @if (ViewBag.Slots != null)
+                    {
+                        foreach (var slot in (List<LibraryManagement.MVC.ViewModels.Shelf.ShelfSlotViewModel>)ViewBag.Slots)
+                        {
+                            <option value="@slot.SlotId">@slot.DisplayName</option>
+                        }
+                    }
+                </select>
             </div>
             <div class="col-md-4">
                 <label asp-for="Status" class="form-label fw-semibold">

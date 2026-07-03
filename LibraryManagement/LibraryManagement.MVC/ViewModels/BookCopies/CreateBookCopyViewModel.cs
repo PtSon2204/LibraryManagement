@@ -15,8 +15,7 @@ namespace LibraryManagement.MVC.ViewModels.BookCopies
         [Required]
         public string Status { get; set; } = "Available";
 
-        [StringLength(200)]
-        public string? Location { get; set; }
+        public Guid? ShelfSlotId { get; set; }
 
         public DateOnly? AddedDate { get; set; }
     }

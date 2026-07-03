@@ -1,0 +1,35 @@
+@model LibraryManagement.MVC.ViewModels.Shelf.FloorFormViewModel
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-pencil-square text-warning me-2"></i>Chỉnh sửa tầng
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="editFloorForm" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="FloorId" value="@Model.FloorId" />
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-medium">Số tầng <span class="text-danger">*</span></label>
+                <input type="number" name="FloorNumber" class="form-control" value="@Model.FloorNumber" required />
+            </div>
+            <div class="col-md-8">
+                <label class="form-label fw-medium">Tên tầng <span class="text-danger">*</span></label>
+                <input name="FloorName" class="form-control" value="@Model.FloorName" maxlength="100" required />
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-medium">Mô tả</label>
+                <textarea name="Description" class="form-control" rows="3">@Model.Description</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn btn-warning px-4 text-white fw-semibold">
+            <i class="bi bi-save me-1"></i>Cập nhật
+        </button>
+    </div>
+</form>
