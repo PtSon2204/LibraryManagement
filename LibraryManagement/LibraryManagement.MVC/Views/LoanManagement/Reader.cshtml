@@ -1,0 +1,161 @@
+@model LibraryManagement.MVC.ViewModels.Loans.ReaderLoanWorkspaceViewModel
+
+@{
+    ViewData["Title"] = "Quản lý mượn trả độc giả";
+    Layout = "~/Views/Shared/_LibrarianLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <a asp-controller="LoanManagement" asp-action="Index" class="text-decoration-none small fw-semibold d-inline-flex align-items-center mb-2">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách độc giả
+        </a>
+        <h2 class="fw-bold mb-1">@Model.ReaderName</h2>
+        <p class="text-muted mb-0">@Model.Email · @(Model.Phone ?? "Chưa có số điện thoại") · @Model.ReaderStatus</p>
+    </div>
+    <a asp-controller="Books" asp-action="Index" class="btn btn-outline-primary">
+        <i class="bi bi-search me-2"></i>Tra cứu sách
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><div class="text-muted small">Chờ xác nhận</div><div class="h3 fw-bold mb-0">@Model.PendingLoans.Count</div></div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><div class="text-muted small">Đang mượn</div><div class="h3 fw-bold mb-0">@Model.BorrowedLoans.Count</div></div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><div class="text-muted small">Quá hạn</div><div class="h3 fw-bold mb-0 text-danger">@Model.OverdueLoans.Count</div></div></div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white border-0 p-4">
+        <h5 class="fw-bold mb-1">Yêu cầu chờ xác nhận</h5>
+        <p class="text-muted small mb-0">Chọn nhiều sách và bản sao thực tế để xác nhận mượn cùng lúc.</p>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.PendingLoans.Any())
+        {
+            <div class="text-center text-muted py-5">Không có yêu cầu chờ xác nhận.</div>
+        }
+        else
+        {
+            <form asp-controller="LoanManagement" asp-action="ConfirmSelected" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="readerId" value="@Model.ReaderId" />
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 56px;">Chọn</th>
+                                <th>Sách</th>
+                                <th>Ngày yêu cầu</th>
+                                <th>Bản sao giao cho độc giả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.PendingLoans.Count; i++)
+                            {
+                                var loan = Model.PendingLoans[i];
+                                <tr>
+                                    <td>
+                                        <input class="form-check-input" type="checkbox" name="items[@i].LoanDetailId" value="@loan.LoanDetailId" checked />
+                                    </td>
+                                    <td class="fw-semibold">@loan.BookTitle</td>
+                                    <td>@loan.BorrowedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <select class="form-select form-select-sm" name="items[@i].CopyId" required>
+                                            @foreach (var copy in loan.CopyOptions)
+                                            {
+                                                <option value="@copy.CopyId">@copy.Barcode - @(copy.SlotLocation ?? "Chưa xếp kệ")</option>
+                                            }
+                                        </select>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-4 border-top d-flex justify-content-end">
+                    <button type="submit" class="btn btn-brand">Xác nhận các sách đã chọn</button>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white border-0 p-4">
+        <h5 class="fw-bold mb-1">Sách đang mượn</h5>
+        <p class="text-muted small mb-0">Ghi nhận trả sách tại quầy khi độc giả mang sách đến.</p>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.BorrowedLoans.Any())
+        {
+            <div class="text-center text-muted py-5">Không có sách đang mượn.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light"><tr><th>Sách</th><th>Bản sao</th><th>Hạn trả</th><th class="text-end">Thao tác</th></tr></thead>
+                    <tbody>
+                        @foreach (var loan in Model.BorrowedLoans)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@loan.BookTitle</td>
+                                <td><span class="badge text-bg-light">@loan.Barcode</span></td>
+                                <td>@loan.DueAt.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">
+                                    <form asp-controller="LoanManagement" asp-action="Return" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="loanDetailId" value="@loan.LoanDetailId" />
+                                        <input type="hidden" name="ReaderId" value="@Model.ReaderId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Ghi nhận trả</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.OverdueLoans.Any())
+{
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 p-4">
+            <h5 class="fw-bold mb-1 text-danger">Sách quá hạn</h5>
+            <p class="text-muted small mb-0">Ưu tiên xử lý khi độc giả đến quầy.</p>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light"><tr><th>Sách</th><th>Bản sao</th><th>Hạn trả</th><th class="text-end">Thao tác</th></tr></thead>
+                    <tbody>
+                        @foreach (var loan in Model.OverdueLoans)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@loan.BookTitle</td>
+                                <td><span class="badge text-bg-light">@loan.Barcode</span></td>
+                                <td class="text-danger fw-semibold">@loan.DueAt.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">
+                                    <form asp-controller="LoanManagement" asp-action="Return" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="loanDetailId" value="@loan.LoanDetailId" />
+                                        <input type="hidden" name="ReaderId" value="@Model.ReaderId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Ghi nhận trả</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

@@ -1,4 +1,4 @@
-@model LibraryManagement.MVC.ViewModels.Loans.LoanListPageViewModel
+@model LibraryManagement.MVC.ViewModels.Loans.ReaderLoanSummaryPageViewModel
 
 @{
     ViewData["Title"] = "Quản lý mượn trả";
@@ -8,8 +8,8 @@
 
 <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
     <div>
-        <h2 class="fw-bold mb-1">Quản lý mượn trả</h2>
-        <p class="text-muted mb-0">Theo dõi yêu cầu mượn, xác nhận checkout và ghi nhận trả sách.</p>
+        <h2 class="fw-bold mb-1">Quản lý mượn trả theo độc giả</h2>
+        <p class="text-muted mb-0">Tổng hợp yêu cầu, sách đang mượn, quá hạn và tiền phạt theo từng độc giả.</p>
     </div>
     <a asp-controller="Books" asp-action="Index" class="btn btn-outline-primary">
         <i class="bi bi-search me-2"></i>Tra cứu sách
@@ -19,22 +19,13 @@
 <form method="get" class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-body p-4">
         <div class="row g-3 align-items-end">
-            <div class="col-lg-3">
-                <label class="form-label fw-semibold">Trạng thái</label>
-                <select class="form-select" name="Status">
-                    <option value="" selected="@(string.IsNullOrWhiteSpace(search.Status))">Tất cả</option>
-                    <option value="Pending" selected="@(search.Status == "Pending")">Chờ xác nhận</option>
-                    <option value="Borrowed" selected="@(search.Status == "Borrowed")">Đang mượn</option>
-                    <option value="Returned" selected="@(search.Status == "Returned")">Đã trả</option>
-                </select>
+            <div class="col-lg-8">
+                <label class="form-label fw-semibold">Tìm độc giả</label>
+                <input class="form-control" name="Search" value="@search.Search" placeholder="Tên, email hoặc số điện thoại" />
             </div>
-            <div class="col-lg-6">
-                <label class="form-label fw-semibold">Tìm kiếm</label>
-                <input class="form-control" name="Search" value="@search.Search" placeholder="Tên sách, mã bản sao, email hoặc tên độc giả" />
-            </div>
-            <div class="col-lg-3">
+            <div class="col-lg-4">
                 <input type="hidden" name="PageSize" value="@search.PageSize" />
-                <button class="btn btn-brand w-100" type="submit">Lọc phiếu mượn</button>
+                <button class="btn btn-brand w-100" type="submit">Lọc độc giả</button>
             </div>
         </div>
     </div>
@@ -43,16 +34,16 @@
 <div class="card border-0 shadow-sm rounded-4">
     <div class="card-header bg-white border-0 p-4 d-flex justify-content-between align-items-center">
         <div>
-            <h5 class="fw-bold mb-1">Danh sách mượn trả</h5>
-            <p class="text-muted small mb-0">Tổng cộng: @Model.TotalCount phiếu</p>
+            <h5 class="fw-bold mb-1">Danh sách độc giả đang có giao dịch</h5>
+            <p class="text-muted small mb-0">Tổng cộng: @Model.TotalCount độc giả</p>
         </div>
     </div>
     <div class="card-body p-0">
-        @if (!Model.Loans.Any())
+        @if (!Model.Readers.Any())
         {
             <div class="text-center text-muted py-5">
-                <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-                Không tìm thấy phiếu mượn phù hợp.
+                <i class="bi bi-people fs-1 d-block mb-3"></i>
+                Không tìm thấy độc giả phù hợp.
             </div>
         }
         else
@@ -62,82 +53,40 @@
                     <thead class="table-light">
                         <tr>
                             <th>Độc giả</th>
-                            <th>Sách</th>
-                            <th>Bản sao</th>
-                            <th>Ngày yêu cầu/mượn</th>
-                            <th>Hạn trả</th>
+                            <th>Số điện thoại</th>
+                            <th>Chờ xác nhận</th>
+                            <th>Đang mượn</th>
+                            <th>Quá hạn</th>
+                            <th>Phạt chưa trả</th>
                             <th>Trạng thái</th>
                             <th class="text-end">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var loan in Model.Loans)
+                        @foreach (var reader in Model.Readers)
                         {
                             <tr>
                                 <td>
-                                    <div class="fw-semibold">@loan.BorrowerName</div>
-                                    <div class="text-muted small">@loan.BorrowerEmail</div>
+                                    <div class="fw-semibold">@reader.ReaderName</div>
+                                    <div class="text-muted small">@reader.Email</div>
                                 </td>
-                                <td class="fw-semibold">@loan.BookTitle</td>
+                                <td>@(reader.Phone ?? "N/A")</td>
+                                <td><span class="badge bg-warning-subtle text-warning">@reader.PendingCount</span></td>
+                                <td><span class="badge bg-primary-subtle text-primary">@reader.BorrowedCount</span></td>
+                                <td><span class="badge bg-danger-subtle text-danger">@reader.OverdueCount</span></td>
                                 <td>
-                                    @if (loan.Status == "Pending")
+                                    @if (reader.UnpaidFineCount > 0)
                                     {
-                                        <span class="text-muted small">Chọn khi xác nhận</span>
+                                        <span class="fw-semibold text-danger">@reader.UnpaidFineAmount.ToString("N0") đ</span>
                                     }
                                     else
                                     {
-                                        <span class="badge text-bg-light">@loan.Barcode</span>
+                                        <span class="text-muted">0 đ</span>
                                     }
                                 </td>
-                                <td>@loan.BorrowedAt.ToString("dd/MM/yyyy")</td>
-                                <td class="@(loan.IsOverdue ? "text-danger fw-semibold" : "")">
-                                    @(loan.Status == "Pending" ? "Chờ xác nhận" : loan.DueAt.ToString("dd/MM/yyyy"))
-                                </td>
-                                <td>
-                                    @if (loan.Status == "Pending")
-                                    {
-                                        <span class="badge bg-warning-subtle text-warning">Chờ xác nhận</span>
-                                    }
-                                    else if (loan.Status == "Returned")
-                                    {
-                                        <span class="badge bg-success-subtle text-success">Đã trả</span>
-                                    }
-                                    else if (loan.IsOverdue)
-                                    {
-                                        <span class="badge bg-danger-subtle text-danger">Quá hạn</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-primary-subtle text-primary">Đang mượn</span>
-                                    }
-                                </td>
+                                <td><span class="badge text-bg-light">@reader.ReaderStatus</span></td>
                                 <td class="text-end">
-                                    @if (loan.Status == "Pending")
-                                    {
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-primary"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#confirmLoanModal-@loan.LoanDetailId"
-                                                disabled="@(!loan.CopyOptions.Any())">
-                                            Xác nhận mượn
-                                        </button>
-                                    }
-                                    else if (loan.Status == "Borrowed")
-                                    {
-                                        <form asp-controller="LoanManagement" asp-action="Return" method="post" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="loanDetailId" value="@loan.LoanDetailId" />
-                                            <input type="hidden" name="Status" value="@search.Status" />
-                                            <input type="hidden" name="Search" value="@search.Search" />
-                                            <input type="hidden" name="Page" value="@search.Page" />
-                                            <input type="hidden" name="PageSize" value="@search.PageSize" />
-                                            <button type="submit" class="btn btn-sm btn-outline-success">Ghi nhận trả</button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted small">@loan.ReturnedAt?.ToString("dd/MM/yyyy")</span>
-                                    }
+                                    <a asp-controller="LoanManagement" asp-action="Reader" asp-route-id="@reader.ReaderId" class="btn btn-sm btn-outline-primary">Quản lý</a>
                                 </td>
                             </tr>
                         }
@@ -148,57 +97,9 @@
     </div>
 </div>
 
-@foreach (var loan in Model.Loans.Where(l => l.Status == "Pending"))
-{
-    <div class="modal fade" id="confirmLoanModal-@loan.LoanDetailId" tabindex="-1" aria-labelledby="confirmLoanModalLabel-@loan.LoanDetailId" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content border-0 rounded-4 shadow">
-                <form asp-controller="LoanManagement" asp-action="Confirm" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="loanDetailId" value="@loan.LoanDetailId" />
-                    <input type="hidden" name="Status" value="@search.Status" />
-                    <input type="hidden" name="Search" value="@search.Search" />
-                    <input type="hidden" name="Page" value="@search.Page" />
-                    <input type="hidden" name="PageSize" value="@search.PageSize" />
-
-                    <div class="modal-header border-0 pb-0">
-                        <div>
-                            <h5 class="modal-title fw-bold" id="confirmLoanModalLabel-@loan.LoanDetailId">Xác nhận mượn sách</h5>
-                            <p class="text-muted small mb-0">Chọn bản sao thực tế sẽ giao cho độc giả.</p>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <div class="text-muted small">Độc giả</div>
-                            <div class="fw-semibold">@loan.BorrowerName</div>
-                            <div class="text-muted small">@loan.BorrowerEmail</div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="text-muted small">Sách</div>
-                            <div class="fw-semibold">@loan.BookTitle</div>
-                        </div>
-                        <label class="form-label fw-semibold" for="copyId-@loan.LoanDetailId">Bản sao cho mượn</label>
-                        <select id="copyId-@loan.LoanDetailId" class="form-select" name="copyId" required>
-                            @foreach (var copy in loan.CopyOptions)
-                            {
-                                <option value="@copy.CopyId">@copy.Barcode - @(copy.Location ?? "Chưa xác định")</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-sm btn-brand">Xác nhận</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-}
-
 @if (Model.TotalPages > 1)
 {
-    <nav class="mt-4" aria-label="Loan management pages">
+    <nav class="mt-4" aria-label="Reader loan management pages">
         <ul class="pagination justify-content-center">
             @for (var currentPage = 1; currentPage <= Model.TotalPages; currentPage++)
             {
@@ -206,7 +107,6 @@
                     <a class="page-link"
                        asp-controller="LoanManagement"
                        asp-action="Index"
-                       asp-route-Status="@search.Status"
                        asp-route-Search="@search.Search"
                        asp-route-Page="@currentPage"
                        asp-route-PageSize="@search.PageSize">@currentPage</a>
