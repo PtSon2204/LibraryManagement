@@ -11,10 +11,12 @@
     <style>
         :root {
             --sidebar-width: 260px;
+            --brand-blue: #2563eb;
         }
         body {
             background-color: #f8fafc;
         }
+        /* ===== SIDEBAR ===== */
         .admin-sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -26,36 +28,94 @@
             z-index: 100;
             display: flex;
             flex-direction: column;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
         .sidebar-header {
-            padding: 1.5rem;
+            padding: 1.25rem 1.5rem;
             border-bottom: 1px solid #2d5282;
+            flex-shrink: 0;
         }
+        /* Scrollable menu area */
         .sidebar-menu {
-            padding: 1.5rem 1rem;
-            flex-grow: 1;
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0.75rem 0.75rem;
+            scrollbar-width: thin;
+            scrollbar-color: #2d5282 transparent;
         }
+        .sidebar-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background-color: #2d5282;
+            border-radius: 4px;
+        }
+        /* Menu group label */
+        .menu-group-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #4a6fa5;
+            padding: 0.75rem 0.5rem 0.35rem;
+            margin-top: 0.25rem;
+        }
+        .menu-group-label:first-child {
+            margin-top: 0;
+        }
+        /* Divider between groups */
+        .menu-divider {
+            border: none;
+            border-top: 1px solid #2d5282;
+            margin: 0.5rem 0.5rem;
+        }
+        /* Menu links */
         .menu-link {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: #94a3b8;
+            padding: 0.6rem 0.875rem;
+            color: #94b8d0;
             text-decoration: none;
             border-radius: 0.5rem;
             font-weight: 500;
+            font-size: 0.875rem;
             transition: all 0.2s ease;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.15rem;
+            white-space: nowrap;
         }
-        .menu-link:hover, .menu-link.active {
+        .menu-link i {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .menu-link:hover {
             color: #ffffff;
             background-color: #2d5282;
         }
         .menu-link.active {
-            background-color: var(--brand-green, #2563eb);
+            background-color: var(--brand-blue, #2563eb);
             color: white !important;
         }
+        .menu-link.link-warning {
+            color: #fbbf24 !important;
+        }
+        .menu-link.link-warning:hover {
+            background-color: rgba(251,191,36,0.15);
+            color: #fde68a !important;
+        }
+        .menu-link.link-danger {
+            color: #f87171 !important;
+        }
+        .menu-link.link-danger:hover {
+            background-color: rgba(248,113,113,0.15);
+            color: #fca5a5 !important;
+        }
+        /* ===== MAIN CONTENT ===== */
         .admin-main {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
@@ -80,8 +140,10 @@
 <body>
     @{
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     }
     <div class="admin-sidebar">
+        <!-- Header -->
         <div class="sidebar-header d-flex align-items-center gap-2">
             <i class="bi bi-book text-info fs-3"></i>
             <div>
@@ -89,54 +151,69 @@
                 <small class="text-muted" style="font-size: 0.7rem;">Hệ thống thư viện</small>
             </div>
         </div>
-        
+
+        <!-- Scrollable Menu -->
         <div class="sidebar-menu">
-            <a asp-controller="Librarian" asp-action="Index" class="menu-link @(currentController == "Librarian" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+
+            <!-- Nhóm: Tổng quan -->
+            <div class="menu-group-label">Tổng quan</div>
+            <a asp-controller="Librarian" asp-action="Index" class="menu-link @(currentController == "Librarian" && currentAction == "Index" ? "active" : "")">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
-            <a asp-controller="Librarian" asp-action="Users" class="menu-link @(currentController == "Librarian" && ViewContext.RouteData.Values["action"]?.ToString() == "Users" ? "active" : "")">
-                <i class="bi bi-people"></i> Quản lý độc giả
-            </a>
-            <a asp-controller="Publisher" asp-action="Index" class="menu-link @(currentController == "Publisher" ? "active" : "")">
-                <i class="bi bi-building"></i> Quản lý nhà xuất bản
+
+            <!-- Nhóm: Quản lý -->
+            <div class="menu-group-label">Quản lý</div>
+            <a asp-controller="Librarian" asp-action="Users" class="menu-link @(currentController == "Librarian" && currentAction == "Users" ? "active" : "")">
+                <i class="bi bi-people"></i> Độc giả
             </a>
             <a asp-controller="LoanManagement" asp-action="Index" class="menu-link @(currentController == "LoanManagement" ? "active" : "")">
-                <i class="bi bi-arrow-left-right"></i> Quản lý mượn trả
+                <i class="bi bi-arrow-left-right"></i> Mượn trả
             </a>
             <a asp-controller="Book" asp-action="Index" class="menu-link @(currentController == "Book" ? "active" : "")">
-                <i class="bi bi-book"></i> Quản lý sách
+                <i class="bi bi-book"></i> Sách
             </a>
+            <a asp-controller="Publisher" asp-action="Index" class="menu-link @(currentController == "Publisher" ? "active" : "")">
+                <i class="bi bi-building"></i> Nhà xuất bản
+            </a>
+            <a asp-controller="Category" asp-action="Index" class="menu-link @(currentController == "Category" ? "active" : "")">
+                <i class="bi bi-tags"></i> Thể loại
+            </a>
+            <a asp-controller="Author" asp-action="Index" class="menu-link @(currentController == "Author" ? "active" : "")">
+                <i class="bi bi-journal-text"></i> Tác giả
+            </a>
+
+            <!-- Nhóm: Cơ sở vật chất -->
+            <div class="menu-group-label">Cơ sở vật chất</div>
+            <a asp-controller="Room" asp-action="Index" class="menu-link @(currentController == "Room" ? "active" : "")">
+                <i class="bi bi-door-open"></i> Phòng
+            </a>
+            <a asp-controller="Shelf" asp-action="Index" class="menu-link @(currentController == "Shelf" ? "active" : "")">
+                <i class="bi bi-bookshelf"></i> Giá sách
+            </a>
+
+            <!-- Nhóm: Báo cáo -->
+            <div class="menu-group-label">Báo cáo</div>
             <a asp-controller="Reports" asp-action="Index" class="menu-link @(currentController == "Reports" ? "active" : "")">
                 <i class="bi bi-graph-up-arrow"></i> Báo cáo thống kê
             </a>
-            <a asp-controller="Category" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Category" ? "active" : "")">
-                <i class="bi bi-tags"></i> Quản lý thể loại
-            </a>
-            <a asp-controller="Room" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Room" ? "active" : "")">
-                <i class="bi bi-door-open"></i> Quản lý phòng
-            </a>
-            <a asp-controller="Shelf" asp-action="Index" class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Shelf" ? "active" : "")">
-                <i class="bi bi-bookshelf"></i> Quản lý giá sách
-            </a>
-            <a asp-controller="Author" asp-action="Index" class="menu-link @(currentController == "Author" ? "active" : "")">
-                <i class="bi bi-journal-text"></i> Quản lý tác giả
-            </a>
-        </div>
 
-        <div class="p-3 border-top border-secondary">
+            <hr class="menu-divider" />
 
+            <!-- Nhóm: Tài khoản -->
+            <div class="menu-group-label">Tài khoản</div>
             <a asp-controller="Home" asp-action="Index" class="menu-link">
                 <i class="bi bi-house-door"></i> Trang chủ
             </a>
             <a asp-controller="UserProfile" asp-action="Index" class="menu-link">
                 <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
             </a>
-            <a asp-controller="Account" asp-action="ChangePassword" class="menu-link text-warning">
+            <a asp-controller="Account" asp-action="ChangePassword" class="menu-link link-warning">
                 <i class="bi bi-shield-lock"></i> Đổi mật khẩu
             </a>
-            <a href="/Account/Logout" class="menu-link text-danger">
+            <a href="/Account/Logout" class="menu-link link-danger">
                 <i class="bi bi-box-arrow-left"></i> Đăng xuất
             </a>
+
         </div>
     </div>
 

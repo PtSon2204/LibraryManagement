@@ -2,7 +2,9 @@ using LibraryManagement.MVC.Interface;
 using LibraryManagement.MVC.ViewModels.Room;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LibraryManagement.MVC.Controllers
@@ -11,15 +13,28 @@ namespace LibraryManagement.MVC.Controllers
     public class RoomController : Controller
     {
         private readonly IRoomService _roomService;
+        private readonly IShelfService _shelfService;
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
 
         private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
         private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-        public RoomController(IRoomService roomService, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
+        public RoomController(IRoomService roomService, IShelfService shelfService, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
         {
             _roomService = roomService;
+            _shelfService = shelfService;
             _env = env;
+        }
+
+        private async Task PopulateFloorsAsync(RoomViewModel model)
+        {
+            var floors = await _shelfService.GetAllFloorsAsync();
+            model.Floors = floors.Select(f => new SelectListItem
+            {
+                Value = f.FloorId.ToString(),
+                Text = f.FloorName,
+                Selected = model.FloorId.HasValue && model.FloorId.Value == f.FloorId
+            }).ToList();
         }
 
         [HttpGet]
@@ -55,9 +70,10 @@ namespace LibraryManagement.MVC.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public IActionResult GetCreateForm()
+        public async Task<IActionResult> GetCreateForm()
         {
             var model = new RoomViewModel();
+            await PopulateFloorsAsync(model);
             return PartialView("_Create", model);
         }
 
@@ -67,6 +83,7 @@ namespace LibraryManagement.MVC.Controllers
         {
             if (!ModelState.IsValid)
             {
+                await PopulateFloorsAsync(model);
                 return PartialView("_Create", model);
             }
 
@@ -90,6 +107,7 @@ namespace LibraryManagement.MVC.Controllers
             var room = await _roomService.GetRoomByIdAsync(id);
             if (room == null) return NotFound();
 
+            await PopulateFloorsAsync(room);
             return PartialView("_Edit", room);
         }
 
@@ -99,6 +117,7 @@ namespace LibraryManagement.MVC.Controllers
         {
             if (!ModelState.IsValid)
             {
+                await PopulateFloorsAsync(model);
                 return PartialView("_Edit", model);
             }
 

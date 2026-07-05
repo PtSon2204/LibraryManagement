@@ -20,6 +20,14 @@
             </div>
 
             <div class="col-12">
+                <label asp-for="FloorId" class="form-label fw-medium">Tầng</label>
+                <select asp-for="FloorId" asp-items="Model.Floors" class="form-select">
+                    <option value="">-- Chọn tầng (không bắt buộc) --</option>
+                </select>
+                <span asp-validation-for="FloorId" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
                 <label asp-for="Capacity" class="form-label fw-medium">Số chỗ ngồi tối đa <span class="text-danger">*</span></label>
                 <input asp-for="Capacity" type="number" class="form-control" placeholder="Nhập số chỗ ngồi..." />
                 <span asp-validation-for="Capacity" class="text-danger small"></span>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LibraryManagement.MVC.ViewModels.Room
 {
@@ -26,6 +27,11 @@ namespace LibraryManagement.MVC.ViewModels.Room
         public Microsoft.AspNetCore.Http.IFormFile? ImageFile { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+        // Floor selection
+        public Guid? FloorId { get; set; }
+        public string? FloorName { get; set; }
+        public List<SelectListItem> Floors { get; set; } = new();
     }
 
     public class RoomListViewModel
