@@ -6,11 +6,17 @@ public interface ILoanService
 {
     Task<LoanListPageViewModel?> GetStaffLoansAsync(LoanSearchViewModel search);
 
+    Task<ReaderLoanSummaryPageViewModel?> GetStaffReaderLoanSummariesAsync(LoanSearchViewModel search);
+
+    Task<ReaderLoanWorkspaceViewModel?> GetStaffReaderLoanWorkspaceAsync(Guid readerId);
+
     Task<LoanListPageViewModel?> GetMyLoansAsync(LoanSearchViewModel search);
 
     Task<BorrowBookResultViewModel?> BorrowBookAsync(Guid bookId);
 
     Task<string?> ConfirmBorrowRequestAsync(Guid loanDetailId, Guid copyId);
+
+    Task<string?> ConfirmBorrowRequestsAsync(Guid readerId, List<ConfirmLoanDetailItemViewModel> items);
 
     Task<string?> ReturnBookAsync(Guid loanDetailId);
 

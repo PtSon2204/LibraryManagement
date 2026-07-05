@@ -8,11 +8,17 @@ public interface ILoanService
 {
     Task<LoanListPageDto> GetStaffLoansAsync(string? status, string? search, int page, int pageSize);
 
+    Task<ReaderLoanSummaryPageDto> GetStaffReaderLoanSummariesAsync(string? search, int page, int pageSize);
+
+    Task<ReaderLoanWorkspaceDto?> GetStaffReaderLoanWorkspaceAsync(Guid readerId);
+
     Task<LoanListPageDto> GetReaderLoansAsync(Guid readerId, int page, int pageSize);
 
     Task<BorrowBookResultDto> BorrowBookAsync(Guid readerId, Guid bookId);
 
     Task ConfirmLoanDetailAsync(Guid actorId, Guid loanDetailId, Guid copyId);
+
+    Task ConfirmLoanDetailsAsync(Guid actorId, Guid readerId, List<ConfirmLoanDetailItemDto> items);
 
     Task ReturnLoanDetailAsync(Guid actorId, string role, Guid loanDetailId);
 

@@ -6,7 +6,7 @@ public class LoanCopyOptionViewModel
 
     public string Barcode { get; set; } = string.Empty;
 
-    public string? Location { get; set; }
+    public string? SlotLocation { get; set; }
 
     public string Status { get; set; } = string.Empty;
 }
