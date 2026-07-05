@@ -50,7 +50,9 @@ namespace LibraryManagement.Business.Services
                     Description = r.Description,
                     Status = r.Status,
                     Image = r.Image,
-                    CreatedAt = r.CreatedAt
+                    CreatedAt = r.CreatedAt,
+                    FloorId = r.FloorId,
+                    FloorName = r.Floor != null ? r.Floor.FloorName : null
                 })
                 .ToListAsync();
 
@@ -66,7 +68,7 @@ namespace LibraryManagement.Business.Services
 
         public async Task<RoomDto?> GetRoomByIdAsync(Guid id)
         {
-            var room = await _unitOfWork.Rooms.GetByIdAsync(id);
+            var room = await _unitOfWork.Rooms.Query().Include(r => r.Floor).FirstOrDefaultAsync(r => r.RoomId == id);
             if (room == null) return null;
 
             return new RoomDto
@@ -77,7 +79,9 @@ namespace LibraryManagement.Business.Services
                 Description = room.Description,
                 Status = room.Status,
                 Image = room.Image,
-                CreatedAt = room.CreatedAt
+                CreatedAt = room.CreatedAt,
+                FloorId = room.FloorId,
+                FloorName = room.Floor?.FloorName
             };
         }
 
@@ -91,7 +95,8 @@ namespace LibraryManagement.Business.Services
                 Description = dto.Description?.Trim(),
                 Status = dto.Status.Trim(),
                 Image = dto.Image?.Trim(),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                FloorId = dto.FloorId
             };
 
             await _unitOfWork.Rooms.AddAsync(room);
@@ -105,7 +110,8 @@ namespace LibraryManagement.Business.Services
                 Description = room.Description,
                 Status = room.Status,
                 Image = room.Image,
-                CreatedAt = room.CreatedAt
+                CreatedAt = room.CreatedAt,
+                FloorId = room.FloorId
             };
         }
 
@@ -118,6 +124,7 @@ namespace LibraryManagement.Business.Services
             room.Capacity = dto.Capacity;
             room.Description = dto.Description?.Trim();
             room.Status = dto.Status.Trim();
+            room.FloorId = dto.FloorId;
             if (dto.Image != null)
             {
                 room.Image = dto.Image.Trim();
@@ -134,7 +141,8 @@ namespace LibraryManagement.Business.Services
                 Description = room.Description,
                 Status = room.Status,
                 Image = room.Image,
-                CreatedAt = room.CreatedAt
+                CreatedAt = room.CreatedAt,
+                FloorId = room.FloorId
             };
         }
 

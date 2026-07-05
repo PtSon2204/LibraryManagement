@@ -113,6 +113,7 @@ public class BookService : IBookService
                     })
                     .ToList()
             })
+            .AsSplitQuery()
             .FirstOrDefaultAsync();
     }
 
@@ -153,6 +154,7 @@ public class BookService : IBookService
                 .OrderByDescending(b => b.CreatedAt)
                 .Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize))
+            .AsSplitQuery()
             .ToListAsync();
 
         return new PagedResult<BookDto>

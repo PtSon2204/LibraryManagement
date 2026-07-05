@@ -32,6 +32,9 @@ namespace LibraryManagement.MVC.ViewModels.Room
         public Guid? FloorId { get; set; }
         public string? FloorName { get; set; }
         public List<SelectListItem> Floors { get; set; } = new();
+
+        // Suggested available rooms (for detail page)
+        public List<RoomViewModel> SuggestedRooms { get; set; } = new();
     }
 
     public class RoomListViewModel

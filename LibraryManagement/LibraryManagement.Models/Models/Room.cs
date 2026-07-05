@@ -21,6 +21,11 @@ public partial class Room
 
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>Tầng mà phòng này thuộc về (nullable)</summary>
+    public Guid? FloorId { get; set; }
+
     // Navigation
+    public virtual Floor? Floor { get; set; }
     public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 }
+

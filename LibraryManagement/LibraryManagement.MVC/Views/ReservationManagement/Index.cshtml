@@ -1,0 +1,179 @@
+@{
+    ViewData["Title"] = "Quản lý Đặt phòng";
+    Layout = "~/Views/Shared/_LibrarianLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow border-0">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i> Xác nhận nhận phòng (Check-in)</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Trạng thái</label>
+                    <select id="statusFilter" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        <option value="Confirmed" selected>Chưa Check-in (Confirmed)</option>
+                        <option value="CheckedIn">Đã Check-in</option>
+                        <option value="Cancelled">Đã Hủy</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" id="btnFilter">
+                        <i class="bi bi-filter me-1"></i> Lọc danh sách
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Phòng</th>
+                            <th>Độc giả</th>
+                            <th>Ngày đặt</th>
+                            <th>Ca</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservationsTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Đang tải danh sách...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Phân trang cơ bản -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small" id="pageInfo"></div>
+                <div class="btn-group">
+                    <button class="btn btn-outline-secondary btn-sm" id="btnPrevPage">Trước</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="btnNextPage">Sau</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentPage = 1;
+        const pageSize = 10;
+        let totalPages = 1;
+
+        $(document).ready(function() {
+            loadReservations();
+
+            $('#btnFilter').click(function() {
+                currentPage = 1;
+                loadReservations();
+            });
+
+            $('#btnPrevPage').click(function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadReservations();
+                }
+            });
+
+            $('#btnNextPage').click(function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadReservations();
+                }
+            });
+        });
+
+        function loadReservations() {
+            const status = $('#statusFilter').val();
+            $('#reservationsTableBody').html('<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-info"></div></td></tr>');
+
+            $.ajax({
+                url: `/ReservationManagement/GetList?pageNumber=${currentPage}&pageSize=${pageSize}&status=${status}`,
+                method: 'GET',
+                success: function(response) {
+                    renderTable(response);
+                },
+                error: function() {
+                    $('#reservationsTableBody').html('<tr><td colspan="6" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                }
+            });
+        }
+
+        function formatTime(timeStr) {
+            const d = new Date(timeStr);
+            return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderTable(response) {
+            const data = response.data;
+            totalPages = response.totalPages || 1;
+            $('#pageInfo').text(`Trang ${currentPage} / ${totalPages} (Tổng: ${response.totalRecords} đơn)`);
+            
+            $('#btnPrevPage').prop('disabled', currentPage === 1);
+            $('#btnNextPage').prop('disabled', currentPage === totalPages || totalPages === 0);
+
+            if (!data || data.length === 0) {
+                $('#reservationsTableBody').html('<tr><td colspan="6" class="text-center text-muted">Không có đơn đặt phòng nào.</td></tr>');
+                return;
+            }
+
+            let html = '';
+            data.forEach(item => {
+                const dateStr = new Date(item.reservationDate).toLocaleDateString('vi-VN');
+                const startStr = formatTime(item.startTime);
+                const endStr = formatTime(item.endTime);
+                
+                let statusBadge = '';
+                let actionBtn = '';
+                
+                if (item.status === 'Confirmed') {
+                    statusBadge = '<span class="badge bg-warning text-dark">Chưa Check-in</span>';
+                    actionBtn = `
+                        <button class="btn btn-sm btn-success" onclick="checkIn('${item.reservationId}')">
+                            <i class="bi bi-check-circle me-1"></i> Xác nhận
+                        </button>
+                    `;
+                } else if (item.status === 'CheckedIn') {
+                    statusBadge = '<span class="badge bg-success">Đã Check-in</span>';
+                    actionBtn = '<span class="text-success"><i class="bi bi-check2-all"></i> Đã xử lý</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-secondary">Đã Hủy</span>';
+                    actionBtn = '-';
+                }
+
+                html += `
+                    <tr>
+                        <td class="fw-bold text-primary">${item.roomName}</td>
+                        <td>${item.readerName || item.readerId}</td>
+                        <td>${dateStr}</td>
+                        <td>${startStr} - ${endStr}</td>
+                        <td>${statusBadge}</td>
+                        <td class="text-center">${actionBtn}</td>
+                    </tr>
+                `;
+            });
+
+            $('#reservationsTableBody').html(html);
+        }
+
+        function checkIn(id) {
+            if(confirm('Bạn xác nhận Độc giả này đã đến nhận phòng?')) {
+                $.ajax({
+                    url: '/ReservationManagement/CheckIn/' + id,
+                    method: 'POST',
+                    success: function() {
+                        alert('Xác nhận Check-in thành công!');
+                        loadReservations();
+                    },
+                    error: function() {
+                        alert('Đã xảy ra lỗi khi Check-in.');
+                    }
+                });
+            }
+        }
+    </script>
+}

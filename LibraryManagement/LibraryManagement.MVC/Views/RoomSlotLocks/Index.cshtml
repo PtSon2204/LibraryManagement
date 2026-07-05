@@ -1,0 +1,250 @@
+@{
+    ViewData["Title"] = "Quản lý Khóa Ca Phòng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var rooms = ViewBag.Rooms as List<LibraryManagement.MVC.ViewModels.Room.RoomViewModel>;
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow border-0">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-dark"><i class="bi bi-lock me-2"></i> Khóa Ca Phòng Đọc (Sự kiện / Bảo trì)</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Chọn Phòng</label>
+                    <select id="roomId" class="form-select">
+                        <option value="">-- Chọn phòng --</option>
+                        @if (rooms != null)
+                        {
+                            foreach (var room in rooms)
+                            {
+                                <option value="@room.RoomId">@room.RoomName - Sức chứa: @room.Capacity</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Ngày Khóa</label>
+                    <input type="date" id="lockDate" class="form-control" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" id="btnSearch">
+                        <i class="bi bi-search me-1"></i> Xem danh sách ca
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ca</th>
+                            <th>Giờ bắt đầu</th>
+                            <th>Giờ kết thúc</th>
+                            <th>Trạng thái</th>
+                            <th>Lý do khóa</th>
+                            <th>Người khóa</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="slotsTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Vui lòng chọn phòng và ngày để xem các ca.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Khóa Ca -->
+<div class="modal fade" id="lockSlotModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Khóa Ca Phòng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="lockStartTime" />
+                <input type="hidden" id="lockEndTime" />
+                <p>Khóa ca <strong id="lockTimeDisplay" class="text-danger"></strong> ?</p>
+                <div class="mb-3">
+                    <label class="form-label">Lý do khóa (Bắt buộc)</label>
+                    <textarea id="lockReason" class="form-control" rows="3" placeholder="VD: Dọn vệ sinh, Bảo trì máy lạnh, Tổ chức sự kiện..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-warning" id="btnConfirmLock">Xác nhận Khóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allActiveTemplates = [];
+        let currentLocks = [];
+
+        $(document).ready(function() {
+            // Set default date to today
+            document.getElementById('lockDate').valueAsDate = new Date();
+
+            // Load all active templates first
+            $.get('/SlotTemplates/GetAll', function(data) {
+                // filter active only
+                allActiveTemplates = data.filter(t => t.isActive);
+            });
+
+            $('#btnSearch').click(function() {
+                loadSlots();
+            });
+
+            $('#btnConfirmLock').click(function() {
+                const roomId = $('#roomId').val();
+                const lockDate = $('#lockDate').val();
+                const startTime = $('#lockStartTime').val();
+                const endTime = $('#lockEndTime').val();
+                const reason = $('#lockReason').val().trim();
+
+                if(!reason) {
+                    alert('Vui lòng nhập lý do khóa phòng!');
+                    return;
+                }
+
+                const payload = {
+                    roomId: roomId,
+                    lockDate: lockDate,
+                    startTime: startTime,
+                    endTime: endTime,
+                    reason: reason
+                };
+
+                const btn = $(this);
+                btn.prop('disabled', true).text('Đang xử lý...');
+
+                $.ajax({
+                    url: '/RoomSlotLocks/Lock',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function() {
+                        alert('Khóa ca thành công!');
+                        $('#lockSlotModal').modal('hide');
+                        $('#lockReason').val('');
+                        loadSlots();
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi khóa ca.');
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).text('Xác nhận Khóa');
+                    }
+                });
+            });
+        });
+
+        function loadSlots() {
+            const roomId = $('#roomId').val();
+            const lockDate = $('#lockDate').val();
+
+            if(!roomId || !lockDate) {
+                alert('Vui lòng chọn Phòng và Ngày!');
+                return;
+            }
+
+            $('#slotsTableBody').html('<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-warning"></div></td></tr>');
+
+            $.ajax({
+                url: `/RoomSlotLocks/Get?roomId=${roomId}&date=${lockDate}`,
+                method: 'GET',
+                success: function(locks) {
+                    currentLocks = locks;
+                    renderTable();
+                },
+                error: function() {
+                    $('#slotsTableBody').html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                }
+            });
+        }
+
+        function renderTable() {
+            if(allActiveTemplates.length === 0) {
+                $('#slotsTableBody').html('<tr><td colspan="7" class="text-center text-danger">Admin chưa cấu hình Khung giờ chuẩn nào! Vui lòng liên hệ Admin.</td></tr>');
+                return;
+            }
+
+            let html = '';
+            allActiveTemplates.forEach((template, index) => {
+                const tStart = template.startTime.substring(0,5);
+                const tEnd = template.endTime.substring(0,5);
+                
+                // Find if this template is locked
+                // Time format from API is usually "08:00:00"
+                const lockInfo = currentLocks.find(l => l.startTime.startsWith(tStart) && l.endTime.startsWith(tEnd));
+
+                if(lockInfo) {
+                    html += `
+                        <tr class="table-danger">
+                            <td>Ca ${index + 1}</td>
+                            <td class="fw-bold">${tStart}</td>
+                            <td class="fw-bold">${tEnd}</td>
+                            <td><span class="badge bg-danger">Đã khóa</span></td>
+                            <td>${lockInfo.reason}</td>
+                            <td>${lockInfo.lockedByUserName || 'Thủ thư'}</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-success" onclick="unlockSlot(${lockInfo.roomSlotLockId})">
+                                    <i class="bi bi-unlock me-1"></i> Mở khóa
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    html += `
+                        <tr>
+                            <td>Ca ${index + 1}</td>
+                            <td class="fw-bold">${tStart}</td>
+                            <td class="fw-bold">${tEnd}</td>
+                            <td><span class="badge bg-success">Bình thường</span></td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-danger" onclick="openLockModal('${template.startTime}', '${template.endTime}')">
+                                    <i class="bi bi-lock me-1"></i> Khóa ca
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            $('#slotsTableBody').html(html);
+        }
+
+        function openLockModal(startTime, endTime) {
+            $('#lockStartTime').val(startTime);
+            $('#lockEndTime').val(endTime);
+            $('#lockTimeDisplay').text(`${startTime.substring(0,5)} - ${endTime.substring(0,5)}`);
+            $('#lockSlotModal').modal('show');
+        }
+
+        function unlockSlot(id) {
+            if(confirm('Bạn có chắc chắn muốn MỞ KHÓA ca này để người dùng có thể đặt phòng?')) {
+                $.ajax({
+                    url: '/RoomSlotLocks/Unlock/' + id,
+                    method: 'DELETE',
+                    success: function() {
+                        alert('Mở khóa thành công!');
+                        loadSlots();
+                    },
+                    error: function() {
+                        alert('Đã xảy ra lỗi khi mở khóa.');
+                    }
+                });
+            }
+        }
+    </script>
+}

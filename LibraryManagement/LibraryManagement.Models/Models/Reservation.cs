@@ -24,8 +24,12 @@ public partial class Reservation
 
     public DateTime ReservationDate { get; set; }
 
-    /// <summary>Pending | Confirmed | Cancelled | Completed</summary>
+    /// <summary>Pending | Confirmed | CheckedIn | Completed | Cancelled | NoShow</summary>
     public string Status { get; set; } = null!;
+
+    public DateTime? ActualCheckInTime { get; set; }
+
+    public bool IsNoShow { get; set; }
 
     // Navigation
     public virtual Reader Reader { get; set; } = null!;

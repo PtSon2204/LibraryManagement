@@ -9,10 +9,12 @@ namespace LibraryManagement.MVC.Controllers;
 public class LoansController : Controller
 {
     private readonly ILoanService _loanService;
+    private readonly IUserProfileService _userProfileService;
 
-    public LoansController(ILoanService loanService)
+    public LoansController(ILoanService loanService, IUserProfileService userProfileService)
     {
         _loanService = loanService;
+        _userProfileService = userProfileService;
     }
 
     [HttpGet]
@@ -29,6 +31,15 @@ public class LoansController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Borrow(Guid bookId)
     {
+        // Kiểm tra số điện thoại
+        var profile = await _userProfileService.GetProfile();
+        if (profile == null || string.IsNullOrWhiteSpace(profile.Phone))
+        {
+            TempData["RequirePhone"] = "true";
+            TempData["Error"] = "Bạn cần cập nhật Số điện thoại trong hồ sơ cá nhân trước khi mượn sách.";
+            return RedirectToAction("Index", "UserProfile");
+        }
+
         var result = await _loanService.BorrowBookAsync(bookId);
         if (result == null)
         {

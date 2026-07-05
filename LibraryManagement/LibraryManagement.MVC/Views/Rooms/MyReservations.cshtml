@@ -1,0 +1,226 @@
+@{
+    ViewData["Title"] = "Phòng đã đặt";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold text-dark mb-0">Phòng của tôi</h2>
+            <p class="text-muted mb-0">Quản lý các phòng bạn đã đặt tại thư viện</p>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <select id="statusFilter" class="form-select w-auto d-inline-block">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Confirmed" selected>Chưa Check-in</option>
+                <option value="CheckedIn">Đã Check-in</option>
+                <option value="Cancelled">Đã Hủy</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row" id="reservationsContainer">
+        <!-- Data will be loaded here -->
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-success" role="status"></div>
+            <p class="text-muted mt-2">Đang tải dữ liệu...</p>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="text-muted small" id="pageInfo"></div>
+        <div class="btn-group">
+            <button class="btn btn-outline-success" id="btnPrevPage">Trước</button>
+            <button class="btn btn-outline-success" id="btnNextPage">Sau</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chi tiết -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-success text-white border-0 py-3">
+                <h5 class="modal-title fw-bold"><i class="bi bi-ticket-detailed me-2"></i> Chi tiết đặt phòng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="bg-light rounded-4 p-4 mb-3 border">
+                    <h2 class="fw-bold text-success mb-3" id="modalRoomName">Tên phòng</h2>
+                    <h5 class="fw-bold text-dark mb-2" id="modalDate">Ngày</h5>
+                    <div class="d-inline-block bg-success bg-opacity-10 text-success rounded-pill px-4 py-2 fs-5 fw-bold mb-3" id="modalTime">
+                        Thời gian
+                    </div>
+                    <hr />
+                    <p class="text-muted small mb-0">Mã đơn: <span id="modalResId" class="fw-bold"></span></p>
+                    <p class="text-muted small mt-2 fst-italic">Vui lòng đưa màn hình này cho thủ thư để Check-in.</p>
+                </div>
+                
+                <div id="cancelActionContainer">
+                    <button class="btn btn-outline-danger w-100 rounded-pill fw-bold" id="btnCancelRes">
+                        <i class="bi bi-x-circle me-2"></i> Hủy đặt phòng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentPage = 1;
+        const pageSize = 6;
+        let totalPages = 1;
+        let currentResIdToCancel = null;
+
+        $(document).ready(function() {
+            loadReservations();
+
+            $('#statusFilter').change(function() {
+                currentPage = 1;
+                loadReservations();
+            });
+
+            $('#btnPrevPage').click(function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadReservations();
+                }
+            });
+
+            $('#btnNextPage').click(function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadReservations();
+                }
+            });
+
+            $('#btnCancelRes').click(function() {
+                if(!currentResIdToCancel) return;
+                
+                if(confirm('Bạn có chắc chắn muốn hủy đơn đặt phòng này không?')) {
+                    $.ajax({
+                        url: '/Rooms/CancelReservation/' + currentResIdToCancel,
+                        method: 'DELETE',
+                        success: function() {
+                            alert('Hủy phòng thành công!');
+                            $('#detailsModal').modal('hide');
+                            loadReservations();
+                        },
+                        error: function() {
+                            alert('Đã xảy ra lỗi khi hủy. Vui lòng thử lại.');
+                        }
+                    });
+                }
+            });
+        });
+
+        function formatTime(timeStr) {
+            const d = new Date(timeStr);
+            return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function loadReservations() {
+            const status = $('#statusFilter').val();
+            const container = $('#reservationsContainer');
+            
+            container.html('<div class="col-12 text-center py-5"><div class="spinner-border text-success"></div></div>');
+
+            $.ajax({
+                url: `/Rooms/GetMyReservations?pageNumber=${currentPage}&pageSize=${pageSize}&status=${status}`,
+                method: 'GET',
+                success: function(response) {
+                    renderCards(response);
+                },
+                error: function() {
+                    container.html('<div class="col-12 text-center text-danger py-4">Lỗi tải dữ liệu.</div>');
+                }
+            });
+        }
+
+        function renderCards(response) {
+            const data = response.data;
+            totalPages = response.totalPages || 1;
+            $('#pageInfo').text(`Trang ${currentPage} / ${totalPages}`);
+            
+            $('#btnPrevPage').prop('disabled', currentPage === 1);
+            $('#btnNextPage').prop('disabled', currentPage === totalPages || totalPages === 0);
+
+            const container = $('#reservationsContainer');
+            if (!data || data.length === 0) {
+                container.html('<div class="col-12 text-center text-muted py-5"><i class="bi bi-inbox fs-1 d-block mb-3"></i>Bạn chưa có đơn đặt phòng nào.</div>');
+                return;
+            }
+
+            let html = '';
+            data.forEach(item => {
+                const dateStr = new Date(item.reservationDate).toLocaleDateString('vi-VN');
+                const startStr = formatTime(item.startTime);
+                const endStr = formatTime(item.endTime);
+                
+                let statusBadge = '';
+                let bgClass = '';
+                
+                if (item.status === 'Confirmed') {
+                    statusBadge = '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Chưa Check-in</span>';
+                    bgClass = 'border-success border-start border-4';
+                } else if (item.status === 'CheckedIn') {
+                    statusBadge = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Đã Check-in</span>';
+                    bgClass = 'border-primary border-start border-4';
+                } else {
+                    statusBadge = '<span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i> Đã Hủy</span>';
+                    bgClass = 'border-secondary border-start border-4';
+                }
+
+                // escape data for modal
+                const itemData = JSON.stringify({
+                    id: item.reservationId,
+                    room: item.roomName,
+                    date: dateStr,
+                    time: `${startStr} - ${endStr}`,
+                    status: item.status
+                }).replace(/"/g, '&quot;');
+
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 shadow-sm rounded-4 border-0 ${bgClass}">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="fw-bold text-dark mb-0">${item.roomName}</h5>
+                                    ${statusBadge}
+                                </div>
+                                <div class="mb-3 text-muted">
+                                    <p class="mb-1"><i class="bi bi-calendar3 me-2"></i> ${dateStr}</p>
+                                    <p class="mb-0"><i class="bi bi-clock me-2"></i> ${startStr} - ${endStr}</p>
+                                </div>
+                                <button class="btn btn-light w-100 rounded-pill text-success fw-medium border" onclick="showDetails('${itemData}')">
+                                    <i class="bi bi-eye me-1"></i> Xem chi tiết
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.html(html);
+        }
+
+        function showDetails(dataStr) {
+            const data = JSON.parse(dataStr);
+            $('#modalRoomName').text(data.room);
+            $('#modalDate').text(data.date);
+            $('#modalTime').text(data.time);
+            $('#modalResId').text(data.id.substring(0, 8).toUpperCase()); // show short ID
+            
+            if(data.status === 'Confirmed') {
+                currentResIdToCancel = data.id;
+                $('#cancelActionContainer').show();
+            } else {
+                currentResIdToCancel = null;
+                $('#cancelActionContainer').hide();
+            }
+            
+            $('#detailsModal').modal('show');
+        }
+    </script>
+}

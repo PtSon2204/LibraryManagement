@@ -1,0 +1,163 @@
+@{
+    ViewData["Title"] = "Quản lý Khung giờ chuẩn";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-white"><i class="bi bi-clock-history me-2"></i> Khung giờ chuẩn (Slot Templates)</h5>
+            <button class="btn btn-light btn-sm text-success fw-bold" data-bs-toggle="modal" data-bs-target="#createTemplateModal">
+                <i class="bi bi-plus-lg"></i> Thêm mới
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Giờ bắt đầu</th>
+                            <th>Giờ kết thúc</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="templateTableBody">
+                        <!-- Data will be loaded via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Khung giờ -->
+<div class="modal fade" id="createTemplateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title text-white">Thêm Khung Giờ Mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Giờ bắt đầu</label>
+                    <input type="time" id="startTime" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Giờ kết thúc</label>
+                    <input type="time" id="endTime" class="form-control" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" id="btnSaveTemplate">Lưu khung giờ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadTemplates();
+
+            $('#btnSaveTemplate').click(function() {
+                const startTime = $('#startTime').val();
+                const endTime = $('#endTime').val();
+
+                if(!startTime || !endTime) {
+                    alert('Vui lòng chọn đầy đủ giờ bắt đầu và kết thúc.');
+                    return;
+                }
+
+                const payload = {
+                    startTime: startTime + ':00',
+                    endTime: endTime + ':00'
+                };
+
+                $.ajax({
+                    url: '/SlotTemplates/Create',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function() {
+                        alert('Thêm khung giờ thành công!');
+                        $('#createTemplateModal').modal('hide');
+                        $('#startTime').val('');
+                        $('#endTime').val('');
+                        loadTemplates();
+                    },
+                    error: function() {
+                        alert('Đã xảy ra lỗi khi thêm khung giờ.');
+                    }
+                });
+            });
+        });
+
+        function loadTemplates() {
+            $('#templateTableBody').html('<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-success"></div></td></tr>');
+            $.ajax({
+                url: '/SlotTemplates/GetAll',
+                method: 'GET',
+                success: function(data) {
+                    let html = '';
+                    if(!data || data.length === 0) {
+                        html = '<tr><td colspan="5" class="text-center text-muted">Chưa có khung giờ nào.</td></tr>';
+                    } else {
+                        data.forEach((item, index) => {
+                            const badgeClass = item.isActive ? 'bg-success' : 'bg-secondary';
+                            const badgeText = item.isActive ? 'Hoạt động' : 'Tạm ẩn';
+                            
+                            html += `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td class="fw-bold">${item.startTime.substring(0,5)}</td>
+                                    <td class="fw-bold">${item.endTime.substring(0,5)}</td>
+                                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-${item.isActive ? 'warning' : 'success'} me-1" onclick="toggleStatus(${item.slotTemplateId})">
+                                            <i class="bi bi-${item.isActive ? 'eye-slash' : 'eye'}"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate(${item.slotTemplateId})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    $('#templateTableBody').html(html);
+                },
+                error: function() {
+                    $('#templateTableBody').html('<tr><td colspan="5" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                }
+            });
+        }
+
+        function toggleStatus(id) {
+            $.ajax({
+                url: '/SlotTemplates/Toggle/' + id,
+                method: 'PUT',
+                success: function() {
+                    loadTemplates();
+                    alert('Cập nhật trạng thái thành công!');
+                }
+            });
+        }
+
+        function deleteTemplate(id) {
+            if(confirm('Bạn có chắc chắn muốn xóa khung giờ này không?')) {
+                $.ajax({
+                    url: '/SlotTemplates/Delete/' + id,
+                    method: 'DELETE',
+                    success: function() {
+                        loadTemplates();
+                        alert('Xóa khung giờ thành công!');
+                    }
+                });
+            }
+        }
+    </script>
+}

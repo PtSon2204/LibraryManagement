@@ -31,9 +31,13 @@ namespace LibraryManagement.API.Extensions
             services.AddScoped<IUserManagementService, UserManagementService>();
             services.AddScoped<IShelfService, ShelfService>();
             services.AddScoped<IOverdueNotificationService, OverdueNotificationService>();
+            services.AddScoped<IReservationService, ReservationService>();
+            services.AddScoped<ISlotTemplateService, SlotTemplateService>();
+            services.AddScoped<IRoomSlotLockService, RoomSlotLockService>();
 
             //Đăng kí Hosted Service
             services.AddHostedService<HostedServices.OverdueNotificationBackgroundService>();
+            services.AddHostedService<HostedServices.ReservationMonitorBackgroundService>();
 
             //Đăng kí fluentValidation
             services.AddFluentValidationAutoValidation();

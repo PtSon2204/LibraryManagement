@@ -29,6 +29,9 @@ namespace LibraryManagement.Data.UnitOfWorks
 
         public IRepository<Publisher> Publishers { get; }
 
+        public IRepository<SlotTemplate> SlotTemplates { get; }
+        public IRepository<RoomSlotLock> RoomSlotLocks { get; }
+
         // Shelf management
         public IRepository<Floor> Floors { get; }
         public IRepository<Bookshelf> Bookshelves { get; }
@@ -59,6 +62,9 @@ namespace LibraryManagement.Data.UnitOfWorks
             Rooms = new Repository<Room>(context);
             Fines = new Repository<Fine>(context);
             Payments = new Repository<Payment>(context);
+            
+            SlotTemplates = new Repository<SlotTemplate>(context);
+            RoomSlotLocks = new Repository<RoomSlotLock>(context);
 
             // Shelf management
             Floors = new Repository<Floor>(context);

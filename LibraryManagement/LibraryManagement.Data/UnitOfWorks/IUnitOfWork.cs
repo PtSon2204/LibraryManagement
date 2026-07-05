@@ -26,6 +26,9 @@ namespace LibraryManagement.Data.UnitOfWorks
         IRepository<Publisher> Publishers { get; }
         IRepository<Category> Categories { get; }
 
+        IRepository<SlotTemplate> SlotTemplates { get; }
+        IRepository<RoomSlotLock> RoomSlotLocks { get; }
+
         // Shelf management
         IRepository<Floor> Floors { get; }
         IRepository<Bookshelf> Bookshelves { get; }
