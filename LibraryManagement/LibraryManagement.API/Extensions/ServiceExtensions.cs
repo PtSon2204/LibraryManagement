@@ -30,6 +30,10 @@ namespace LibraryManagement.API.Extensions
             services.AddScoped<IReportService, ReportService>();
             services.AddScoped<IUserManagementService, UserManagementService>();
             services.AddScoped<IShelfService, ShelfService>();
+            services.AddScoped<IOverdueNotificationService, OverdueNotificationService>();
+
+            //Đăng kí Hosted Service
+            services.AddHostedService<HostedServices.OverdueNotificationBackgroundService>();
 
             //Đăng kí fluentValidation
             services.AddFluentValidationAutoValidation();
