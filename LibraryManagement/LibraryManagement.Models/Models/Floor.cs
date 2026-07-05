@@ -16,4 +16,6 @@ public partial class Floor
     public string? Description { get; set; }
 
     public virtual ICollection<Bookshelf> Bookshelves { get; set; } = new List<Bookshelf>();
+    public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
 }
+

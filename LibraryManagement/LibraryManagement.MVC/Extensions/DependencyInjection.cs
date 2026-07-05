@@ -66,6 +66,24 @@ namespace LibraryManagement.MVC.Extensions
             })
             .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
 
+            services.AddHttpClient<IReservationService, ReservationService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            })
+            .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
+
+            services.AddHttpClient<ISlotTemplateService, SlotTemplateService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            })
+            .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
+
+            services.AddHttpClient<IRoomSlotLockService, RoomSlotLockService>(x =>
+            {
+                x.BaseAddress = new Uri(apiUrl);
+            })
+            .AddHttpMessageHandler<LibraryManagement.MVC.Handlers.JwtAuthorizationHandler>();
+
             services.AddHttpClient<IBookService, BookService>(x =>
             {
                 x.BaseAddress = new Uri(apiUrl);

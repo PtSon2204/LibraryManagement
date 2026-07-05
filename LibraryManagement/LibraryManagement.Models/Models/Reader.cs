@@ -18,6 +18,9 @@ public partial class Reader
 
     public DateTime? UpdatedAt { get; set; }
 
+    /// <summary>Thời gian bị khóa quyền đặt phòng (nếu bị NoShow 3 lần)</summary>
+    public DateTime? RoomBookingLockedUntil { get; set; }
+
     // Navigation
     public virtual UserProfile? Profile { get; set; }
 

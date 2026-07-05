@@ -11,5 +11,7 @@ namespace LibraryManagement.Business.DTOs.RoomDTOs
         public string Status { get; set; } = null!;
         public string? Image { get; set; }
         public DateTime CreatedAt { get; set; }
+        public Guid? FloorId { get; set; }
+        public string? FloorName { get; set; }
     }
 }

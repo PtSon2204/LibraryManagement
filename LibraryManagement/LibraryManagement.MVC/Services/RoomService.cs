@@ -1,6 +1,8 @@
 using LibraryManagement.MVC.Interface;
 using LibraryManagement.MVC.ViewModels.Room;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -41,6 +43,27 @@ namespace LibraryManagement.MVC.Services
             }
         }
 
+        public async Task<List<RoomViewModel>> GetAvailableRoomsExceptAsync(Guid excludeId, int maxCount = 4)
+        {
+            try
+            {
+                var result = await _httpClient.GetFromJsonAsync<RoomListViewModel>(
+                    $"api/rooms?status=Available&pageNumber=1&pageSize=20");
+
+                if (result?.Data == null) return new();
+
+                return result.Data
+                    .Where(r => r.RoomId != excludeId)
+                    .Take(maxCount)
+                    .ToList();
+            }
+            catch
+            {
+                return new();
+            }
+        }
+
+
         public async Task<string?> CreateRoomAsync(RoomViewModel model)
         {
             var payload = new
@@ -48,7 +71,9 @@ namespace LibraryManagement.MVC.Services
                 model.RoomName,
                 model.Capacity,
                 model.Description,
-                model.Status
+                model.Status,
+                model.Image,
+                model.FloorId
             };
 
             var content = new System.Net.Http.StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
@@ -66,7 +91,9 @@ namespace LibraryManagement.MVC.Services
                 model.RoomName,
                 model.Capacity,
                 model.Description,
-                model.Status
+                model.Status,
+                model.Image,
+                model.FloorId
             };
 
             var content = new System.Net.Http.StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");

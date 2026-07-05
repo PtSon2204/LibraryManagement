@@ -8,10 +8,14 @@ namespace LibraryManagement.MVC.Controllers
     public class RoomsController : Controller
     {
         private readonly IRoomService _roomService;
+        private readonly IReservationService _reservationService;
+        private readonly IUserProfileService _userProfileService;
 
-        public RoomsController(IRoomService roomService)
+        public RoomsController(IRoomService roomService, IReservationService reservationService, IUserProfileService userProfileService)
         {
             _roomService = roomService;
+            _reservationService = reservationService;
+            _userProfileService = userProfileService;
         }
 
         [HttpGet]
@@ -37,7 +41,67 @@ namespace LibraryManagement.MVC.Controllers
             var model = await _roomService.GetRoomByIdAsync(id);
             if (model == null) return NotFound();
 
+            model.SuggestedRooms = await _roomService.GetAvailableRoomsExceptAsync(id, maxCount: 4);
+
+            // Kiểm tra số điện thoại - truyền cờ vào View
+            if (User.IsInRole("Reader"))
+            {
+                var profile = await _userProfileService.GetProfile();
+                ViewBag.HasPhone = profile != null && !string.IsNullOrWhiteSpace(profile.Phone);
+            }
+            else
+            {
+                ViewBag.HasPhone = true;
+            }
+
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult MyReservations()
+        {
+            return View();
+        }
+
+        [HttpGet("Rooms/GetMyReservations")]
+        public async Task<IActionResult> GetMyReservations(int pageNumber = 1, int pageSize = 10, string status = "")
+        {
+            try
+            {
+                var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdStr, out Guid readerId))
+                {
+                    return Unauthorized();
+                }
+
+                var resultJson = await _reservationService.GetReservationsAsync(pageNumber, pageSize, status, readerId);
+                return Content(resultJson, "application/json");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("Rooms/CancelReservation/{id}")]
+        public async Task<IActionResult> CancelReservation(Guid id)
+        {
+            try
+            {
+                var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdStr, out Guid readerId))
+                {
+                    return Unauthorized();
+                }
+
+                var success = await _reservationService.CancelReservationAsync(id, readerId);
+                if (success) return Ok();
+                return BadRequest();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Lỗi server");
+            }
         }
     }
 }

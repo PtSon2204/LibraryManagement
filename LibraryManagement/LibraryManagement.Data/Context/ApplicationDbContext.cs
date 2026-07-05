@@ -58,6 +58,10 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<UserProfile> UserProfiles { get; set; }
 
+    public virtual DbSet<SlotTemplate> SlotTemplates { get; set; }
+    
+    public virtual DbSet<RoomSlotLock> RoomSlotLocks { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // ── Authors ──────────────────────────────────────────────────────────
@@ -399,6 +403,13 @@ public partial class ApplicationDbContext : DbContext
                 .HasMaxLength(30)
                 .HasDefaultValue("Available");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+
+            // FK → Floors (nullable)
+            entity.HasOne(e => e.Floor)
+                .WithMany(f => f.Rooms)
+                .HasForeignKey(e => e.FloorId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Rooms_Floors");
         });
 
         // ── Reservations (đặt phòng) ──────────────────────────────────────────

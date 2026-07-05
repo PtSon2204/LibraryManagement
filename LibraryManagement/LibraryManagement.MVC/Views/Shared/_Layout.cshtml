@@ -35,8 +35,22 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Loans" asp-action="Index">Sách đang mượn</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Rooms" asp-action="Index">Đặt phòng</a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="roomDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Phòng thư viện
+                                </a>
+                                <ul class="dropdown-menu shadow-sm border-0" aria-labelledby="roomDropdown" style="border-radius: 0.75rem;">
+                                    <li>
+                                        <a class="dropdown-item py-2" asp-controller="Rooms" asp-action="Index">
+                                            <i class="bi bi-door-open me-2 text-success"></i> Đặt phòng
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" asp-controller="Rooms" asp-action="MyReservations">
+                                            <i class="bi bi-calendar-check me-2 text-primary"></i> Phòng đã đặt
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         }
                         @if (User.IsInRole("Librarian"))

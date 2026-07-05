@@ -568,6 +568,9 @@ namespace LibraryManagement.Data.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(500)");
 
+                    b.Property<DateTime?>("RoomBookingLockedUntil")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -595,8 +598,14 @@ namespace LibraryManagement.Data.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newsequentialid())");
 
+                    b.Property<DateTime?>("ActualCheckInTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsNoShow")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("ReaderId")
                         .HasColumnType("uniqueidentifier");
@@ -653,6 +662,9 @@ namespace LibraryManagement.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<Guid?>("FloorId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
 
@@ -670,12 +682,53 @@ namespace LibraryManagement.Data.Migrations
 
                     b.HasKey("RoomId");
 
+                    b.HasIndex("FloorId");
+
                     b.HasIndex(new[] { "Status" }, "IX_Rooms_Status");
 
                     b.HasIndex(new[] { "RoomName" }, "UQ_Rooms_RoomName")
                         .IsUnique();
 
                     b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.RoomSlotLock", b =>
+                {
+                    b.Property<int>("RoomSlotLockId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoomSlotLockId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<DateTime>("LockDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("LockedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("RoomSlotLockId");
+
+                    b.HasIndex("LockedByUserId");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("RoomSlotLocks");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Shelf", b =>
@@ -735,6 +788,31 @@ namespace LibraryManagement.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("ShelfSlots");
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.SlotTemplate", b =>
+                {
+                    b.Property<int>("SlotTemplateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SlotTemplateId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("SlotTemplateId");
+
+                    b.ToTable("SlotTemplates");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.UserProfile", b =>
@@ -977,6 +1055,34 @@ namespace LibraryManagement.Data.Migrations
                     b.Navigation("Room");
                 });
 
+            modelBuilder.Entity("LibraryManagement.Models.Models.Room", b =>
+                {
+                    b.HasOne("LibraryManagement.Models.Models.Floor", "Floor")
+                        .WithMany("Rooms")
+                        .HasForeignKey("FloorId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Rooms_Floors");
+
+                    b.Navigation("Floor");
+                });
+
+            modelBuilder.Entity("LibraryManagement.Models.Models.RoomSlotLock", b =>
+                {
+                    b.HasOne("LibraryManagement.Models.Models.Account", "LockedByUser")
+                        .WithMany()
+                        .HasForeignKey("LockedByUserId");
+
+                    b.HasOne("LibraryManagement.Models.Models.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LockedByUser");
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("LibraryManagement.Models.Models.Shelf", b =>
                 {
                     b.HasOne("LibraryManagement.Models.Models.Bookshelf", "Bookshelf")
@@ -1065,6 +1171,8 @@ namespace LibraryManagement.Data.Migrations
             modelBuilder.Entity("LibraryManagement.Models.Models.Floor", b =>
                 {
                     b.Navigation("Bookshelves");
+
+                    b.Navigation("Rooms");
                 });
 
             modelBuilder.Entity("LibraryManagement.Models.Models.Loan", b =>

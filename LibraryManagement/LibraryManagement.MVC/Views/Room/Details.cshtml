@@ -36,6 +36,10 @@
                 <p class="fw-bold fs-5">@Model.Capacity chỗ ngồi</p>
             </div>
             <div class="col-md-6 col-lg-3">
+                <h6 class="text-muted mb-2"><i class="bi bi-building me-1"></i>Vị trí tầng</h6>
+                <p class="fw-bold fs-5 text-primary">@(string.IsNullOrEmpty(Model.FloorName) ? "Chưa sắp xếp" : Model.FloorName)</p>
+            </div>
+            <div class="col-md-6 col-lg-3">
                 <h6 class="text-muted mb-2"><i class="bi bi-info-circle me-1"></i>Trạng thái</h6>
                 <div>
                     @if (Model.Status == "Available")

@@ -34,6 +34,17 @@ namespace LibraryManagement.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // Cấu hình CORS để cho phép AJAX từ MVC gọi sang API
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+
             builder.Services.AddControllers()
                 .AddOData(options =>
                     options.Select()
@@ -61,6 +72,9 @@ namespace LibraryManagement.API
             app.UseMiddleware<ExceptionMiddleware>();
 
             app.UseHttpsRedirection();
+            
+            // Kích hoạt CORS
+            app.UseCors("AllowAll");
 
             app.UseAuthentication();
             app.UseAuthorization();
