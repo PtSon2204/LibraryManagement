@@ -30,6 +30,25 @@ public class LoansController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("readers")]
+    [Authorize(Roles = "Librarian,Admin")]
+    public async Task<IActionResult> GetReaderLoanSummaries(
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var result = await _loanService.GetStaffReaderLoanSummariesAsync(search, page, pageSize);
+        return Ok(result);
+    }
+
+    [HttpGet("readers/{readerId:guid}")]
+    [Authorize(Roles = "Librarian,Admin")]
+    public async Task<IActionResult> GetReaderLoanWorkspace(Guid readerId)
+    {
+        var result = await _loanService.GetStaffReaderLoanWorkspaceAsync(readerId);
+        return result == null ? NotFound("Không tìm thấy độc giả.") : Ok(result);
+    }
+
     [HttpGet("my")]
     [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetMyLoans([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -60,6 +79,21 @@ public class LoansController : ControllerBase
         try
         {
             await _loanService.ConfirmLoanDetailAsync(GetCurrentUserId(), loanDetailId, request.CopyId);
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("readers/{readerId:guid}/confirm-batch")]
+    [Authorize(Roles = "Librarian,Admin")]
+    public async Task<IActionResult> ConfirmBorrowRequests(Guid readerId, BatchConfirmBorrowRequestDto request)
+    {
+        try
+        {
+            await _loanService.ConfirmLoanDetailsAsync(GetCurrentUserId(), readerId, request.Items);
             return Ok();
         }
         catch (InvalidOperationException ex)

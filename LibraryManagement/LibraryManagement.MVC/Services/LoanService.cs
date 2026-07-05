@@ -33,6 +33,29 @@ public class LoanService : ILoanService
         return result;
     }
 
+    public async Task<ReaderLoanSummaryPageViewModel?> GetStaffReaderLoanSummariesAsync(LoanSearchViewModel search)
+    {
+        AddJwt();
+        var query = BuildReaderLoanQuery(search);
+        var response = await _httpClient.GetAsync($"api/loans/readers?{query}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<ReaderLoanSummaryPageViewModel>(json, _jsonOptions);
+        if (result != null) result.Search = search;
+        return result;
+    }
+
+    public async Task<ReaderLoanWorkspaceViewModel?> GetStaffReaderLoanWorkspaceAsync(Guid readerId)
+    {
+        AddJwt();
+        var response = await _httpClient.GetAsync($"api/loans/readers/{readerId}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<ReaderLoanWorkspaceViewModel>(json, _jsonOptions);
+    }
+
     public async Task<LoanListPageViewModel?> GetMyLoansAsync(LoanSearchViewModel search)
     {
         AddJwt();
@@ -63,6 +86,16 @@ public class LoanService : ILoanService
 
         var error = await response.Content.ReadAsStringAsync();
         return string.IsNullOrWhiteSpace(error) ? "Không thể xác nhận yêu cầu mượn. Vui lòng thử lại." : error;
+    }
+
+    public async Task<string?> ConfirmBorrowRequestsAsync(Guid readerId, List<ConfirmLoanDetailItemViewModel> items)
+    {
+        AddJwt();
+        var response = await _httpClient.PostAsJsonAsync($"api/loans/readers/{readerId}/confirm-batch", new { Items = items });
+        if (response.IsSuccessStatusCode) return null;
+
+        var error = await response.Content.ReadAsStringAsync();
+        return string.IsNullOrWhiteSpace(error) ? "Không thể xác nhận các yêu cầu mượn. Vui lòng thử lại." : error;
     }
 
     public async Task<string?> ReturnBookAsync(Guid loanDetailId)
@@ -130,6 +163,18 @@ public class LoanService : ILoanService
             AddQuery(query, "search", search.Search);
         }
 
+        return string.Join('&', query);
+    }
+
+    private static string BuildReaderLoanQuery(LoanSearchViewModel search)
+    {
+        var query = new List<string>
+        {
+            $"page={Math.Max(search.Page, 1)}",
+            $"pageSize={(search.PageSize <= 0 ? 10 : search.PageSize)}"
+        };
+
+        AddQuery(query, "search", search.Search);
         return string.Join('&', query);
     }
 
