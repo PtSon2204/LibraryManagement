@@ -34,6 +34,7 @@ namespace LibraryManagement.API.Extensions
             services.AddScoped<IReservationService, ReservationService>();
             services.AddScoped<ISlotTemplateService, SlotTemplateService>();
             services.AddScoped<IRoomSlotLockService, RoomSlotLockService>();
+            services.AddScoped<IFineService, FineService>();
 
             //Đăng kí Hosted Service
             services.AddHostedService<HostedServices.OverdueNotificationBackgroundService>();

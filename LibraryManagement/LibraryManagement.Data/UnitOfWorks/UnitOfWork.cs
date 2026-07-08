@@ -23,6 +23,7 @@ namespace LibraryManagement.Data.UnitOfWorks
         public IRepository<Room> Rooms { get; }
         public IRepository<Fine> Fines { get; }
         public IRepository<Payment> Payments { get; }
+        public IRepository<FineTemplate> FineTemplates { get; }
 
         public IRepository<Author> Authors { get; }
         public IRepository<Category> Categories { get; }
@@ -62,6 +63,7 @@ namespace LibraryManagement.Data.UnitOfWorks
             Rooms = new Repository<Room>(context);
             Fines = new Repository<Fine>(context);
             Payments = new Repository<Payment>(context);
+            FineTemplates = new Repository<FineTemplate>(context);
             
             SlotTemplates = new Repository<SlotTemplate>(context);
             RoomSlotLocks = new Repository<RoomSlotLock>(context);

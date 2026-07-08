@@ -23,6 +23,7 @@ namespace LibraryManagement.Data.UnitOfWorks
         IRepository<Room> Rooms { get; }
         IRepository<Fine> Fines { get; }
         IRepository<Payment> Payments { get; }
+        IRepository<FineTemplate> FineTemplates { get; }
         IRepository<Publisher> Publishers { get; }
         IRepository<Category> Categories { get; }
 

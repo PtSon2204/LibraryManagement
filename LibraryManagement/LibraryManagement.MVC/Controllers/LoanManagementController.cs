@@ -9,10 +9,12 @@ namespace LibraryManagement.MVC.Controllers;
 public class LoanManagementController : Controller
 {
     private readonly ILoanService _loanService;
+    private readonly IFineService _fineService;
 
-    public LoanManagementController(ILoanService loanService)
+    public LoanManagementController(ILoanService loanService, IFineService fineService)
     {
         _loanService = loanService;
+        _fineService = fineService;
     }
 
     [HttpGet]
@@ -72,5 +74,30 @@ public class LoanManagementController : Controller
             criteria.Page,
             criteria.PageSize
         });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetFineTemplates()
+    {
+        var templates = await _fineService.GetActiveTemplatesAsync();
+        return Json(templates);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateFine(LibraryManagement.MVC.ViewModels.Fines.CreateFineViewModel model)
+    {
+        var error = await _fineService.CreateFineAsync(model);
+        TempData[error == null ? "Success" : "Error"] = error ?? "Đã ghi nhận phạt và trả sách thành công.";
+        
+        return RedirectToAction(nameof(Reader), new { id = model.ReaderId });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GenerateQr(decimal amount, Guid loanDetailId)
+    {
+        var result = await _fineService.GenerateQrAsync(amount, loanDetailId);
+        if (result == null) return BadRequest("Không thể tạo mã QR");
+        return Json(result);
     }
 }
