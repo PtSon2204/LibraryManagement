@@ -144,12 +144,9 @@
                                 <td><span class="badge text-bg-light">@loan.Barcode</span></td>
                                 <td class="text-danger fw-semibold">@loan.DueAt.ToString("dd/MM/yyyy")</td>
                                 <td class="text-end">
-                                    <form asp-controller="LoanManagement" asp-action="Return" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="loanDetailId" value="@loan.LoanDetailId" />
-                                        <input type="hidden" name="ReaderId" value="@Model.ReaderId" />
-                                        <button type="submit" class="btn btn-sm btn-outline-success">Ghi nhận trả</button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="openFineModal('@loan.LoanDetailId', @((int)Math.Max(0, (DateTime.UtcNow.Date - loan.DueAt.Date).TotalDays)))">
+                                        Tạo khoản phạt
+                                    </button>
                                 </td>
                             </tr>
                         }
@@ -158,4 +155,246 @@
             </div>
         </div>
     </div>
+}
+
+<!-- Fine Modals -->
+<div class="modal fade" id="fineModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Tạo khoản phạt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Chọn các loại phạt áp dụng cho sách này.</p>
+                <form id="fineForm" asp-controller="LoanManagement" asp-action="CreateFine" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="LoanDetailId" id="fineLoanDetailId" />
+                    <input type="hidden" name="ReaderId" value="@Model.ReaderId" />
+                    <input type="hidden" name="OverdueDays" id="fineOverdueDays" />
+                    <input type="hidden" name="PaymentMethod" id="finePaymentMethod" value="Cash" />
+                    
+                    <div id="fineTemplatesContainer" class="mb-3">
+                        <div class="text-center text-muted py-3">Đang tải dữ liệu...</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Ghi chú (Không bắt buộc)</label>
+                        <textarea class="form-control" name="Note" rows="2" placeholder="Nhập ghi chú thêm..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <div class="fw-bold">Tổng cộng: <span id="fineTotalAmount" class="text-danger fs-5">0</span>đ</div>
+                        <button type="button" class="btn btn-brand" onclick="openPaymentModal()">Thanh toán</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Thanh toán khoản phạt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-pills nav-fill mb-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="cash-tab" data-bs-toggle="pill" data-bs-target="#cash" type="button" role="tab" onclick="setPaymentMethod('Cash')">
+                            <i class="bi bi-cash-stack me-2"></i>Tiền mặt
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="transfer-tab" data-bs-toggle="pill" data-bs-target="#transfer" type="button" role="tab" onclick="setPaymentMethod('Transfer')">
+                            <i class="bi bi-qr-code-scan me-2"></i>Chuyển khoản
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="paymentTabContent">
+                    <div class="tab-pane fade show active" id="cash" role="tabpanel">
+                        <div class="alert alert-info border-0 rounded-3 text-center mb-0">
+                            <p class="mb-2">Vui lòng thu tiền mặt từ độc giả:</p>
+                            <h3 class="fw-bold text-dark mb-0 payment-total-display">0đ</h3>
+                        </div>
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-light me-2" data-bs-toggle="modal" data-bs-target="#fineModal">Quay lại</button>
+                            <button type="button" class="btn btn-success" onclick="submitFineForm()">Xác nhận đã thu tiền</button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="transfer" role="tabpanel">
+                        <div class="text-center">
+                            <div class="mb-2 text-muted small">Quét mã QR bằng ứng dụng ngân hàng</div>
+                            <img id="qrImage" src="" alt="QR Code" class="img-fluid border p-2 rounded-3 mb-3" style="max-width: 250px;" />
+                            <h4 class="fw-bold text-dark payment-total-display">0đ</h4>
+                            <div class="small text-muted mb-3" id="transferContentDisplay"></div>
+                            
+                            <div id="sepayStatus" class="alert alert-warning border-0 rounded-3 py-2 mb-3">
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                Đang chờ thanh toán...
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex justify-content-between">
+                            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#fineModal">Quay lại</button>
+                            <button type="button" class="btn btn-outline-success" onclick="submitFineForm()">Đã nhận chuyển khoản (Thủ công)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let fineTemplates = [];
+        let currentOverdueDays = 0;
+        let transferContent = '';
+        let currentTotal = 0;
+        let sepayInterval = null;
+
+        function openFineModal(loanDetailId, overdueDays) {
+            $('#fineLoanDetailId').val(loanDetailId);
+            $('#fineOverdueDays').val(overdueDays);
+            currentOverdueDays = overdueDays;
+            
+            // Load templates
+            $.get('@Url.Action("GetFineTemplates", "LoanManagement")', function (data) {
+                fineTemplates = data;
+                let html = '';
+                
+                data.forEach((template, index) => {
+                    let amount = template.amount;
+                    let amountLabel = amount.toLocaleString() + 'đ';
+                    let isChecked = false;
+                    
+                    if (template.fineType === 'PerDay') {
+                        amountLabel = amount.toLocaleString() + 'đ/ngày';
+                        amount = amount * overdueDays;
+                        // Auto-select overdue if overdue days > 0
+                        if (template.name.toLowerCase().includes('quá hạn') && overdueDays > 0) {
+                            isChecked = true;
+                        }
+                    }
+
+                    html += `
+                        <div class="form-check mb-2">
+                            <input class="form-check-input fine-checkbox" type="checkbox" 
+                                id="fine_${index}" 
+                                name="SelectedItems[${index}].FineTemplateId" 
+                                value="${template.fineTemplateId}" 
+                                data-amount="${amount}" 
+                                ${isChecked ? 'checked' : ''}
+                                onchange="calculateTotal()">
+                            <input type="hidden" name="SelectedItems[${index}].Amount" value="${amount}" />
+                            <label class="form-check-label w-100 d-flex justify-content-between" for="fine_${index}">
+                                <span>${template.name} ${template.fineType === 'PerDay' ? `(${overdueDays} ngày)` : ''}</span>
+                                <span class="fw-semibold text-danger">${amount.toLocaleString()}đ</span>
+                            </label>
+                        </div>
+                    `;
+                });
+                
+                $('#fineTemplatesContainer').html(html);
+                calculateTotal();
+                
+                var modal = new bootstrap.Modal(document.getElementById('fineModal'));
+                modal.show();
+            });
+        }
+
+        function calculateTotal() {
+            currentTotal = 0;
+            $('.fine-checkbox:checked').each(function () {
+                currentTotal += parseFloat($(this).data('amount'));
+            });
+            $('#fineTotalAmount').text(currentTotal.toLocaleString());
+            $('.payment-total-display').text(currentTotal.toLocaleString() + 'đ');
+            
+            // Tắt các input Amount ẩn của checkbox không được chọn để ko gửi lên server
+            $('.fine-checkbox').each(function () {
+                $(this).next('input[type="hidden"]').prop('disabled', !this.checked);
+            });
+        }
+
+        function openPaymentModal() {
+            if (currentTotal <= 0) {
+                alert("Vui lòng chọn ít nhất một khoản phạt.");
+                return;
+            }
+            
+            var fineModal = bootstrap.Modal.getInstance(document.getElementById('fineModal'));
+            fineModal.hide();
+            
+            setPaymentMethod('Cash');
+            $('#cash-tab').tab('show');
+            
+            var paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+            paymentModal.show();
+        }
+
+        function setPaymentMethod(method) {
+            $('#finePaymentMethod').val(method);
+            
+            if (method === 'Transfer') {
+                $('#sepayStatus').removeClass('alert-success alert-danger').addClass('alert-warning')
+                    .html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang tạo mã QR...');
+                
+                // Fetch QR từ Backend thay vì tự tạo ở Frontend
+                $.get('@Url.Action("GenerateQr", "LoanManagement")', { amount: currentTotal, loanDetailId: $('#fineLoanDetailId').val() })
+                    .done(function (res) {
+                        transferContent = res.transferContent;
+                        $('#transferContentDisplay').text('Nội dung: ' + transferContent);
+                        $('#qrImage').attr('src', res.qrUrl);
+                        
+                        startSePayPolling();
+                    })
+                    .fail(function() {
+                        $('#sepayStatus').removeClass('alert-warning').addClass('alert-danger')
+                            .html('<i class="bi bi-x-circle-fill me-2"></i> Lỗi tạo QR. Vui lòng thu tiền mặt.');
+                    });
+            } else {
+                stopSePayPolling();
+            }
+        }
+        
+        function startSePayPolling() {
+            stopSePayPolling();
+            $('#sepayStatus').removeClass('alert-success alert-danger').addClass('alert-warning')
+                .html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang chờ thanh toán...');
+                
+            sepayInterval = setInterval(function() {
+                $.get('/api/sepay/check', { transferContent: transferContent, amount: currentTotal }, function(res) {
+                    if (res.received && res.amountMatch) {
+                        stopSePayPolling();
+                        $('#sepayStatus').removeClass('alert-warning').addClass('alert-success')
+                            .html('<i class="bi bi-check-circle-fill me-2"></i>Đã nhận thanh toán!');
+                        
+                        setTimeout(function() {
+                            submitFineForm();
+                        }, 1500);
+                    }
+                });
+            }, 3000); // Check every 3s
+        }
+        
+        function stopSePayPolling() {
+            if (sepayInterval) {
+                clearInterval(sepayInterval);
+                sepayInterval = null;
+            }
+        }
+
+        function submitFineForm() {
+            stopSePayPolling();
+            $('#fineForm').submit();
+        }
+        
+        // Dọn dẹp polling khi đóng modal
+        document.getElementById('paymentModal').addEventListener('hidden.bs.modal', function () {
+            stopSePayPolling();
+        });
+    </script>
 }

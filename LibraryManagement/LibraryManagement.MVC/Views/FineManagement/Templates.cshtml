@@ -1,0 +1,154 @@
+@model List<LibraryManagement.MVC.ViewModels.Fines.FineTemplateViewModel>
+
+@{
+    ViewData["Title"] = "Cấu hình khoản phạt";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a asp-action="Index" class="text-decoration-none small fw-semibold d-inline-flex align-items-center mb-2">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách phạt
+        </a>
+        <h2 class="fw-bold mb-0">Cấu hình loại phạt</h2>
+    </div>
+    <button type="button" class="btn btn-brand" onclick="openUpsertModal()">
+        <i class="bi bi-plus-lg me-2"></i>Thêm loại phạt
+    </button>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+    </div>
+}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Tên loại phạt</th>
+                        <th>Số tiền</th>
+                        <th>Loại tính phí</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-semibold">@item.Name</td>
+                            <td class="text-danger fw-bold">@item.Amount.ToString("N0")đ</td>
+                            <td>
+                                @if (item.FineType == "PerDay")
+                                {
+                                    <span class="badge bg-warning text-dark">Tính theo ngày (Quá hạn)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Cố định / Lần</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Đang áp dụng</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-muted">Đã ẩn</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <button type="button" class="btn btn-sm btn-outline-primary me-2" 
+                                        onclick="openUpsertModal('@item.FineTemplateId', '@item.Name', @item.Amount, '@item.FineType', @item.IsActive.ToString().ToLower())">
+                                    Sửa
+                                </button>
+                                <form asp-action="DeleteTemplate" asp-route-id="@item.FineTemplateId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa loại phạt này?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Upsert Modal -->
+<div class="modal fade" id="upsertModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalTitle">Thêm loại phạt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="upsertForm" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Tên loại phạt</label>
+                        <input type="text" class="form-control" name="Name" id="txtName" required placeholder="VD: Rách bìa sách..." />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Số tiền phạt (VNĐ)</label>
+                        <input type="number" class="form-control" name="Amount" id="txtAmount" required min="0" step="1000" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Cách tính phí</label>
+                        <select class="form-select" name="FineType" id="selFineType">
+                            <option value="Fixed">Cố định một lần</option>
+                            <option value="PerDay">Tính theo mỗi ngày (Dành cho Quá hạn trả)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="IsActive" id="chkIsActive" value="true" checked>
+                        <label class="form-check-label fw-semibold small" for="chkIsActive">Cho phép áp dụng</label>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-brand">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openUpsertModal(id = '', name = '', amount = '', fineType = 'Fixed', isActive = true) {
+            $('#txtName').val(name);
+            $('#txtAmount').val(amount);
+            $('#selFineType').val(fineType);
+            $('#chkIsActive').prop('checked', isActive);
+            
+            if (id) {
+                $('#modalTitle').text('Cập nhật loại phạt');
+                $('#upsertForm').attr('action', '@Url.Action("UpdateTemplate")/' + id);
+            } else {
+                $('#modalTitle').text('Thêm loại phạt mới');
+                $('#upsertForm').attr('action', '@Url.Action("CreateTemplate")');
+            }
+            
+            var modal = new bootstrap.Modal(document.getElementById('upsertModal'));
+            modal.show();
+        }
+    </script>
+}

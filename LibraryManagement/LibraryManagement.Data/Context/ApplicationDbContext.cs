@@ -62,6 +62,8 @@ public partial class ApplicationDbContext : DbContext
     
     public virtual DbSet<RoomSlotLock> RoomSlotLocks { get; set; }
 
+    public virtual DbSet<FineTemplate> FineTemplates { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // ── Authors ──────────────────────────────────────────────────────────
@@ -527,6 +529,61 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.ShelfId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_ShelfSlots_Shelves");
+        });
+
+        // ── FineTemplates ────────────────────────────────────────────────────
+        modelBuilder.Entity<FineTemplate>(entity =>
+        {
+            entity.HasKey(e => e.FineTemplateId);
+
+            entity.Property(e => e.FineTemplateId).HasDefaultValueSql("(newsequentialid())");
+            entity.Property(e => e.Name).HasMaxLength(255);
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.FineType)
+                .HasMaxLength(30)
+                .HasDefaultValue("Fixed");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+
+            // Seed data mặc định
+            entity.HasData(
+                new FineTemplate
+                {
+                    FineTemplateId = Guid.Parse("A1000001-0000-0000-0000-000000000001"),
+                    Name = "Quá hạn trả sách",
+                    Amount = 5000,
+                    FineType = "PerDay",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new FineTemplate
+                {
+                    FineTemplateId = Guid.Parse("A1000001-0000-0000-0000-000000000002"),
+                    Name = "Sách bị rách bìa",
+                    Amount = 50000,
+                    FineType = "Fixed",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new FineTemplate
+                {
+                    FineTemplateId = Guid.Parse("A1000001-0000-0000-0000-000000000003"),
+                    Name = "Sách bị ướt / hư hỏng nặng",
+                    Amount = 100000,
+                    FineType = "Fixed",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new FineTemplate
+                {
+                    FineTemplateId = Guid.Parse("A1000001-0000-0000-0000-000000000004"),
+                    Name = "Sách bị mất",
+                    Amount = 200000,
+                    FineType = "Fixed",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
         });
 
         OnModelCreatingPartial(modelBuilder);
