@@ -1,0 +1,46 @@
+<link rel="stylesheet" href="~/css/ai-chat.css" asp-append-version="true" />
+
+<button id="ai-chat-toggle" class="ai-chat-toggle-btn" aria-label="Mở Trợ lý AI">
+    <i class="bi bi-chat-dots-fill"></i>
+</button>
+
+<div id="ai-chat-window" class="ai-chat-window">
+    <div class="ai-chat-header">
+        <div class="ai-chat-header-info">
+            <div class="ai-chat-header-avatar">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div class="ai-chat-header-text">
+                <span class="ai-chat-header-title">Trợ lý Thư viện AI</span>
+                <span class="ai-chat-header-status"><span class="ai-chat-status-dot"></span> Đang trực tuyến</span>
+            </div>
+        </div>
+        <button id="ai-chat-close" class="ai-chat-header-close" aria-label="Đóng">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div id="ai-chat-body" class="ai-chat-body">
+        <div class="ai-chat-msg ai-chat-msg-model">
+            <div class="ai-chat-msg-bubble">
+                Chào bạn! Tôi là **Trợ lý Thư viện AI**. Tôi có thể giúp gì cho bạn hôm nay?
+                <br/><br/>
+                Bạn có thể hỏi tôi về:
+                <ul class="mb-0 ps-3 mt-1">
+                    <li>📚 Tìm kiếm sách & thể loại sách</li>
+                    <li>🚪 Đặt phòng tự học & khung giờ (slot)</li>
+                    <li>📜 Quy định mượn trả & phạt trễ hạn</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-chat-footer">
+        <input type="text" id="ai-chat-input" placeholder="Nhập câu hỏi..." autocomplete="off" />
+        <button id="ai-chat-send" aria-label="Gửi tin nhắn">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </div>
+</div>
+
+<script src="~/js/ai-chat.js" asp-append-version="true" defer></script>
