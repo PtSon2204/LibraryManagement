@@ -242,6 +242,12 @@
                     @ViewBag.Error
                 </div>
             }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
             @if (TempData["SuccessMessage"] != null)
             {
                 <div class="alert alert-success">
@@ -281,14 +287,10 @@
             <div class="divider">hoặc tiếp tục với</div>
 
             <div class="social-login">
-                <button class="btn-social">
+                <a asp-action="GoogleLogin" asp-controller="Account" class="btn-social">
                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="22" height="22" />
-                    Google
-                </button>
-                <button class="btn-social">
-                    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook" width="22" height="22" />
-                    Facebook
-                </button>
+                    Tiếp tục với Google
+                </a>
             </div>
 
             <p class="text-center mt-4 pt-2 mb-0 text-muted">

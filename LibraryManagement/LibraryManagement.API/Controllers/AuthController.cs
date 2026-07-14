@@ -32,6 +32,14 @@ namespace LibraryManagement.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin(GoogleLoginDto dto)
+        {
+            var result = await _authService.GoogleLoginAsync(dto);
+
+            return Ok(result);
+        }
+
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
         {

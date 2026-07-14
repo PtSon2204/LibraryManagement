@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using LibraryManagement.MVC.ViewModels.Auth;
+using Microsoft.AspNetCore.Authentication.Google;
 
 namespace LibraryManagement.MVC.Controllers
 {
@@ -66,6 +67,61 @@ namespace LibraryManagement.MVC.Controllers
             {
                 return RedirectToAction("Index", "Librarian");
             }
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult GoogleLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(GoogleCallback), "Account")
+            };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        // Không đặt route attribute - để middleware xử lý /signin-google trước,
+        // sau đó redirect về đây tại /Account/GoogleCallback
+        [HttpGet]
+        public async Task<IActionResult> GoogleCallback()
+        {
+            // Middleware đã xử lý OAuth callback và sign in vào Cookie scheme với Google claims
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var fullName = User.FindFirstValue(ClaimTypes.Name);
+
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["Error"] = "Không lấy được email từ Google.";
+                return RedirectToAction(nameof(Login));
+            }
+
+            // Sign out cookie tạm do Google middleware tạo
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            // Gọi API để tìm/tạo tài khoản và nhận JWT
+            var user = await _authService.GoogleLoginAsync(email, fullName);
+
+            if (user == null)
+            {
+                TempData["Error"] = "Đăng nhập Google thất bại. Vui lòng thử lại.";
+                return RedirectToAction(nameof(Login));
+            }
+
+            // Tạo cookie session với JWT — giống hệt luồng login thường
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("jwt_token", user.Token)
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
             return RedirectToAction("Index", "Home");
         }
 

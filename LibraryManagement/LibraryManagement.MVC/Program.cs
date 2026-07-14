@@ -10,6 +10,10 @@ namespace LibraryManagement.MVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Tải biến môi trường từ file .env (giống API project)
+            DotNetEnv.Env.TraversePath().Load();
+            builder.Configuration.AddEnvironmentVariables();
+
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddSession();
@@ -18,7 +22,13 @@ namespace LibraryManagement.MVC
 
             builder.Services.AddAuthentication(
                 CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie();
+            .AddCookie()
+            .AddGoogle(options =>
+            {
+                options.ClientId = builder.Configuration["Google:ClientId"]!;
+                options.ClientSecret = builder.Configuration["Google:ClientSecret"]!;
+                // Dùng mặc định /signin-google để tránh conflict với controller route
+            });
 
             builder.Services.AddApiServices(builder.Configuration);
 

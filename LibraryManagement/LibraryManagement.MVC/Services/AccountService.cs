@@ -34,6 +34,20 @@ namespace LibraryManagement.MVC.Services
             return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
         }
 
+        public async Task<LoginResponseDto?> GoogleLoginAsync(string email, string? fullName)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/google-login", new
+            {
+                Email = email,
+                FullName = fullName
+            });
+
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+        }
+
         public async Task<ValidationErrorResponse?> RegisterAsync(RegisterViewModel model)
         {
             var response = await _httpClient.PostAsJsonAsync(
