@@ -15,10 +15,12 @@ public class FineService : IFineService
     private const string PaidStatus = "Paid";
 
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailService _emailService;
 
-    public FineService(IUnitOfWork unitOfWork)
+    public FineService(IUnitOfWork unitOfWork, IEmailService emailService)
     {
         _unitOfWork = unitOfWork;
+        _emailService = emailService;
     }
 
     // ─── Fine Templates ──────────────────────────────────────────────────────
@@ -113,6 +115,7 @@ public class FineService : IFineService
 
         var detail = await _unitOfWork.LoanDetails.Query()
             .Include(d => d.Copy)
+                .ThenInclude(c => c.Book)
             .Include(d => d.Loan)
                 .ThenInclude(l => l.BorrowerReader)
             .FirstOrDefaultAsync(d => d.LoanDetailId == request.LoanDetailId);
@@ -174,6 +177,19 @@ public class FineService : IFineService
         _unitOfWork.Loans.Update(detail.Loan);
 
         await _unitOfWork.SaveChangesAsync();
+
+        // Gửi email thông báo trả sách thành công (sau khi nộp phạt)
+        if (detail.Loan.BorrowerReader != null)
+        {
+            await _emailService.SendEmailAsync(
+                detail.Loan.BorrowerReader.Email,
+                "[Thư viện] Trả sách thành công (có khoản phạt)",
+                $"<p>Xin chào,</p>" +
+                $"<p>Bạn đã trả thành công cuốn sách <strong>{detail.Copy.Book.Title}</strong>.</p>" +
+                $"<p>Khoản phạt trễ hạn của bạn đã được thanh toán đầy đủ.</p>" +
+                $"<p>Cảm ơn bạn đã sử dụng dịch vụ của thư viện. Trân trọng!</p>"
+            );
+        }
     }
 
     public async Task<FineListPageDto> GetFinesAsync(string? search, string? status, int page, int pageSize)
