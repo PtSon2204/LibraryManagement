@@ -376,6 +376,7 @@ public class LoanService : ILoanService
     {
         var detail = await _unitOfWork.LoanDetails.Query()
             .Include(d => d.Copy)
+                .ThenInclude(c => c.Book)
             .Include(d => d.Loan)
             .FirstOrDefaultAsync(d => d.LoanDetailId == loanDetailId);
 
@@ -405,6 +406,19 @@ public class LoanService : ILoanService
         _unitOfWork.BookCopies.Update(detail.Copy);
         _unitOfWork.Loans.Update(detail.Loan);
         await _unitOfWork.SaveChangesAsync();
+
+        // Gửi email thông báo trả sách thành công
+        var reader = await _unitOfWork.Readers.GetByIdAsync(detail.Loan.BorrowerReaderId);
+        if (reader != null)
+        {
+            await _emailService.SendEmailAsync(
+                reader.Email,
+                "[Thư viện] Trả sách thành công",
+                $"<p>Xin chào,</p>" +
+                $"<p>Bạn đã trả thành công cuốn sách <strong>{detail.Copy.Book.Title}</strong>.</p>" +
+                $"<p>Cảm ơn bạn đã sử dụng dịch vụ của thư viện. Trân trọng!</p>"
+            );
+        }
     }
 
     public async Task<PagedResult<LoanHistoryDto>> GetReaderLoanHistoryAsync(Guid readerId, LoanQuery query)
