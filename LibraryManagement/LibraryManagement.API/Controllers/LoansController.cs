@@ -102,6 +102,21 @@ public class LoansController : ControllerBase
         }
     }
 
+    [HttpPost("{loanDetailId:guid}/reject")]
+    [Authorize(Roles = "Librarian,Admin")]
+    public async Task<IActionResult> RejectBorrowRequest(Guid loanDetailId, RejectLoanDetailDto request)
+    {
+        try
+        {
+            await _loanService.RejectLoanDetailAsync(GetCurrentUserId(), loanDetailId, request.Reason);
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpPost("{loanDetailId:guid}/return")]
     [Authorize(Roles = "Librarian,Admin")]
     public async Task<IActionResult> ReturnBook(Guid loanDetailId)

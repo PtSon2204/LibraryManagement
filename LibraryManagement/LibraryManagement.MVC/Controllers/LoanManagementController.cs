@@ -59,6 +59,16 @@ public class LoanManagementController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Reject(Guid loanDetailId, string? reason, LoanSearchViewModel criteria)
+    {
+        var error = await _loanService.RejectBorrowRequestAsync(loanDetailId, reason);
+        TempData[error == null ? "Success" : "Error"] = error ?? "Đã từ chối yêu cầu mượn sách.";
+
+        return RedirectToAction(nameof(Reader), new { id = criteria.ReaderId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Return(Guid loanDetailId, LoanSearchViewModel criteria)
     {
         var error = await _loanService.ReturnBookAsync(loanDetailId);

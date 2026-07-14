@@ -20,6 +20,8 @@ public interface ILoanService
 
     Task ConfirmLoanDetailsAsync(Guid actorId, Guid readerId, List<ConfirmLoanDetailItemDto> items);
 
+    Task RejectLoanDetailAsync(Guid actorId, Guid loanDetailId, string? reason);
+
     Task ReturnLoanDetailAsync(Guid actorId, string role, Guid loanDetailId);
 
     Task<PagedResult<LoanHistoryDto>> GetReaderLoanHistoryAsync(Guid readerId, LoanQuery query);

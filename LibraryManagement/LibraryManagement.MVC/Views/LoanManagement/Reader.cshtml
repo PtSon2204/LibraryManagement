@@ -53,6 +53,7 @@
                                 <th>Sách</th>
                                 <th>Ngày yêu cầu</th>
                                 <th>Bản sao giao cho độc giả</th>
+                                <th class="text-end">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -72,6 +73,11 @@
                                                 <option value="@copy.CopyId">@copy.Barcode - @(copy.SlotLocation ?? "Chưa xếp kệ")</option>
                                             }
                                         </select>
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="openRejectModal('@loan.LoanDetailId', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(loan.BookTitle))')">
+                                            Từ chối
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -156,6 +162,36 @@
         </div>
     </div>
 }
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">Từ chối yêu cầu mượn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Bạn đang từ chối yêu cầu mượn sách: <strong id="rejectBookTitle"></strong></p>
+                <form id="rejectForm" asp-controller="LoanManagement" asp-action="Reject" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="loanDetailId" id="rejectLoanDetailId" />
+                    <input type="hidden" name="ReaderId" value="@Model.ReaderId" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-semibold">Lý do từ chối (tùy chọn, sẽ gửi qua email cho độc giả)</label>
+                        <textarea class="form-control" name="reason" id="rejectReason" rows="3" placeholder="Nhập lý do..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-2">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger">Xác nhận từ chối</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Fine Modals -->
 <div class="modal fade" id="fineModal" tabindex="-1">

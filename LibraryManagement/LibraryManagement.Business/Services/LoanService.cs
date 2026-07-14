@@ -16,10 +16,12 @@ public class LoanService : ILoanService
     private const string AvailableStatus = "Available";
 
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailService _emailService;
 
-    public LoanService(IUnitOfWork unitOfWork)
+    public LoanService(IUnitOfWork unitOfWork, IEmailService emailService)
     {
         _unitOfWork = unitOfWork;
+        _emailService = emailService;
     }
 
     public async Task<LoanListPageDto> GetStaffLoansAsync(string? status, string? search, int page, int pageSize)
@@ -211,6 +213,20 @@ public class LoanService : ILoanService
         _unitOfWork.BookCopies.Update(selectedCopy);
         _unitOfWork.Loans.Update(detail.Loan);
         await _unitOfWork.SaveChangesAsync();
+
+        // Gửi email xác nhận cho độc giả
+        var reader = await _unitOfWork.Readers.GetByIdAsync(detail.Loan.BorrowerReaderId);
+        if (reader != null)
+        {
+            await _emailService.SendEmailAsync(
+                reader.Email,
+                "[Thư viện] Yêu cầu mượn sách đã được xác nhận",
+                $"<p>Xin chào,</p>" +
+                $"<p>Yêu cầu mượn sách <strong>{detail.Copy.Book.Title}</strong> của bạn đã được thủ thư xác nhận.</p>" +
+                $"<p>📅 Hạn trả: <strong>{detail.Loan.DueAt:dd/MM/yyyy}</strong></p>" +
+                $"<p>Vui lòng đến quầy để nhận sách. Trân trọng!</p>"
+            );
+        }
     }
 
     public async Task ConfirmLoanDetailsAsync(Guid actorId, Guid readerId, List<ConfirmLoanDetailItemDto> items)
@@ -290,6 +306,70 @@ public class LoanService : ILoanService
         }
 
         await _unitOfWork.SaveChangesAsync();
+
+        // Gửi email xác nhận hàng loạt cho độc giả
+        var batchReader = await _unitOfWork.Readers.GetByIdAsync(details.First().Loan.BorrowerReaderId);
+        if (batchReader != null)
+        {
+            var bookList = string.Join("", details.Select(d =>
+                $"<li><strong>{d.Copy.Book.Title}</strong></li>"));
+            await _emailService.SendEmailAsync(
+                batchReader.Email,
+                "[Thư viện] Yêu cầu mượn sách đã được xác nhận",
+                $"<p>Xin chào,</p>" +
+                $"<p>Các yêu cầu mượn sách sau của bạn đã được thủ thư xác nhận:</p>" +
+                $"<ul>{bookList}</ul>" +
+                $"<p>📅 Hạn trả: <strong>{details.First().Loan.DueAt:dd/MM/yyyy}</strong></p>" +
+                $"<p>Vui lòng đến quầy để nhận sách. Trân trọng!</p>"
+            );
+        }
+    }
+
+    public async Task RejectLoanDetailAsync(Guid actorId, Guid loanDetailId, string? reason)
+    {
+        var detail = await _unitOfWork.LoanDetails.Query()
+            .Include(d => d.Copy)
+                .ThenInclude(c => c.Book)
+            .Include(d => d.Loan)
+            .FirstOrDefaultAsync(d => d.LoanDetailId == loanDetailId);
+
+        if (detail == null)
+            throw new InvalidOperationException("Không tìm thấy yêu cầu mượn cần từ chối.");
+
+        if (detail.Status != PendingStatus)
+            throw new InvalidOperationException("Chỉ có thể từ chối yêu cầu đang chờ duyệt.");
+
+        var now = DateTime.UtcNow;
+
+        // Trả bản sao về trạng thái Available
+        detail.Copy.Status = AvailableStatus;
+        detail.Status = "Rejected";
+        detail.Loan.Status = "Rejected";
+        detail.Loan.UpdatedAt = now;
+        detail.Loan.ProcessedByAccountId = actorId;
+
+        _unitOfWork.LoanDetails.Update(detail);
+        _unitOfWork.BookCopies.Update(detail.Copy);
+        _unitOfWork.Loans.Update(detail.Loan);
+        await _unitOfWork.SaveChangesAsync();
+
+        // Gửi email thông báo từ chối cho độc giả
+        var reader = await _unitOfWork.Readers.GetByIdAsync(detail.Loan.BorrowerReaderId);
+        if (reader != null)
+        {
+            var reasonText = string.IsNullOrWhiteSpace(reason)
+                ? "Thủ thư không nêu lý do cụ thể."
+                : reason;
+
+            await _emailService.SendEmailAsync(
+                reader.Email,
+                "[Thư viện] Yêu cầu mượn sách bị từ chối",
+                $"<p>Xin chào,</p>" +
+                $"<p>Rất tiếc, yêu cầu mượn sách <strong>{detail.Copy.Book.Title}</strong> của bạn đã bị từ chối.</p>" +
+                $"<p>📌 Lý do: {reasonText}</p>" +
+                $"<p>Bạn có thể liên hệ thủ thư để biết thêm thông tin. Trân trọng!</p>"
+            );
+        }
     }
 
     public async Task ReturnLoanDetailAsync(Guid actorId, string role, Guid loanDetailId)
