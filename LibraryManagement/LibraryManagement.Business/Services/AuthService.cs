@@ -127,6 +127,53 @@ namespace LibraryManagement.Business.Services
             };
         }
 
+        public async Task<LoginResponseDto> GoogleLoginAsync(GoogleLoginDto dto)
+        {
+            // Tìm reader theo email Google đã xác thực
+            var reader = await _unitOfWork.ReaderRepository.GetReaderByEmailAsync(dto.Email);
+
+            if (reader == null)
+            {
+                // Tạo Reader mới nếu chưa có tài khoản
+                reader = new Reader
+                {
+                    ReaderId = Guid.NewGuid(),
+                    Email = dto.Email,
+                    // Placeholder hash - user này đăng nhập bằng Google, không có password truyền thống
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()),
+                    Status = "Active",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.Readers.AddAsync(reader);
+
+                var profile = new UserProfile
+                {
+                    UserProfileId = Guid.NewGuid(),
+                    ReaderId = reader.ReaderId,
+                    FullName = dto.FullName ?? dto.Email
+                };
+
+                await _unitOfWork.UserProfiles.AddAsync(profile);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                // Reload để có Navigation property Profile
+                reader = await _unitOfWork.ReaderRepository.GetReaderByEmailAsync(dto.Email);
+            }
+
+            var token = _jwtService.GenerateToken(reader!.ReaderId, reader.Email, "Reader");
+
+            return new LoginResponseDto
+            {
+                UserId = reader.ReaderId,
+                Token = token,
+                Email = reader.Email,
+                FullName = reader.Profile?.FullName,
+                Role = "Reader"
+            };
+        }
+
         public async Task RegisterAsync(RegisterDto dto)
         {
             if (dto.Password != dto.ConfirmPassword)

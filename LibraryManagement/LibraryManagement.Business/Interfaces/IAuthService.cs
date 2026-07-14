@@ -12,6 +12,9 @@ namespace LibraryManagement.Business.Interfaces
         Task RegisterAsync(RegisterDto dto);
 
         Task<LoginResponseDto> LoginAsync(LoginDto dto);
+
+        Task<LoginResponseDto> GoogleLoginAsync(GoogleLoginDto dto);
+
         Task<bool> ForgotPasswordAsync(string email);
         Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
     }
