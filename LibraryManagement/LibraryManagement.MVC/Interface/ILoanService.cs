@@ -18,6 +18,8 @@ public interface ILoanService
 
     Task<string?> ConfirmBorrowRequestsAsync(Guid readerId, List<ConfirmLoanDetailItemViewModel> items);
 
+    Task<string?> RejectBorrowRequestAsync(Guid loanDetailId, string? reason);
+
     Task<string?> ReturnBookAsync(Guid loanDetailId);
 
     Task<LoanListViewModel?> GetMyLoanHistoryAsync(string? searchTerm, string? status, DateTime? fromDate, DateTime? toDate, int pageNumber, int pageSize);
