@@ -6,4 +6,5 @@ namespace LibraryManagement.Business.Interfaces;
 public interface IOverdueNotificationService
 {
     Task<OverdueNotificationResultDto> SendOverdueNotificationsAsync();
+    Task<OverdueNotificationResultDto> SendDueSoonRemindersAsync(int daysAhead = 1);
 }
