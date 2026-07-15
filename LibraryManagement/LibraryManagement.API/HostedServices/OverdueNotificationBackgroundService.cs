@@ -49,9 +49,12 @@ public class OverdueNotificationBackgroundService : BackgroundService
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var notificationService = scope.ServiceProvider.GetRequiredService<IOverdueNotificationService>();
-                    var result = await notificationService.SendOverdueNotificationsAsync();
+                    
+                    var overdueResult = await notificationService.SendOverdueNotificationsAsync();
+                    _logger.LogInformation($"Overdue notification task completed. Total Loans Overdue: {overdueResult.TotalOverdueLoans}, Readers Notified: {overdueResult.TotalReadersNotified}");
 
-                    _logger.LogInformation($"Overdue notification task completed. Total Loans Overdue: {result.TotalOverdueLoans}, Readers Notified: {result.TotalReadersNotified}");
+                    var dueSoonResult = await notificationService.SendDueSoonRemindersAsync(1);
+                    _logger.LogInformation($"Due soon reminder task completed. Total Loans Due Soon: {dueSoonResult.TotalOverdueLoans}, Readers Notified: {dueSoonResult.TotalReadersNotified}");
                 }
             }
             catch (Exception ex)

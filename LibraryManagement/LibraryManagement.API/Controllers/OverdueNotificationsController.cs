@@ -27,4 +27,15 @@ public class OverdueNotificationsController : ControllerBase
             Data = result
         });
     }
+    [HttpPost("send-reminders")]
+    [Authorize(Roles = "Admin,Librarian")]
+    public async Task<IActionResult> SendDueSoonReminders([FromQuery] int daysAhead = 1)
+    {
+        var result = await _notificationService.SendDueSoonRemindersAsync(daysAhead);
+        return Ok(new
+        {
+            Message = $"Gửi thông báo nhắc nhở trước hạn ({daysAhead} ngày) thành công.",
+            Data = result
+        });
+    }
 }
