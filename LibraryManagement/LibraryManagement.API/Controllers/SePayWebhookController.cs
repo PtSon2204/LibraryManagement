@@ -72,8 +72,11 @@ public class SePayWebhookController : ControllerBase
 
         lock (_lock)
         {
-            var found = _receivedTransactions.TryGetValue(transferContent, out var record);
-            if (found && record != null)
+            // Ngân hàng thường tự thêm tiền tố (VD: MBVCB.12345.PHAT2F...) nên phải dùng Contains
+            var record = _receivedTransactions.Values
+                .FirstOrDefault(r => r.Content.Contains(transferContent, StringComparison.OrdinalIgnoreCase));
+
+            if (record != null)
             {
                 // Kiểm tra số tiền khớp (cho phép lệch ±1 để tránh lỗi làm tròn)
                 var amountMatch = Math.Abs(record.Amount - amount) < 1;

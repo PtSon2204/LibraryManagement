@@ -124,7 +124,7 @@ public class FineService : IFineService
             throw new InvalidOperationException("Không tìm thấy phiếu mượn.");
         if (detail.Status == ReturnedStatus)
             throw new InvalidOperationException("Sách này đã được trả trước đó.");
-        if (detail.Status != BorrowedStatus)
+        if (detail.Status != BorrowedStatus && detail.Status != "Overdue")
             throw new InvalidOperationException("Sách chưa được xác nhận mượn, không thể tạo phạt.");
 
         var now = DateTime.UtcNow;

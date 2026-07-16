@@ -38,7 +38,7 @@ public class LoanService : ILoanService
 
         var query = _unitOfWork.Readers.Query()
             .AsNoTracking()
-            .Where(r => r.Loans.Any(l => l.LoanDetails.Any(d => d.Status == PendingStatus || d.Status == BorrowedStatus)));
+            .Where(r => r.Loans.Any(l => l.LoanDetails.Any(d => d.Status == PendingStatus || d.Status == BorrowedStatus || d.Status == "Overdue")));
 
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(r => r.Email.Contains(search)
@@ -57,8 +57,8 @@ public class LoanService : ILoanService
                 Phone = r.Profile != null ? r.Profile.Phone : null,
                 ReaderStatus = r.Status,
                 PendingCount = r.Loans.SelectMany(l => l.LoanDetails).Count(d => d.Status == PendingStatus),
-                BorrowedCount = r.Loans.SelectMany(l => l.LoanDetails).Count(d => d.Status == BorrowedStatus),
-                OverdueCount = r.Loans.SelectMany(l => l.LoanDetails).Count(d => d.Status == BorrowedStatus && d.Loan.DueAt.Date < today),
+                BorrowedCount = r.Loans.SelectMany(l => l.LoanDetails).Count(d => d.Status == BorrowedStatus || d.Status == "Overdue"),
+                OverdueCount = r.Loans.SelectMany(l => l.LoanDetails).Count(d => d.Status == "Overdue" || (d.Status == BorrowedStatus && d.Loan.DueAt.Date < today)),
                 UnpaidFineCount = r.Loans.SelectMany(l => l.LoanDetails).SelectMany(d => d.Fines).Count(f => f.Status == "Unpaid"),
                 UnpaidFineAmount = r.Loans.SelectMany(l => l.LoanDetails).SelectMany(d => d.Fines).Where(f => f.Status == "Unpaid").Sum(f => f.Amount)
             })
@@ -94,7 +94,7 @@ public class LoanService : ILoanService
             ReaderStatus = reader.Status,
             PendingLoans = loans.Where(l => l.Status == PendingStatus).ToList(),
             BorrowedLoans = loans.Where(l => l.Status == BorrowedStatus && !l.IsOverdue).ToList(),
-            OverdueLoans = loans.Where(l => l.Status == BorrowedStatus && l.DueAt.Date < today).ToList()
+            OverdueLoans = loans.Where(l => l.Status == "Overdue" || (l.Status == BorrowedStatus && l.DueAt.Date < today)).ToList()
         };
     }
 
