@@ -55,6 +55,9 @@ namespace LibraryManagement.API
                             .SetMaxTop(100)
                             .AddRouteComponents("odata", GetEdmModel()));
 
+            // Đăng ký Background Service quét và gửi email quá hạn tự động
+            builder.Services.AddHostedService<LibraryManagement.API.BackgroundServices.OverdueNotificationBackgroundService>();
+
             var app = builder.Build();
 
             //SeedData

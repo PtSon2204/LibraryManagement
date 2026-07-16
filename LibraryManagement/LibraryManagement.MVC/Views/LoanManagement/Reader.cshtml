@@ -316,7 +316,8 @@
                     }
 
                     html += `
-                        <div class="form-check mb-2">
+                        <div class="form-check mb-2 fine-item-group">
+                            <input type="hidden" class="fine-index" name="SelectedItems.Index" value="${index}" />
                             <input class="form-check-input fine-checkbox" type="checkbox" 
                                 id="fine_${index}" 
                                 name="SelectedItems[${index}].FineTemplateId" 
@@ -324,7 +325,7 @@
                                 data-amount="${amount}" 
                                 ${isChecked ? 'checked' : ''}
                                 onchange="calculateTotal()">
-                            <input type="hidden" name="SelectedItems[${index}].Amount" value="${amount}" />
+                            <input type="hidden" class="fine-amount" name="SelectedItems[${index}].Amount" value="${amount}" />
                             <label class="form-check-label w-100 d-flex justify-content-between" for="fine_${index}">
                                 <span>${template.name} ${template.fineType === 'PerDay' ? `(${overdueDays} ngày)` : ''}</span>
                                 <span class="fw-semibold text-danger">${amount.toLocaleString()}đ</span>
@@ -351,7 +352,14 @@
             
             // Tắt các input Amount ẩn của checkbox không được chọn để ko gửi lên server
             $('.fine-checkbox').each(function () {
-                $(this).next('input[type="hidden"]').prop('disabled', !this.checked);
+                var isChecked = this.checked;
+                var $container = $(this).closest('.fine-item-group');
+                if ($container.length > 0) {
+                    $container.find('.fine-amount').prop('disabled', !isChecked);
+                    $container.find('.fine-index').prop('disabled', !isChecked);
+                } else {
+                    $(this).next('input[type="hidden"]').prop('disabled', !isChecked);
+                }
             });
         }
 
@@ -401,8 +409,10 @@
             $('#sepayStatus').removeClass('alert-success alert-danger').addClass('alert-warning')
                 .html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang chờ thanh toán...');
                 
+            var apiUrl = '@(Context.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) is Microsoft.Extensions.Configuration.IConfiguration config ? config["ApiSettings:BaseUrl"] : "https://localhost:7229")';
+            
             sepayInterval = setInterval(function() {
-                $.get('/api/sepay/check', { transferContent: transferContent, amount: currentTotal }, function(res) {
+                $.get(apiUrl + '/api/sepay/check', { transferContent: transferContent, amount: currentTotal }, function(res) {
                     if (res.received && res.amountMatch) {
                         stopSePayPolling();
                         $('#sepayStatus').removeClass('alert-warning').addClass('alert-success')
