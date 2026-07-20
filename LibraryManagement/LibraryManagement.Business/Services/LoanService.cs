@@ -560,6 +560,7 @@ public class LoanService : ILoanService
             BookId = d.Copy.BookId,
             BookTitle = d.Copy.Book.Title,
             Barcode = d.Copy.Barcode,
+            ReplacementPrice = d.Copy.ReplacementPrice,
             BorrowerName = d.Loan.BorrowerReader.Profile != null ? d.Loan.BorrowerReader.Profile.FullName : d.Loan.BorrowerReader.Email,
             BorrowerEmail = d.Loan.BorrowerReader.Email,
             BorrowedAt = d.Loan.BorrowedAt,

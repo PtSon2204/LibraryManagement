@@ -12,6 +12,8 @@ public class LoanListItemDto
 
     public string Barcode { get; set; } = string.Empty;
 
+    public decimal ReplacementPrice { get; set; }
+
     public string BorrowerName { get; set; } = string.Empty;
 
     public string BorrowerEmail { get; set; } = string.Empty;

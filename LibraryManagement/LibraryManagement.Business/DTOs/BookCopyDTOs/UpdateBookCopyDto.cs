@@ -20,6 +20,9 @@ namespace LibraryManagement.Business.DTOs.BookCopyDTOs
             ErrorMessage = "Trạng thái phải là Available, Borrowed, Lost hoặc Damaged.")]
         public string Status { get; set; } = null!;
 
+        [Range(typeof(decimal), "1", "9999999999999999.99", ParseLimitsInInvariantCulture = true, ErrorMessage = "Giá thay thế phải lớn hơn 0.")]
+        public decimal ReplacementPrice { get; set; }
+
         /// <summary>Ô kệ chứa bản sao này (null = bỏ khỏi kệ hiện tại)</summary>
         public Guid? ShelfSlotId { get; set; }
     }

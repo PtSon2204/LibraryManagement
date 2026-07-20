@@ -66,7 +66,10 @@ namespace LibraryManagement.MVC.Controllers
         public async Task<IActionResult> Create(CreateBookCopyViewModel model)
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.Slots = await _shelfService.GetAllSlotsAsync();
                 return PartialView("_Create", model);
+            }
 
             var error = await _bookCopyService.CreateBookCopyAsync(model);
             if (error == null)
@@ -97,7 +100,10 @@ namespace LibraryManagement.MVC.Controllers
         public async Task<IActionResult> Generate(GenerateBookCopiesViewModel model)
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.Slots = await _shelfService.GetAllSlotsAsync();
                 return PartialView("_Generate", model);
+            }
 
             var error = await _bookCopyService.GenerateBookCopiesAsync(model);
             if (error == null)
@@ -121,6 +127,7 @@ namespace LibraryManagement.MVC.Controllers
                 BookTitle = copy.BookTitle,
                 Barcode   = copy.Barcode,
                 Status    = copy.Status,
+                ReplacementPrice = copy.ReplacementPrice,
                 ShelfSlotId = copy.ShelfSlotId
             };
             
@@ -132,7 +139,10 @@ namespace LibraryManagement.MVC.Controllers
         public async Task<IActionResult> Edit(UpdateBookCopyViewModel model)
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.Slots = await _shelfService.GetAllSlotsAsync();
                 return PartialView("_Edit", model);
+            }
 
             var error = await _bookCopyService.UpdateBookCopyAsync(model);
             if (error == null)

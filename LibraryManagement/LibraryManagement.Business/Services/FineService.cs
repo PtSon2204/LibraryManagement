@@ -8,9 +8,12 @@ namespace LibraryManagement.Business.Services;
 
 public class FineService : IFineService
 {
+    private static readonly Guid LegacyLostBookTemplateId = Guid.Parse("A1000001-0000-0000-0000-000000000004");
+
     private const string ReturnedStatus = "Returned";
     private const string AvailableStatus = "Available";
     private const string BorrowedStatus = "Borrowed";
+    private const string LostStatus = "Lost";
     private const string UnpaidStatus = "Unpaid";
     private const string PaidStatus = "Paid";
 
@@ -29,7 +32,7 @@ public class FineService : IFineService
     {
         return await _unitOfWork.FineTemplates.Query()
             .AsNoTracking()
-            .Where(t => t.IsActive)
+            .Where(t => t.IsActive && t.FineTemplateId != LegacyLostBookTemplateId)
             .OrderBy(t => t.FineType == "PerDay" ? 0 : 1)
             .ThenBy(t => t.Name)
             .Select(t => new FineTemplateDto
@@ -110,7 +113,7 @@ public class FineService : IFineService
 
     public async Task CreateFinesAndReturnAsync(Guid actorId, CreateFineRequest request)
     {
-        if (request.SelectedItems.Count == 0)
+        if (request.SelectedItems.Count == 0 && !request.IsLostBook)
             throw new InvalidOperationException("Vui lòng chọn ít nhất một khoản phạt.");
 
         var detail = await _unitOfWork.LoanDetails.Query()
@@ -128,7 +131,41 @@ public class FineService : IFineService
             throw new InvalidOperationException("Sách chưa được xác nhận mượn, không thể tạo phạt.");
 
         var now = DateTime.UtcNow;
-        var totalAmount = request.SelectedItems.Sum(i => i.Amount);
+        var overdueDays = Math.Max(0, (now.Date - detail.Loan.DueAt.Date).Days);
+        var selectedTemplateIds = request.SelectedItems.Select(i => i.FineTemplateId).ToList();
+        if (selectedTemplateIds.Count != selectedTemplateIds.Distinct().Count())
+            throw new InvalidOperationException("Danh sách khoản phạt không hợp lệ.");
+
+        var templates = await _unitOfWork.FineTemplates.Query()
+            .AsNoTracking()
+            .Where(t => selectedTemplateIds.Contains(t.FineTemplateId)
+                && t.IsActive
+                && t.FineTemplateId != LegacyLostBookTemplateId)
+            .ToDictionaryAsync(t => t.FineTemplateId);
+
+        if (templates.Count != selectedTemplateIds.Count)
+            throw new InvalidOperationException("Có loại khoản phạt không tồn tại hoặc đã ngừng áp dụng.");
+
+        var fineItems = request.SelectedItems.Select(item =>
+        {
+            var template = templates[item.FineTemplateId];
+            var amount = template.FineType == "PerDay"
+                ? template.Amount * overdueDays
+                : template.Amount;
+            return (Reason: template.Name, Amount: amount);
+        }).ToList();
+
+        if (request.IsLostBook)
+        {
+            if (detail.Copy.ReplacementPrice <= 0)
+                throw new InvalidOperationException("Bản sao chưa có giá thay thế, không thể tạo khoản phạt mất sách.");
+
+            fineItems.Add((Reason: "Mất sách", Amount: detail.Copy.ReplacementPrice));
+        }
+
+        var totalAmount = fineItems.Sum(i => i.Amount);
+        if (totalAmount <= 0)
+            throw new InvalidOperationException("Tổng tiền phạt phải lớn hơn 0.");
 
         // Tạo Payment
         var payment = new Payment
@@ -144,19 +181,15 @@ public class FineService : IFineService
         await _unitOfWork.Payments.AddAsync(payment);
 
         // Tạo Fine records
-        foreach (var item in request.SelectedItems)
+        foreach (var item in fineItems)
         {
-            var template = await _unitOfWork.FineTemplates.Query()
-                .FirstOrDefaultAsync(t => t.FineTemplateId == item.FineTemplateId);
-            var reason = template?.Name ?? "Khoản phạt";
-
             var fine = new Fine
             {
                 FineId = Guid.NewGuid(),
                 LoanDetailId = request.LoanDetailId,
                 PaymentId = payment.PaymentId,
                 Amount = item.Amount,
-                Reason = reason,
+                Reason = item.Reason,
                 Status = PaidStatus,
                 CreatedAt = now,
                 PaidAt = now
@@ -165,10 +198,10 @@ public class FineService : IFineService
         }
 
         // Ghi nhận trả sách
-        detail.Status = ReturnedStatus;
+        detail.Status = request.IsLostBook ? LostStatus : ReturnedStatus;
         detail.ReturnedAt = now;
-        detail.Copy.Status = AvailableStatus;
-        detail.Loan.Status = ReturnedStatus;
+        detail.Copy.Status = request.IsLostBook ? LostStatus : AvailableStatus;
+        detail.Loan.Status = request.IsLostBook ? LostStatus : ReturnedStatus;
         detail.Loan.UpdatedAt = now;
         detail.Loan.ProcessedByAccountId = actorId;
 
@@ -186,7 +219,7 @@ public class FineService : IFineService
                 "[Thư viện] Trả sách thành công (có khoản phạt)",
                 $"<p>Xin chào,</p>" +
                 $"<p>Bạn đã trả thành công cuốn sách <strong>{detail.Copy.Book.Title}</strong>.</p>" +
-                $"<p>Khoản phạt trễ hạn của bạn đã được thanh toán đầy đủ.</p>" +
+                $"<p>Các khoản phạt áp dụng đã được thanh toán đầy đủ.</p>" +
                 $"<p>Cảm ơn bạn đã sử dụng dịch vụ của thư viện. Trân trọng!</p>"
             );
         }

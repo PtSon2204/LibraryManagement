@@ -12,6 +12,7 @@ namespace LibraryManagement.Business.DTOs.BookCopyDTOs
         public string BookTitle { get; set; } = null!;
         public string Barcode { get; set; } = null!;
         public string Status { get; set; } = null!;
+        public decimal ReplacementPrice { get; set; }
         public DateOnly AddedDate { get; set; }
 
         /// <summary>ID ô kệ (null nếu chưa xếp kệ)</summary>

@@ -33,6 +33,7 @@ namespace LibraryManagement.Business.Services
             BookTitle    = copy.Book?.Title ?? string.Empty,
             Barcode      = copy.Barcode,
             Status       = copy.Status,
+            ReplacementPrice = copy.ReplacementPrice,
             ShelfSlotId  = copy.ShelfSlotId,
             SlotLocation = BuildSlotLocation(copy.ShelfSlot),
             AddedDate    = copy.AddedDate
@@ -102,6 +103,7 @@ namespace LibraryManagement.Business.Services
                     BookTitle    = c.Book != null ? c.Book.Title : string.Empty,
                     Barcode      = c.Barcode,
                     Status       = c.Status,
+                    ReplacementPrice = c.ReplacementPrice,
                     ShelfSlotId  = c.ShelfSlotId,
                     SlotLocation = c.ShelfSlot != null ? 
                         ((c.ShelfSlot.Shelf != null && c.ShelfSlot.Shelf.Bookshelf != null && c.ShelfSlot.Shelf.Bookshelf.Floor != null)
@@ -164,6 +166,7 @@ namespace LibraryManagement.Business.Services
                 BookId      = dto.BookId,
                 Barcode     = dto.Barcode,
                 Status      = dto.Status,
+                ReplacementPrice = dto.ReplacementPrice,
                 ShelfSlotId = dto.ShelfSlotId,
                 AddedDate   = dto.AddedDate ?? DateOnly.FromDateTime(DateTime.UtcNow)
             };
@@ -212,6 +215,7 @@ namespace LibraryManagement.Business.Services
                 BookId      = dto.BookId,
                 Barcode     = item.Barcode,
                 Status      = item.Status,
+                ReplacementPrice = item.ReplacementPrice,
                 ShelfSlotId = item.ShelfSlotId,
                 AddedDate   = item.AddedDate ?? today
             }).ToList();
@@ -262,6 +266,7 @@ namespace LibraryManagement.Business.Services
 
             copy.Barcode     = dto.Barcode;
             copy.Status      = dto.Status;
+            copy.ReplacementPrice = dto.ReplacementPrice;
             copy.ShelfSlotId = dto.ShelfSlotId;
 
             _unitOfWork.BookCopies.Update(copy);
