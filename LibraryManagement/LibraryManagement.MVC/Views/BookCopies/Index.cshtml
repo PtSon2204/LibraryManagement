@@ -132,6 +132,7 @@
                         <tr>
                             <th class="ps-4" style="width:50px;">#</th>
                             <th>Barcode</th>
+                            <th>Giá thay thế</th>
                             <th>Trạng thái</th>
                             <th>Vị trí</th>
                             <th>Ngày nhập</th>
@@ -151,6 +152,7 @@
                                         <i class="bi bi-qr-code me-1 opacity-50"></i>@item.Barcode
                                     </span>
                                 </td>
+                                <td class="fw-semibold text-nowrap">@item.ReplacementPrice.ToString("N0") VND</td>
                                 <td>
                                     @{
                                         var (badgeClass, icon) = item.Status switch

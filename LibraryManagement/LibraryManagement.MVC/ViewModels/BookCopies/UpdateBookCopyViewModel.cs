@@ -16,6 +16,9 @@ namespace LibraryManagement.MVC.ViewModels.BookCopies
         [Required]
         public string Status { get; set; } = null!;
 
+        [Range(typeof(decimal), "1", "9999999999999999.99", ParseLimitsInInvariantCulture = true, ErrorMessage = "Giá thay thế phải lớn hơn 0.")]
+        public decimal ReplacementPrice { get; set; }
+
         public Guid? ShelfSlotId { get; set; }
     }
 }

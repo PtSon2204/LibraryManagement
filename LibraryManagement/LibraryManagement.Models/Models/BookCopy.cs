@@ -13,6 +13,9 @@ public partial class BookCopy
 
     public string Status { get; set; } = null!;
 
+    /// <summary>Giá thay thế áp dụng khi bản sao bị mất hoặc hư hỏng không thể sử dụng.</summary>
+    public decimal ReplacementPrice { get; set; }
+
     /// <summary>FK đến ShelfSlot — ô kệ vật lý chứa bản sao này (nullable)</summary>
     public Guid? ShelfSlotId { get; set; }
 

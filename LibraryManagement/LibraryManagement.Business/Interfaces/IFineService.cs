@@ -12,7 +12,7 @@ public interface IFineService
     Task DeleteTemplateAsync(Guid id);
 
     // ─── Fine Operations ─────────────────────────────────────────────────────
-    /// <summary>Tạo khoản phạt + Payment + ghi nhận trả sách về Available</summary>
+    /// <summary>Tạo khoản phạt + Payment và kết thúc lượt mượn; bản sao mất được giữ ở trạng thái Lost.</summary>
     Task CreateFinesAndReturnAsync(Guid actorId, CreateFineRequest request);
 
     /// <summary>Lấy danh sách khoản phạt (Admin)</summary>

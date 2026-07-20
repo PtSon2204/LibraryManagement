@@ -147,6 +147,9 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(30)
                 .HasDefaultValue("Available");
+            entity.Property(e => e.ReplacementPrice)
+                .HasColumnType("decimal(18, 2)")
+                .HasDefaultValue(0m);
 
             entity.HasOne(d => d.Book).WithMany(p => p.BookCopies)
                 .HasForeignKey(d => d.BookId)

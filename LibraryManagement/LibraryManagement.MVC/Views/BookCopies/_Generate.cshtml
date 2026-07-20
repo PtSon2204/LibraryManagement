@@ -49,6 +49,17 @@
             </div>
         </div>
 
+        <div class="mt-3">
+            <label asp-for="ReplacementPrice" class="form-label fw-semibold">
+                <i class="bi bi-cash-coin me-1 text-muted"></i>Giá thay thế cho mỗi bản sao <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+                <input asp-for="ReplacementPrice" type="number" min="1" step="0.01" class="form-control" />
+                <span class="input-group-text">VND</span>
+            </div>
+            <span asp-validation-for="ReplacementPrice" class="text-danger small"></span>
+        </div>
+
         <div class="row g-3 mt-0">
             <div class="col-md-8">
                 <label asp-for="ShelfSlotId" class="form-label fw-semibold">

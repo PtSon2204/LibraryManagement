@@ -16,14 +16,13 @@ public class CreateFineViewModel
     public List<SelectedFineItemViewModel> SelectedItems { get; set; } = new();
     public string PaymentMethod { get; set; } = "Cash";
     public string? Note { get; set; }
-    public int OverdueDays { get; set; }
+    public bool IsLostBook { get; set; }
     public Guid ReaderId { get; set; }
 }
 
 public class SelectedFineItemViewModel
 {
     public Guid FineTemplateId { get; set; }
-    public decimal Amount { get; set; }
 }
 
 public class FineListItemViewModel

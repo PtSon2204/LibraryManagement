@@ -121,6 +121,10 @@
                                         <input type="hidden" name="ReaderId" value="@Model.ReaderId" />
                                         <button type="submit" class="btn btn-sm btn-outline-success">Ghi nhận trả</button>
                                     </form>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-1"
+                                            onclick="openFineModal('@loan.LoanDetailId', 0, @loan.ReplacementPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))">
+                                        Tạo khoản phạt
+                                    </button>
                                 </td>
                             </tr>
                         }
@@ -150,7 +154,7 @@
                                 <td><span class="badge text-bg-light">@loan.Barcode</span></td>
                                 <td class="text-danger fw-semibold">@loan.DueAt.ToString("dd/MM/yyyy")</td>
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="openFineModal('@loan.LoanDetailId', @((int)Math.Max(0, (DateTime.UtcNow.Date - loan.DueAt.Date).TotalDays)))">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="openFineModal('@loan.LoanDetailId', @((int)Math.Max(0, (DateTime.UtcNow.Date - loan.DueAt.Date).TotalDays)), @loan.ReplacementPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))">
                                         Tạo khoản phạt
                                     </button>
                                 </td>
@@ -207,8 +211,16 @@
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="LoanDetailId" id="fineLoanDetailId" />
                     <input type="hidden" name="ReaderId" value="@Model.ReaderId" />
-                    <input type="hidden" name="OverdueDays" id="fineOverdueDays" />
                     <input type="hidden" name="PaymentMethod" id="finePaymentMethod" value="Cash" />
+
+                    <div class="form-check mb-3 p-3 border border-danger-subtle rounded-3 bg-danger-subtle">
+                        <input class="form-check-input lost-book-checkbox" type="checkbox" id="isLostBook" name="IsLostBook" value="true" onchange="calculateTotal()" />
+                        <label class="form-check-label w-100 d-flex justify-content-between" for="isLostBook">
+                            <span><i class="bi bi-bookmark-x me-1"></i>Mất sách</span>
+                            <span id="lostBookAmount" class="fw-semibold text-danger">0đ</span>
+                        </label>
+                        <div class="small text-muted mt-1">Khoản phạt bằng giá thay thế của bản sao.</div>
+                    </div>
                     
                     <div id="fineTemplatesContainer" class="mb-3">
                         <div class="text-center text-muted py-3">Đang tải dữ liệu...</div>
@@ -289,12 +301,15 @@
         let currentOverdueDays = 0;
         let transferContent = '';
         let currentTotal = 0;
+        let currentReplacementPrice = 0;
         let sepayInterval = null;
 
-        function openFineModal(loanDetailId, overdueDays) {
+        function openFineModal(loanDetailId, overdueDays, replacementPrice) {
             $('#fineLoanDetailId').val(loanDetailId);
-            $('#fineOverdueDays').val(overdueDays);
             currentOverdueDays = overdueDays;
+            currentReplacementPrice = replacementPrice;
+            $('#isLostBook').prop('checked', false);
+            $('#lostBookAmount').text(currentReplacementPrice.toLocaleString() + 'đ');
             
             // Load templates
             $.get('@Url.Action("GetFineTemplates", "LoanManagement")', function (data) {
@@ -325,7 +340,6 @@
                                 data-amount="${amount}" 
                                 ${isChecked ? 'checked' : ''}
                                 onchange="calculateTotal()">
-                            <input type="hidden" class="fine-amount" name="SelectedItems[${index}].Amount" value="${amount}" />
                             <label class="form-check-label w-100 d-flex justify-content-between" for="fine_${index}">
                                 <span>${template.name} ${template.fineType === 'PerDay' ? `(${overdueDays} ngày)` : ''}</span>
                                 <span class="fw-semibold text-danger">${amount.toLocaleString()}đ</span>
@@ -347,6 +361,9 @@
             $('.fine-checkbox:checked').each(function () {
                 currentTotal += parseFloat($(this).data('amount'));
             });
+            if ($('#isLostBook').is(':checked')) {
+                currentTotal += currentReplacementPrice;
+            }
             $('#fineTotalAmount').text(currentTotal.toLocaleString());
             $('.payment-total-display').text(currentTotal.toLocaleString() + 'đ');
             
@@ -355,10 +372,7 @@
                 var isChecked = this.checked;
                 var $container = $(this).closest('.fine-item-group');
                 if ($container.length > 0) {
-                    $container.find('.fine-amount').prop('disabled', !isChecked);
                     $container.find('.fine-index').prop('disabled', !isChecked);
-                } else {
-                    $(this).next('input[type="hidden"]').prop('disabled', !isChecked);
                 }
             });
         }
