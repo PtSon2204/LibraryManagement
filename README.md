@@ -152,9 +152,6 @@ Hoặc chạy trực tiếp các file SQL seed data có sẵn:
 | File | Nội dung |
 |---|---|
 | `SeedData_52Books.sql` | 52 cuốn sách mẫu |
-| `SeedData_ReaderLoansFines.sql` | Độc giả, lượt mượn, tiền phạt |
-| `Add_DueSoon_He181997.sql` | Sách sắp đến hạn |
-| `Add_Overdue_Oniichan.sql` | Sách quá hạn |
 
 ### 5. Chạy ứng dụng
 
@@ -204,13 +201,13 @@ Dự án được thực hiện trong khuôn khổ môn học **PRN232** tại F
 
 | Tên | GitHub |
 |---|---|
-| Phạm Thế Sơn | [@PtSon2204](https://github.com/PtSon2204) |
-| Nguyễn Đức Dũng | [@NguyenDucDung](https://github.com/NguyenDucDung) |
-| Nguyễn Phúc Lâm | [@NguyenPhucLam](https://github.com/NguyenPhucLam) |
+| Phạm Thế Sơn | [PtSon2204](https://github.com/PtSon2204) |
+| Nguyễn Đức Dũng | [ngdung80](https://github.com/ngdung80) |
+| Nguyễn Phúc Lâm | [lamnguyen231](https://github.com/lamnguyen231) |
 
 ---
 
 ## 📬 Liên hệ
 
-📧 Email: [he181997phamtheson@gmail.com](mailto:he181997phamtheson@gmail.com)  
+📧 Email: [thesonpham28@gmail.com](mailto:thesonpham@gmail.com)  
 🐙 GitHub: [https://github.com/PtSon2204/LibraryManagement](https://github.com/PtSon2204/LibraryManagement)
